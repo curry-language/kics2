@@ -18,8 +18,10 @@ empty     :=
 space     := $(empty) $(empty)
 # a b c -> a, b, c
 comma_sep  = $(subst $(space),$(comma)$(space),$(1))
+# pack-age-0.0.1 -> pack-age == 0.0.1
+version_bounds = $(shell echo "$(1)" | sed 's/\b-\([0-9]\+\(\.[0-9]\+\)*\)\b/ == \1/g')
 # runtime dependencies as comma separated list
-CABAL_RUNTIMEDEPS  = $(call comma_sep,$(RUNTIMEDEPS))
+CABAL_RUNTIMEDEPS  = $(call version_bounds,$(call comma_sep,$(RUNTIMEDEPS)))
 # GHC options passed to the cabal file
 CABAL_GHC_OPTS = $(RUNTIMEFLAGS:%=-D%)
 
