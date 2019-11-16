@@ -6,27 +6,29 @@
 --- --------------------------------------------------------------------------
 module Compile where
 
-import Char              (isSpace)
-import Maybe             (fromJust)
-import List              (intercalate, isPrefixOf)
-import Directory         (doesFileExist)
-import FilePath          (FilePath, (</>), dropExtension, normalise)
-import Data.FiniteMap
+import ReadShowTerm                (readQTermFile)
+import Data.Char                   (isSpace)
+import Data.Maybe                  (fromJust)
+import Data.List                   (intercalate, isPrefixOf)
+import Data.Map                    (union)
+import Control.Monad               (when, foldM)
+import System.Directory            (doesFileExist)
+import System.FilePath             (FilePath, (</>), dropExtension, normalise)
+import System.IOExts               (readCompleteFile)
+import System.Environment          (getArgs)
+
+import System.CurryPath            ( getLoadPathForModule, stripCurrySuffix
+                                   , lookupModuleSourceInLoadPath
+                                   )
 import FlatCurry.Types
-import FlatCurry.Goodies (updQNamesInProg)
+import FlatCurry.Goodies           (updQNamesInProg)
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Files   (typedFlatCurryFileName)
 import FlatCurry.Annotated.Goodies (unAnnProg)
-import IOExts            (readCompleteFile)
-import ReadShowTerm      (readQTermFile)
-import System            (getArgs)
 
-import System.CurryPath ( getLoadPathForModule, lookupModuleSourceInLoadPath
-                        , stripCurrySuffix )
-
-import qualified AbstractHaskell        as AH
-import qualified AbstractHaskellGoodies as AHG (funcName, renameSymbolInProg, typeOf)
-import qualified AbstractHaskellPrinter as AHP
+import qualified AbstractHaskell.Types   as AH
+import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)
+import qualified AbstractHaskell.Printer as AHP
 import Analysis               (AnalysisResult, showAnalysisResult, readAnalysisResult)
 import CompilerOpts
 import RCFile
@@ -52,11 +54,11 @@ main = do
   rcFileDefs      <- readRC
   args            <- getArgs
   (opts, modules) <- getCompilerOpts
-  mapIO_ (build opts { rcVars = updateRCDefs rcFileDefs
+  mapM_ (build opts { rcVars = updateRCDefs rcFileDefs
                                              (snd (extractRCArgs args))
-                     , optMainVerbosity = optVerbosity opts
-                     })
-         modules
+                    , optMainVerbosity = optVerbosity opts
+                    })
+        modules
 
 --- Load the module, resolve the dependencies and compile the source files
 --- if necessary.
@@ -68,8 +70,8 @@ build opts mn = do
     Just f -> do
       (mods, errs) <- deps opts mn f
       if null errs
-        then foldIO (makeModule mods) initState (zip mods [1 .. ]) >> done
-        else mapIO_ putErrLn errs
+        then foldM (makeModule mods) initState (zip mods [1 .. ]) >> return ()
+        else mapM_ putErrLn errs
  where initState = defaultState { compOptions = opts }
 
 
@@ -123,18 +125,18 @@ writeAnalysis opts mid fn analysis = do
 readAnalysis :: Options -> ModuleIdent -> FilePath -> IO AnalysisResult
 readAnalysis opts mid fn = do
   showDetail opts $ "Reading Analysis file " ++ ndaFile
-  readAnalysisResult `liftIO` readQTermFile ndaFile
+  readAnalysisResult <$> readQTermFile ndaFile
     where ndaFile = analysisFile (optOutputSubdir opts) mid fn
 
 loadAnalysis :: Int -> State -> ((ModuleIdent, Source), Int) -> IO State
 loadAnalysis total state ((mid, (fn, _, _)), current) = do
   showStatus opts $ compMessage (current, total) "Analyzing" mid (fn, ndaFile)
   (types, ndAna, hoType, hoCons, hoFunc) <- readAnalysis opts mid fn
-  return state { typeMap      = (typeMap state)      `plusFM` types
-               , ndResult     = (ndResult state)     `plusFM` ndAna
-               , hoResultType = (hoResultType state) `plusFM` hoType
-               , hoResultCons = (hoResultCons state) `plusFM` hoCons
-               , hoResultFunc = (hoResultFunc state) `plusFM` hoFunc
+  return state { typeMap      = typeMap state      `union` types
+               , ndResult     = ndResult state     `union` ndAna
+               , hoResultType = hoResultType state `union` hoType
+               , hoResultCons = hoResultCons state `union` hoCons
+               , hoResultFunc = hoResultFunc state `union` hoFunc
                }
     where
       ndaFile = analysisFile (optOutputSubdir opts) mid fn
@@ -211,7 +213,7 @@ compileModule total state ((mid, (fn, _, tfcyFileName)), current) = do
     dest           = destFile (optTraceFailure opts) (optOutputSubdir opts) mid fn
     funcInfo       = funcInfoFile (optOutputSubdir opts) mid fn
     opts           = compOptions state
-    fcyFile f     = withExtension (const ".fcy") f
+    fcyFile f      = withExtension (const ".fcy") f
     tfcyFile f     = withExtension (const ".tfcy") f
     ahsFile f      = withExtension (const ".ahs") f
 
@@ -280,7 +282,8 @@ integrateExternals opts (AH.Prog m is td fd od) fn = do
                    , "#endif"
                    ]
   ppOpts = AHP.defaultOptions { AHP.traceFailure  = optTraceFailure opts
-                              , AHP.currentModule = m }
+                              , AHP.currentModule = m
+                              , AHP.qualImpModule = isCurryModule }
 
 -- lookup an external file for a module and return either the content or an
 -- empty String

@@ -1,0 +1,53 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+import Data.IORef
+import System.IO.Unsafe   (unsafePerformIO) -- for global associations
+import System.Process     (readProcessWithExitCode, runInteractiveCommand)
+import Control.Concurrent (forkIO)
+import System.IO
+
+external_d_C_prim_execCmd :: Curry_Prelude.C_String -> Cover -> ConstStore
+  -> Curry_Prelude.C_IO (Curry_Prelude.OP_Tuple3 Curry_IO.C_Handle Curry_IO.C_Handle Curry_IO.C_Handle)
+external_d_C_prim_execCmd str _ _ = toCurry
+  (\s -> do (h1,h2,h3,_) <- runInteractiveCommand s
+            return (OneHandle h1, OneHandle h2, OneHandle h3)) str
+
+external_d_C_prim_evalCmd :: Curry_Prelude.C_String -> Curry_Prelude.OP_List Curry_Prelude.C_String -> Curry_Prelude.C_String
+  -> Cover -> ConstStore -> Curry_Prelude.C_IO (Curry_Prelude.OP_Tuple3 Curry_Prelude.C_Int Curry_Prelude.C_String Curry_Prelude.C_String)
+external_d_C_prim_evalCmd cmd args input _ _
+  = toCurry readProcessWithExitCode cmd args input
+
+external_d_C_prim_connectToCmd :: Curry_Prelude.C_String -> Cover -> ConstStore
+                               -> Curry_Prelude.C_IO Curry_IO.C_Handle
+external_d_C_prim_connectToCmd str _ _ = toCurry
+  (\s -> do (hin,hout,herr,_) <- runInteractiveCommand s
+            forkIO (forwardError herr)
+            return (InOutHandle hout hin)) str
+
+forwardError :: Handle -> IO ()
+forwardError h = do
+   eof <- hIsEOF h
+   if eof then return ()
+          else hGetLine h >>= hPutStrLn stderr >> forwardError h
+
+
+-----------------------------------------------------------------------
+-- Implementation of global associations as simple association lists
+-- (could be later improved by a more efficient implementation, e.g., maps)
+
+type Assocs = [(String,String)]
+
+assocs :: IORef Assocs
+assocs = unsafePerformIO (newIORef [])
+
+external_d_C_prim_setAssoc :: Curry_Prelude.C_String -> Curry_Prelude.C_String -> Cover -> ConstStore
+                           -> Curry_Prelude.C_IO Curry_Prelude.OP_Unit
+external_d_C_prim_setAssoc str1 str2 _ _ = toCurry
+  (\key val -> do as <- readIORef assocs
+                  writeIORef assocs ((key,val):as)) str1 str2
+
+external_d_C_prim_getAssoc :: Curry_Prelude.C_String -> Cover -> ConstStore
+                           -> Curry_Prelude.C_IO (Curry_Prelude.C_Maybe (Curry_Prelude.C_String))
+external_d_C_prim_getAssoc str _ _ = toCurry
+  (\key -> do as <- readIORef assocs
+              return (lookup key as)) str
+

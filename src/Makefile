@@ -19,10 +19,9 @@ KICS2C     = $(COMP) -v2 --parse-options=-Wall -i$(LIBDIR)
 CURRY_OPTS =
 
 # Source modules of the compiler (without standard libraries)
-COMPILE_DEPS = AbstractHaskell AbstractHaskellGoodies AbstractHaskellPrinter \
-               Analysis Classification CompilerOpts EliminateCond Files      \
+COMPILE_DEPS = Analysis Classification CompilerOpts EliminateCond Files      \
                LiftCase Message ModuleDeps                                   \
-               Names SimpleMake State TransFunctions TransTypes Utils
+               Names SimpleMake TransFunctions TransTypes Utils
 
 # Source modules of the REPL (without standard libraries)
 REPL_DEPS = Files GhciComm Linker Names RCFile Utils
@@ -82,8 +81,8 @@ cleanall: clean
 
 $(INSTALLCURRY): $(INSTALLHS)
 	cat $< | \
-	  sed "s|^import System.Directory|import Directory|" | \
-	  sed "s|^import System.IO.Unsafe|import Unsafe|" > $@
+	  sed "s|^import System.Directory|import System.Directory|" | \
+	  sed "s|^import System.IO.Unsafe|import System.IO.Unsafe|" > $@
 
 # generate executable for Curry->Haskell compiler via PAKCS or other KiCS2
 .PHONY: CompileInitial

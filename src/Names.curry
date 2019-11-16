@@ -7,17 +7,17 @@
 --- --------------------------------------------------------------------------
 module Names where
 
-import Char            (isAlphaNum)
-import FilePath        ( FilePath
+import Data.Char       (isAlphaNum)
+import Data.List       (intercalate, isPrefixOf, last)
+import System.FilePath ( FilePath
                        , addTrailingPathSeparator, joinPath, normalise
                        , splitDirectories, splitExtension, splitFileName
                        , (<.>), (</>)
                        )
-import List            (intercalate, isPrefixOf, last)
 
-import AbstractHaskell (QName)
-import Classification  (NDClass (..), ConsHOClass (..), FuncHOClass (..))
-import Files           (withComponents, (</?>))
+import AbstractHaskell.Types (QName)
+import Classification        (NDClass (..), ConsHOClass (..), FuncHOClass (..))
+import Files                 (withComponents, (</?>))
 
 -- ---------------------------------------------------------------------------
 -- Renaming file names

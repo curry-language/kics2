@@ -16,9 +16,9 @@ module Data.PropertyFile
   )
  where
 
-import Char
-import Directory
-import IOExts
+import Data.Char
+import System.Directory
+import System.IOExts
 
 ------------------------------------------------------------------------------
 --- Reads a property file and returns the list of properties.

@@ -27,13 +27,13 @@
 
 module DefaultPolymorphic (defaultPolymorphic) where
 
-import List ((\\), nub)
+import Data.List ((\\), nub)
 
-import Data.FiniteMap
+import Control.Monad.Trans.State
+import Data.Map
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies
 import FlatCurry.Annotated.TypeSubst
-import State
 
 --- The Default Polymorphic Monad contains a type substitution as its state.
 type DPM a = State AFCSubst a
@@ -58,13 +58,13 @@ dpFunc afunc@(AFunc f k v t r)
   | take 6 (snd f) `elem` ["_impl#", "_inst#"] = afunc
   | otherwise
   = let vs = tyVars t
-        (r', sigma) = runState (dpRule r) (listToFM (<) (zip vs (map TVar vs)))
+        (r', sigma) = runState (dpRule r) (fromList (zip vs (map TVar vs)))
     in  substFunc sigma (AFunc f k v t r')
 
 --- Transform a single rule.
 dpRule :: ARule TypeExpr -> DPM (ARule TypeExpr)
-dpRule (ARule   ty vs e) = ARule ty vs `liftS` dpExpr e
-dpRule e@(AExternal _ _) = returnS e
+dpRule (ARule   ty vs e) = ARule ty vs <$> dpExpr e
+dpRule e@(AExternal _ _) = return e
 
 --- Transform a single expression.
 --- Expressions are transformed in a bottom-up manner, such that the smallest
@@ -91,28 +91,28 @@ dpExpr = trExpr var lit cmb lat fre orr cse bra typ
   where
   var ty v        = dflt ty $ AVar ty v
   lit ty l        = dflt ty $ ALit ty l
-  cmb ty ct qn es = (AComb ty ct qn `liftS` sequenceS es) `bindS` dflt ty
+  cmb ty ct qn es = (AComb ty ct qn <$> sequence es) >>= dflt ty
   lat ty     bs e = let (vs, es) = unzip bs in
-                    sequenceS es `bindS` \es' ->
-                    e `bindS` \e' ->
+                    sequence es >>= \es' ->
+                    e >>= \e' ->
                     dflt ty $ ALet ty (zip vs es') e'
-  fre ty     vs e = e `bindS` dflt ty . AFree ty vs
-  orr ty    e1 e2 = liftS2 (AOr ty) e1 e2 `bindS` dflt ty
-  cse ty  ct e bs = liftS2 (ACase ty ct) e (sequenceS bs)
-  bra         p e = ABranch p `liftS` e
-  typ ty    e ty2 = ((\e' -> ATyped ty e' ty2) `liftS` e) `bindS` dflt ty
+  fre ty     vs e = e >>= dflt ty . AFree ty vs
+  orr ty    e1 e2 = liftM2 (AOr ty) e1 e2 >>= dflt ty
+  cse ty  ct e bs = liftM2 (ACase ty ct) e (sequence bs)
+  bra         p e = ABranch p <$> e
+  typ ty    e ty2 = ((\e' -> ATyped ty e' ty2) <$> e) >>= dflt ty
 
 --- Check whether the given `TypeExpr` contains new local type variables
 --- and replace them with the `defaultType` if necessary.
 dflt :: TypeExpr -> AExpr TypeExpr -> DPM (AExpr TypeExpr)
 dflt ty e
-  = getS `bindS` \sub ->
-    let new = filter (\v -> not (elemFM v sub)) vs in
-    if null new
-      then returnS e
-      else let sub' = listToFM (<) $ zip new (repeat defaultType) in
-            modifyS (plusFM sub') `bindS_`
-            returnS (ATyped ty e ty)
+  = get >>= \sub ->
+    let new = filter (\v -> not (v `member` sub)) vs in
+    if Prelude.null new
+      then return e
+      else let sub' = fromList $ zip new (repeat defaultType) in
+            modify (union sub') >>
+            return (ATyped ty e ty)
   where vs = tyVars ty
 
 --- Retrieve all type variables in a type expression.

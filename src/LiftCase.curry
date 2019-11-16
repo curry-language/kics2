@@ -22,8 +22,8 @@ module LiftCase (isCaseAuxFuncName, liftCases) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies
-import List                      (isPrefixOf, partition, delete, nub, sortBy)
-import Data.FiniteMap
+import Data.List                   (isPrefixOf, partition, delete, nub, sortBy)
+import Data.Map
 
 isCaseAuxFuncName :: String -> Bool
 isCaseAuxFuncName n = take 6 n == "_case_"
@@ -110,7 +110,7 @@ liftCasesFunc onlyNested mod aux f (esMain,i0,ffMain) =
           envRes :: [(VarIndex, TypeExpr)]
           envRes = nub (ve ++ vbs)
           env = case e' of
-                  AVar ty' v -> delete (v, ty') envRes
+                  AVar ty' v -> Data.List.delete (v, ty') envRes
                   _          -> envRes
       in ( genFuncCall mod aux i'' ty env e'
          , i''+1

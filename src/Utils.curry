@@ -13,8 +13,8 @@ module Utils
   ) where
 
 import AbstractCurry.Types
-import List                 (intercalate)
-import Char                 (isSpace)
+import Data.List           (intercalate)
+import Data.Char           (isSpace)
 
 
 --------------------------------------------------------------------------

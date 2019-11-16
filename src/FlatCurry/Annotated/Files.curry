@@ -9,17 +9,17 @@
 
 module FlatCurry.Annotated.Files where
 
-import Directory       ( doesFileExist )
-import FileGoodies     ( getFileInPath)
-import FilePath        ( takeFileName, (</>), (<.>) )
-import ReadShowTerm    ( readUnqualifiedTerm ) -- for faster reading
-
-import System.CurryPath    ( inCurrySubdir, stripCurrySuffix
-                           , lookupModuleSourceInLoadPath, getLoadPathForModule
-                           )
-import System.FrontendExec ( FrontendParams, FrontendTarget (..)
-                           , defaultParams, setQuiet, callFrontendWithParams )
-
+import System.FilePath  (takeFileName, (</>), (<.>))
+import System.Directory (doesFileExist, getFileWithSuffix)
+import System.FrontendExec
+                        ( FrontendParams, FrontendTarget (..), defaultParams
+                        , setQuiet
+                        , callFrontend, callFrontendWithParams)
+import System.CurryPath ( lookupModuleSourceInLoadPath, getLoadPathForModule
+                        , inCurrySubdir, stripCurrySuffix
+                        )
+import Data.Maybe       (isNothing)
+import ReadShowTerm     (readUnqualifiedTerm, showTerm)
 import FlatCurry.Annotated.Types
 
 readTypedFlatCurry :: String -> IO (AProg TypeExpr)
@@ -32,8 +32,9 @@ readTypedFlatCurryWithParseOptions progname options = do
   case mbsrc of
     Nothing -> do -- no source file, try to find FlatCurry file in load path:
       loadpath <- getLoadPathForModule progname
-      filename <- getFileInPath (typedFlatCurryFileName (takeFileName progname)) [""]
-                                loadpath
+      filename <- getFileWithSuffix
+                    (typedFlatCurryFileName (takeFileName progname)) [""]
+                    loadpath
       readTypedFlatCurryFile filename
     Just (dir,_) -> do
       callFrontendWithParams TFCY options progname

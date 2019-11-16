@@ -1,29 +1,22 @@
 ------------------------------------------------------------------------------
---- Library to support meta-programming in Curry.
----
---- This library contains a definition for representing Haskell or Curry
---- programs in Curry (type "Prog").
----
---- Note: this definition contains support for type classes which
---- are currently not part of Curry but can be used to generate also
---- Haskell programs. It also contains representation of logic variables
---- which are not part of Haskell.
+--- This library contains a definition for representing Haskell programs
+--- in Curry (type "Prog").
 ---
 --- @author Michael Hanus, Björn Peemöller
---- @version May 2015
+--- @version May 2017
 ------------------------------------------------------------------------------
 
-module AbstractHaskell where
+module AbstractHaskell.Types where
 
 ------------------------------------------------------------------------------
--- Definition of data types for representing abstract Curry programs:
--- ==================================================================
+-- Definition of data types for representing abstract Haskell programs:
+-- ====================================================================
 
---- Data type for representing a Curry module in the intermediate form.
+--- Data type for representing a Haskell module in the intermediate form.
 --- A value of this data type has the form
---- <CODE>
----  (CProg modname imports typedecls functions opdecls)
---- </CODE>
+--- 
+---    (CProg modname imports typedecls functions opdecls)
+--- 
 --- where modname: name of this module,
 ---       imports: list of modules names that are imported,
 ---       typedecls, opdecls, functions: see below
@@ -39,7 +32,7 @@ type QName = (String, String)
 --- Data type to specify the visibility of various entities.
 data Visibility = Public    -- exported entity
                 | Private   -- private entity
-  deriving (Eq, Show)
+  deriving (Eq,Show)
 
 --- The data type for representing type variables.
 --- They are represented by (i,n) where i is a type variable index
@@ -52,14 +45,13 @@ type TVarIName = (Int, String)
 ---
 --- A data type definition of the form
 ---
---- <code>data t x1...xn = ...| c t1....tkc |...</code>
+---     data t x1...xn = ...| c t1....tkc |...
 ---
 --- is represented by the Curry term
 ---
---- <code>(Type t v [i1,...,in] [...(ons c kc v [t1,...,tkc])...])</code>
+---     (Type t v [i1,...,in] [...(ons c kc v [t1,...,tkc])...])
 ---
---- where each <code>ij</code> is the index of the type variable
---- <code> xj</code>.
+--- where each `ij` is the index of the type variable `xj`.
 ---
 --- Note: the type variable indices are unique inside each type declaration
 ---       and are usually numbered from 0
@@ -70,11 +62,11 @@ data TypeDecl
   = Type     QName Visibility [TVarIName] [ConsDecl]
   | TypeSyn  QName Visibility [TVarIName] TypeExpr
   | Instance QName TypeExpr [Context] [(QName, Rule)]
-  deriving (Show)
+  deriving Show
 
 --- A single type context is class name applied to type variables.
 data Context = Context QName [TypeExpr]
-  deriving (Eq, Show)
+  deriving (Eq,Show)
 
 --- A constructor declaration consists of the name and arity of the
 --- constructor and a list of the argument types of the constructor.
@@ -87,7 +79,7 @@ data ConsDecl = Cons QName Int Visibility [TypeExpr]
 --- or a type constructor application.
 ---
 --- Note: the names of the predefined type constructors are
----       "Int", "Float", "Bool", "Char", "IO", "Success",
+---       "Int", "Float", "Bool", "Char", "IO",
 ---       "()" (unit type), "(,...,)" (tuple types), "[]" (list type)
 data TypeExpr
   = TVar TVarIName                            -- type variable
@@ -95,7 +87,7 @@ data TypeExpr
   | TCons QName [TypeExpr]                    -- type constructor application
                                               -- (TCons (module,name) arguments)
   | ForallType [TVarIName] [Context] TypeExpr -- explicitly quantified type expression
-  deriving (Eq, Show)
+  deriving (Eq,Show)
 
 --- Data type to represent the type signature of a defined function.
 --- The type can be missing or a type with an optional context.
@@ -105,7 +97,7 @@ data TypeSig
   deriving Show
 
 --- Data type for operator declarations.
---- An operator declaration "fix p n" in Curry corresponds to the
+--- An operator declaration "fix p n" in Haskell corresponds to the
 --- AbstractHaskell term (Op n fix p).
 data OpDecl = Op QName Fixity Int
   deriving Show
@@ -125,22 +117,20 @@ type VarIName = (Int, String)
 ---
 --- A function declaration in AbstractHaskell is a term of the form
 ---
---- <code>
---- (Func cmt name arity visibility type (Rules eval [Rule rule1,...,rulek]))
---- </code>
+---     (Func cmt name arity visibility type (Rules eval [Rule rule1,...,rulek]))
 ---
---- and represents the function <code>name</code> defined by the rules
---- <code>rule1,...,rulek</code>.
+--- and represents the function `name` defined by the rules `rule1,...,rulek`.
 ---
 --- Note: the variable indices are unique inside each rule
 ---
 --- External functions are represented as
---- <code>(Func cmt name arity type External)</code>.
+---
+---     (Func cmt name arity type External)
 ---
 --- Thus, a function declaration consists of the comment, name, arity, type,
 --- and a list of rules. The type is optional according to its occurrence in
 --- the source text. The comment could be used
---- by pretty printers that generate a readable Curry program
+--- by pretty printers that generate a readable Haskell program
 --- containing documentation comments.
 data FuncDecl = Func String QName Int Visibility TypeSig Rules
   deriving Show
@@ -153,7 +143,7 @@ data Rules
   deriving Show
 
 --- The most general form of a rule. It consists of a list of patterns
---- (left-hand side), a list of guards ("success" if not present in the
+--- (left-hand side), a list of guards ("True" if not present in the
 --- source text) with their corresponding right-hand sides, and
 --- a list of local declarations.
 data Rule = Rule [Pattern] Rhs [LocalDecl]
@@ -202,7 +192,7 @@ data Pattern
   | PLit Literal               -- literal (Integer/Float/Char constant)
   | PComb QName [Pattern]      -- application (m.c e1 ... en) of n-ary
                                -- constructor m.c (PComb (m,c) [e1,...,en])
-  | PAs VarIName Pattern       -- as-pattern (extended Curry)
+  | PAs VarIName Pattern       -- as-pattern
   | PTuple [Pattern]
   | PList [Pattern]
   deriving Show

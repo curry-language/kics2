@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="no"?> 
+<!DOCTYPE primitives SYSTEM "http://www.informatik.uni-kiel.de/~pakcs/primitives.dtd"> 
+<primitives> 
+ <primitive name="prim_showQTerm" arity="1"> 
+  <library>prim_readshowterm</library> 
+  <entry>prim_showQTerm</entry> 
+ </primitive> 
+ <primitive name="prim_showTerm" arity="1"> 
+  <library>prim_readshowterm</library> 
+  <entry>prim_showTerm</entry> 
+ </primitive> 
+ <primitive name="prim_readsQTerm" arity="1"> 
+  <library>prim_readshowterm</library> 
+  <entry>prim_readsQTerm</entry> 
+ </primitive> 
+ <primitive name="prim_readsUnqualifiedTerm" arity="2"> 
+  <library>prim_readshowterm</library> 
+  <entry>prim_readsUnqualifiedTerm</entry> 
+ </primitive> 
+</primitives> 

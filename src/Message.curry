@@ -6,7 +6,8 @@
 --- --------------------------------------------------------------------------
 module Message where
 
-import IO (hFlush, hPutStrLn, stderr, stdout)
+import Control.Monad (unless)
+import System.IO     (hFlush, hPutStrLn, stderr, stdout)
 
 import CompilerOpts
 

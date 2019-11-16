@@ -13,16 +13,17 @@ module Files
   , removeFileIfExists, (</?>), lookupFileInPath, getFileInPath
   ) where
 
-import Directory
+import System.Directory
   ( createDirectory, createDirectoryIfMissing, doesDirectoryExist
   , doesFileExist, removeFile
   )
-import FilePath
+import System.FilePath
   ( FilePath, joinPath, (</>), (<.>), isAbsolute, searchPathSeparator
   , splitFileName, splitExtension, splitDirectories, takeDirectory
   )
-import List         (intersperse, isPrefixOf, last, scanl1)
-import ReadShowTerm (writeQTermFile)
+import Control.Monad (when)
+import Data.List     (intersperse, isPrefixOf, last, scanl1)
+import ReadShowTerm  (writeQTermFile)
 
 --- Apply functions to all parts of a file name
 withComponents :: (String -> String) -- change path

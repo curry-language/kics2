@@ -9,29 +9,34 @@
 --- --------------------------------------------------------------------------
 module ModuleDeps (ModuleIdent, Source, Errors, deps) where
 
-import Directory    ( doesFileExist, getModificationTime )
-import Distribution ( installDir )
-import FilePath     ( FilePath, dropExtension, takeExtension, takeBaseName
-                    , dropTrailingPathSeparator, (</>), (<.>), normalise
-                    )
-import Files        (lookupFileInPath, getFileInPath)
-import Char         (isSpace, toUpper)
-import Function     (second)
-import IO           (Handle, IOMode (ReadMode), hClose, hGetChar, hIsEOF, openFile)
-import List         (intercalate, partition)
-import Maybe        (fromJust, isJust, isNothing)
-import System       (system)
+import Data.Char                   ( isSpace, toUpper )
+import Data.Map                    ( Map, empty, insert, toList, lookup )
+import Data.SCC                    ( scc )
+import Data.List                   ( intercalate, partition )
+import Data.Maybe                  ( fromJust, isJust, isNothing )
+import Control.Monad               ( foldM, unless )
+import System.IO                   ( Handle, IOMode(ReadMode), hClose
+                                   , hGetChar, hIsEOF, openFile
+                                   )
+import System.Process              ( system )
+import System.FilePath             ( FilePath, dropExtension, takeExtension
+                                   , takeBaseName, dropTrailingPathSeparator
+                                   , (</>), (<.>), normalise
+                                   )
+import System.Directory            ( doesFileExist, getModificationTime
+                                   , findFileWithSuffix, getFileWithSuffix
+                                   )
+import System.CurryPath            ( inCurrySubdirModule, stripCurrySuffix )
+import System.FrontendExec         ( defaultParams, setDefinitions
+                                   , setFullPath, setQuiet
+                                   , setSpecials, callFrontendWithParams
+                                   , FrontendTarget(..), FrontendParams )
+import Language.Curry.Distribution ( installDir )
 
-import Data.FiniteMap (FM, emptyFM, addToFM, fmToList, lookupFM)
-import Data.SCC       (scc)
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Files ( readTypedFlatCurryFileRaw
                                  , typedFlatCurryFileName
                                  )
-import System.CurryPath    ( inCurrySubdirModule, stripCurrySuffix )
-import System.FrontendExec ( defaultParams, setDefinitions, setFullPath, setQuiet
-                           , setSpecials, callFrontendWithParams
-                           , FrontendTarget(..), FrontendParams )
 
 import CompilerOpts
 import Installation (compilerName, majorVersion, minorVersion)
@@ -42,8 +47,9 @@ import RCFile       (rcValue)
 type ModuleIdent = String
 type Errors      = [String]
 
-type Source      = (FilePath, [ModuleIdent], FilePath) -- file name, imports, TFCY file name
-type SourceEnv   = FM ModuleIdent (Maybe Source)
+ -- file name, imports, TFCY file name
+type Source      = (FilePath, [ModuleIdent], FilePath)
+type SourceEnv   = Map ModuleIdent (Maybe Source)
 
 
 --- Compute all dependendies for a given module
@@ -55,7 +61,7 @@ type SourceEnv   = FM ModuleIdent (Maybe Source)
 deps :: Options -> ModuleIdent -> FilePath
      -> IO ([(ModuleIdent, Source)], Errors)
 deps opts mn fn = do
-  mEnv <- sourceDeps opts mn fn (emptyFM (<))
+  mEnv <- sourceDeps opts mn fn Data.Map.empty
   let (mods1, errs1) = filterMissing mEnv -- handle missing modules
       (mods2, errs2) = flattenDeps mods1  -- check for cyclic imports
                                           -- and sort topologically
@@ -82,16 +88,16 @@ checkTypedFlatCurry mname fname
                        | not existtfcy ]
 
 moduleDeps :: Options -> SourceEnv -> ModuleIdent -> IO SourceEnv
-moduleDeps opts mEnv m = case lookupFM mEnv m of
+moduleDeps opts mEnv m = case Data.Map.lookup m mEnv of
   Just _  -> return mEnv
   Nothing -> do
     mbFile <- lookupModule opts m
     case mbFile of
-      Nothing -> return $ addToFM mEnv m Nothing
+      Nothing -> return $ insert m Nothing mEnv
       Just fn -> sourceDeps opts { optVerbosity = VerbQuiet } m fn mEnv
 
 lookupModule :: Options -> String -> IO (Maybe FilePath)
-lookupModule opts m = lookupFileInPath (moduleNameToPath m)
+lookupModule opts m = findFileWithSuffix (moduleNameToPath m)
                       [".curry", ".lcurry", ".tfcy"]
                       (map dropTrailingPathSeparator importPaths)
   where importPaths = "." : optImportPaths opts
@@ -101,7 +107,7 @@ sourceDeps opts mn fn mEnv = do
   tfcyName <- getTfcyFileName opts mn fn
   rawTfcyHeader <- readTfcyModuleHeader tfcyName
   let (m, is) = readModuleNameAndImports rawTfcyHeader
-  foldIO (moduleDeps opts) (addToFM mEnv m (Just (fn, is, tfcyName))) is
+  foldM (moduleDeps opts) (insert m (Just (fn, is, tfcyName)) mEnv) is
 
 -- Reads only module name and imports from a typed FlatCurry representation.
 readModuleNameAndImports :: String -> (ModuleIdent, [ModuleIdent])
@@ -163,18 +169,18 @@ parseCurryWithOptions opts modname options = do
   mbCurryFile  <- lookupModule opts modname
   unless (isNothing mbCurryFile) $
     callFrontendWithParams TFCY options modname
-  liftIO normalise $ getFileInPath (typedFlatCurryFileName modname)
-                      [""]
-                      (map dropTrailingPathSeparator importPaths)
+  normalise <$> getFileWithSuffix (typedFlatCurryFileName modname)
+                  [""]
+                  (map dropTrailingPathSeparator importPaths)
     where importPaths = "." : optImportPaths opts
 
 isTypedFlatCurryFile :: FilePath -> Bool
 isTypedFlatCurryFile fn = takeExtension fn == ".tfcy"
 
 filterMissing :: SourceEnv -> ([(ModuleIdent, Source)], Errors)
-filterMissing env = (map (second fromJust) present, errs) where
+filterMissing env = (map (\(a, b) -> (a, fromJust b)) present, errs) where
   errs = map (\(m, _) -> "Module " ++ m ++ " could not be found") missing
-  (present, missing) = partition (isJust . snd) $ fmToList env
+  (present, missing) = partition (isJust . snd) $ toList env
 
 --- Convert the dependency map into a topologically sorted dependency list
 --- and a list of errors for cyclic imports.

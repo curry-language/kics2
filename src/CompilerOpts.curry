@@ -9,11 +9,12 @@ module CompilerOpts
   , Extension (..), defaultOptions, getCompilerOpts
   ) where
 
-import List         (intercalate, maximum, nub)
-import FilePath     ((</>), splitSearchPath)
-import GetOpt
-import IO           (hPutStrLn, stderr)
-import System       (exitWith, getArgs, getProgName)
+import Data.List             (intercalate, maximum, nub)
+import System.FilePath       ((</>), splitSearchPath)
+import System.Console.GetOpt
+import System.IO             (hPutStrLn, stderr)
+import System.Process        (exitWith)
+import System.Environment    (getArgs, getProgName)
 
 import Installation (compilerName, majorVersion, minorVersion, compilerDate)
 
@@ -305,7 +306,7 @@ printUsage prog = do
 --- Complain about a bad usage.
 badUsage :: String -> [String] -> IO a
 badUsage prog errs = do
-  mapIO_ (hPutStrLn stderr) errs
+  mapM_ (hPutStrLn stderr) errs
   hPutStrLn stderr $ "Try '" ++ prog ++ " --help' for more information"
   exitWith 1
 

@@ -23,6 +23,7 @@
 module Data.SCC (scc) where
 
 import Data.Set.RBTree (empty, member, insert)
+import Prelude hiding  (empty)
 
 data Node a b = Node Int [b] [b] a
  deriving Eq

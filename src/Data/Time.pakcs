@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE primitives SYSTEM "http://www.informatik.uni-kiel.de/~pakcs/primitives.dtd">
+<primitives>
+ <primitive name="getClockTime" arity="0">
+  <library>prim_time</library>
+  <entry>prim_getClockTime</entry>
+ </primitive>
+ <primitive name="prim_toCalendarTime" arity="1">
+  <library>prim_time</library>
+  <entry>prim_toCalendarTime</entry>
+ </primitive>
+ <primitive name="prim_toUTCTime" arity="1">
+  <library>prim_time</library>
+  <entry>prim_toUTCTime</entry>
+ </primitive>
+ <primitive name="prim_toClockTime" arity="1">
+  <library>prim_time</library>
+  <entry>prim_toClockTime</entry>
+ </primitive>
+</primitives>

@@ -11,10 +11,10 @@ module TransTypes (transTypes) where
 
 import qualified FlatCurry.Types as FC
 import FlatCurry.Goodies
-import AbstractHaskell
-import AbstractHaskellGoodies
-import Data.FiniteMap
-import List (intercalate, intersperse, nub)
+import AbstractHaskell.Types
+import AbstractHaskell.Goodies
+import Data.List
+import Data.Map
 import Names
   ( mkChoiceName, mkChoicesName, mkFailName, mkGuardName, mkFoConsName
   , mkHoConsName, renameModule, unGenRename, unRenameModule, renameQName
@@ -38,7 +38,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
   t@(FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
-    | null cs       -> Type qf Public targs [] : []
+    | Prelude.null cs -> Type qf Public targs [] : []
       -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       -- !!! HACK: Since the C_Bool type and some of its type class     !!!
       -- !!! instances need to be defined in the runtime system,        !!!
@@ -47,8 +47,8 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       -- !!! It is required to generate an export declaration for type  !!!
       -- !!! C_Bool in the Curry_Prelude.                               !!!
       -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    | isBoolType qf -> Type qf Public []    [] : []
-    | otherwise     -> Type qf Public targs ds : instanceDecls
+    | isBoolType qf   -> Type qf Public []    [] : []
+    | otherwise       -> Type qf Public targs ds : instanceDecls
     where
       isBoolType = (==) ("Curry_Prelude", "C_Bool")
       isDictType = (==) "OP_uscore_Dict_hash_" . take 20 . snd
@@ -86,7 +86,7 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
   | isHigherOrder = [foCons, hoCons]
   | otherwise     = [foCons]
   where
-    isHigherOrder = lookupFM hoResult qf == Just ConsHO
+    isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
     foCons = Cons (mkFoConsName qf) ar vis' (map (fcy2absTExp   targs) texps)
     hoCons = Cons (mkHoConsName qf) ar vis' (map (fcy2absHOTExp targs) texps)
     vis' = fcy2absVis vis
@@ -211,7 +211,7 @@ showConsRule hoResult (FC.Cons qn carity _ _)
   | otherwise = [rule qn]
 
   where
-    isHoCons = lookupFM hoResult qn == Just ConsHO
+    isHoCons = Data.Map.lookup qn hoResult == Just ConsHO
 
     rule name = ( pre "showsPrec"
                 , case take 8 (snd name) of
@@ -482,8 +482,9 @@ generableInstance isDict hoResult tdecl = case tdecl of
 
 
       genCons (FC.Cons qn arity _ _)
-        | lookupFM hoResult qn == Just ConsHO = applyF (mkHoConsName qn) (consArgs2gen arity)
-        | otherwise                           = applyF qn (consArgs2gen arity)
+        | Data.Map.lookup qn hoResult
+          == Just ConsHO = applyF (mkHoConsName qn) (consArgs2gen arity)
+        | otherwise      = applyF qn (consArgs2gen arity)
 
       arities = list2ac $ map (intc . consArity) cdecls
 
@@ -526,7 +527,7 @@ normalformConsRule hoResult funcName (FC.Cons qn _ _ texps)
   | otherwise = [rule qn]
 
   where
-    isHoCons = lookupFM hoResult qn == Just ConsHO
+    isHoCons = Data.Map.lookup qn hoResult == Just ConsHO
     carity = length texps
     rule name = (funcName, simpleRule
       ([PVar (1,"cont"), PComb name (map (\i -> PVar (i,'x':show i)) [1..carity])] ++ cdCsPVar)
@@ -568,7 +569,7 @@ showConsConsRule hoResult (FC.Cons qn carity _ _)
   | otherwise = [rule qn]
 
   where
-    isHoCons  = lookupFM hoResult qn == Just ConsHO
+    isHoCons  = Data.Map.lookup qn hoResult == Just ConsHO
     rule name = ( basics "showCons"
                 , simpleRule [consPattern name "_" carity]
                   (string2ac $ intercalate " " $
@@ -595,7 +596,7 @@ searchNFConsRule hoResult (FC.Cons qn carity _ _)
   | otherwise = [rule qn]
 
   where
-    isHoCons  = lookupFM hoResult qn == Just ConsHO
+    isHoCons  = Data.Map.lookup qn hoResult == Just ConsHO
     rule name = ( basics "searchNF"
                 , simpleRule [PVar mbSearch, PVar cont, consPattern name "x" carity]
                   (nfBody name)
@@ -672,7 +673,7 @@ unifiableConsRule hoResult consFunc genFunc (FC.Cons qn _ _ texps)
   | otherwise = [rule qn]
 
   where
-    isHoCons = lookupFM hoResult qn == Just ConsHO
+    isHoCons = Data.Map.lookup qn hoResult == Just ConsHO
     rule name = ( consFunc, simpleRule [consPattern name "x" carity
                                        , consPattern name "y" carity
                                        , PVar nestingDepth
@@ -698,7 +699,7 @@ bindConsRule hoResult funcName bindArgs combine (num, (FC.Cons qn _ _ texps))
   | isHoCons  = map rule [qn, mkHoConsName qn]
   | otherwise = [rule qn]
   where
-    isHoCons = lookupFM hoResult qn == Just ConsHO
+    isHoCons = Data.Map.lookup qn hoResult == Just ConsHO
     rule name = (funcName,
       simpleRule [PVar (1,"cd"), PVar (2, "i"), PComb name $ map (\i -> PVar (i, 'x':show i)) [3 .. (length texps) + 2] ]
         ( InfixApply

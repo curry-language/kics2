@@ -12,15 +12,14 @@
 
 module AbstractCurry.Files where
 
-import Char                 ( isSpace )
-import Directory            ( doesFileExist, getModificationTime )
-import FileGoodies          ( getFileInPath, lookupFileInPath )
-import FilePath             ( takeFileName, (</>), (<.>) )
-import ReadShowTerm
-
+import Data.Char            ( isSpace )
+import System.Directory     ( doesFileExist, getModificationTime
+                            , findFileWithSuffix, getFileWithSuffix )
+import System.FilePath      ( takeFileName, (</>), (<.>) )
 import System.CurryPath     ( getLoadPathForModule, inCurrySubdir
                             , lookupModuleSourceInLoadPath, stripCurrySuffix )
 import System.FrontendExec
+import ReadShowTerm
 
 import AbstractCurry.Select ( imports )
 import AbstractCurry.Types
@@ -70,7 +69,7 @@ tryReadCurryFile m = do
     Just (_,srcFile) -> do
       callFrontendWithParams ACY (setQuiet True defaultParams) m
       mbFn <- getLoadPathForModule m >>=
-              lookupFileInPath (abstractCurryFileName m) [""]
+              findFileWithSuffix (abstractCurryFileName m) [""]
       case mbFn of
         Nothing -> cancel $ "AbstractCurry module '" ++ m ++ "' not found"
         Just fn -> do
@@ -134,7 +133,7 @@ readCurryWithParseOptions progname options = do
   case mbsrc of
     Nothing -> do -- no source file, try to find AbstractCurry file in load path:
       loadpath <- getLoadPathForModule progname
-      filename <- getFileInPath (abstractCurryFileName modname) [""] loadpath
+      filename <- getFileWithSuffix (abstractCurryFileName modname) [""] loadpath
       readAbstractCurryFile filename
     Just (dir,_) -> do
       callFrontendWithParams ACY options progname
@@ -155,7 +154,7 @@ readUntypedCurryWithParseOptions progname options = do
   case mbsrc of
     Nothing -> do -- no source file, try to find AbstractCurry file in load path:
       loadpath <- getLoadPathForModule progname
-      filename <- getFileInPath (untypedAbstractCurryFileName modname) [""]
+      filename <- getFileWithSuffix (untypedAbstractCurryFileName modname) [""]
                                 loadpath
       readAbstractCurryFile filename
     Just (dir,_) -> do

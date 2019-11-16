@@ -3,11 +3,12 @@
 --- generating AbstractHaskell programs more compact and readable.
 ------------------------------------------------------------------------
 
-module AbstractHaskellGoodies where
+module AbstractHaskell.Goodies where
 
-import AbstractHaskell
-import Char            (toLower)
-import List            ((\\), union)
+import Data.Char            (toLower)
+import Data.List            ((\\), union)
+
+import AbstractHaskell.Types
 
 infixr 9 ~>
 
@@ -193,8 +194,8 @@ renameSymbolInTypeExpr ren texp = case texp of
   FuncType te1 te2    -> FuncType (renameSymbolInTypeExpr ren te1)
                                   (renameSymbolInTypeExpr ren te2)
   TVar v              -> TVar v
-  ForallType vs cx te -> ForallType vs (map (renameSymbolInContext ren) cx)
-                                       (renameSymbolInTypeExpr ren te)
+  ForallType v cx te  -> ForallType v (map (renameSymbolInContext ren) cx)
+                                      (renameSymbolInTypeExpr ren te)
 
 renameSymbolInExpr :: (QName -> QName) -> Expr -> Expr
 renameSymbolInExpr ren exp = case exp of

@@ -7,19 +7,19 @@
 --- ----------------------------------------------------------------------------
 module FlatCurry.Annotated.TypeSubst where
 
-import Data.FiniteMap
+import qualified Data.Map as Map
 import FlatCurry.Annotated.Types
 
 --- The (abstract) data type for substitutions on TypeExpr.
-type AFCSubst = FM TVarIndex TypeExpr
+type AFCSubst = Map.Map TVarIndex TypeExpr
 
 showAFCSubst :: AFCSubst -> String
-showAFCSubst = unlines . map showOne . fmToList
+showAFCSubst = unlines . map showOne . Map.toList
   where showOne (k, v) = show k ++ " -> " ++ show v
 
 --- The empty substitution
 emptyAFCSubst :: AFCSubst
-emptyAFCSubst = emptyFM (<)
+emptyAFCSubst = Map.empty
 
 --- Searches the substitution for a mapping from the given variable index
 --- to a term.
@@ -28,7 +28,7 @@ emptyAFCSubst = emptyFM (<)
 --- @param i - the index to search for
 --- @return the found type expression or Nothing
 lookupAFCSubst :: AFCSubst -> TVarIndex -> Maybe TypeExpr
-lookupAFCSubst = lookupFM
+lookupAFCSubst = flip Map.lookup
 
 -- -----------------------------------------------------------------------------
 -- Functions for applying substitutions to expressions

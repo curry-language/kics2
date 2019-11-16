@@ -1,7 +1,7 @@
 module SimpleMake (smake) where
 
-import Directory
-import Time
+import System.Directory
+import Data.Time
 
 smake :: String -> [String] -> IO a -> IO a -> IO a
 smake dest deps cmd alt = do
@@ -18,11 +18,11 @@ getDestTime :: String -> IO (Maybe ClockTime)
 getDestTime fn = do
   exists <- doesFileExist fn
   if exists
-    then Just `liftIO` getModificationTime fn
+    then Just <$> getModificationTime fn
     else return Nothing
 
 getDepTimes :: [String] -> IO [ClockTime]
-getDepTimes = mapIO getModificationTime
+getDepTimes = mapM getModificationTime
 
 -- Check whether the destination file is outdated, i.e. if any file it
 -- depends on is newer

@@ -7,14 +7,18 @@
 --- --------------------------------------------------------------------------
 module TransFunctions ( State (..), defaultState, trProg, runIOES ) where
 
-import Function  (first)
-import List      (nub)
+import Data.List      (nub)
+import Control.Monad
+import Control.Monad.Trans.State
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Class
+import Control.Monad.IO.Class
 
-import qualified AbstractHaskell        as AH
-import qualified AbstractHaskellGoodies as AHG
+import qualified AbstractHaskell.Types   as AH
+import qualified AbstractHaskell.Goodies as AHG
 import           Analysis
 import           CompilerOpts  (Options (..), defaultOptions, OptimLevel (..))
-import           Data.FiniteMap (lookupFM, plusFM, delListFromFM)
+import           Data.Map      (lookup, union, deleteAll)
 import           FlatCurry.Types
 import           LiftCase      (isCaseAuxFuncName)
 import           Message       (showAnalysis)
@@ -24,56 +28,22 @@ import           Names
 -- IO error state monad, like `EitherT (StateT IO)`
 -- ---------------------------------------------------------------------------
 
-data IOES s a = M (s -> IO (Either String (a, s)))
+type IOES s a = StateT s (ExceptT String IO) a
 
 runIOES :: IOES s a -> s -> IO (Either String (a, s))
-runIOES (M x) = x
-
-returnM :: a -> IOES s a
-returnM x = M $ \s -> return (Right (x, s))
-
-(>+=) :: IOES s a -> (a -> IOES s b) -> IOES s b
-f >+= g = M $ \s -> do
-  eex <- runIOES f s
-  case eex of
-    Left  err     -> return (Left err)
-    Right (x, s') -> runIOES (g x) s'
-
-(>+) :: IOES s a -> IOES s b -> IOES s b
-f >+ g = f >+= \_ -> g
+runIOES m s = runExceptT $ runStateT m s
 
 failM :: String -> IOES s a
-failM err = M $ \_ -> return (Left err)
+failM = lift . throwE
 
 getState :: IOES s s
-getState = M $ \s -> return (Right (s, s))
+getState = get
 
 putState :: s -> IOES s ()
-putState s = M $ \ _ -> return (Right ((), s))
+putState = put
 
 updState :: (s -> s) -> IOES s ()
-updState f = getState >+= \s -> putState (f s)
-
-liftIO :: IO a -> IOES s a
-liftIO act = M $ \s -> do
-  a <- act
-  return (Right (a, s))
-
-liftM :: (a -> b) -> IOES s a -> IOES s b
-liftM f act = act >+= \x -> returnM (f x)
-
-liftM2 :: (a -> b -> c) -> IOES s a -> IOES s b -> IOES s c
-liftM2 f a b = a >+= \x -> b >+= \y -> returnM (f x y)
-
-mapM :: (a -> IOES s b) -> [a] -> IOES s [b]
-mapM _ [] = returnM []
-mapM f (m:ms) = f m       >+= \m'  ->
-                mapM f ms >+= \ms' ->
-                returnM (m':ms')
-
-foldM :: (a -> b -> IOES s a) -> a -> [b] -> IOES s a
-foldM _ e []       = returnM e
-foldM f e (x : xs) = f e x >+= \fex -> foldM f fex xs
+updState = modify
 
 -- ---------------------------------------------------------------------------
 -- Internal state and access functions
@@ -108,84 +78,84 @@ type M a = IOES State a
 
 addTypeMap :: TypeMap -> M ()
 addTypeMap newTypes =
- updState (\st -> st { typeMap = typeMap st `plusFM` newTypes })
+ updState (\st -> st { typeMap = typeMap st `union` newTypes })
 
 
 getType :: QName -> M QName
-getType qn = getState >+= \st ->
-  maybe (failM $ show qn ++ " not in type map") returnM
-  $ (flip lookupFM) qn (typeMap st)
+getType qn = getState >>= \st ->
+  maybe (failM $ show qn ++ " not in type map") return
+  $ Data.Map.lookup qn (typeMap st)
 
 -- NDResult
 
 addNDAnalysis :: NDResult -> M ()
 addNDAnalysis newRes = updState $ \st ->
-  st { ndResult = newRes `plusFM` ndResult st }
+  st { ndResult = newRes `union` ndResult st }
 
 getNDClass :: QName -> M NDClass
-getNDClass qn = getState >+= \st ->
-  maybe (failM $ show qn ++ " not analysed") returnM
-  $ (flip lookupFM) qn (ndResult st)
+getNDClass qn = getState >>= \st ->
+  maybe (failM $ show qn ++ " not analysed") return
+  $ Data.Map.lookup qn (ndResult st)
 
 -- HOTypeResult
 
 addHOTypeAnalysis :: TypeHOResult -> M ()
-addHOTypeAnalysis newRes = updState$ \st ->
-  st { hoResultType = newRes `plusFM` hoResultType st }
+addHOTypeAnalysis newRes = updState $ \st ->
+  st { hoResultType = newRes `union` hoResultType st }
 
 getTypeHOClass :: QName -> M TypeHOClass
-getTypeHOClass qn = getState >+= \st ->
-  maybe (failM $ show qn ++ " not analysed") returnM
-  $ (flip lookupFM) qn (hoResultType st)
+getTypeHOClass qn = getState >>= \st ->
+  maybe (failM $ show qn ++ " not analysed") return
+  $ Data.Map.lookup qn (hoResultType st)
 
 -- HOConsResult
 
 addHOConsAnalysis :: ConsHOResult -> M ()
 addHOConsAnalysis newRes = updState$ \st ->
-  st { hoResultCons = newRes `plusFM` hoResultCons st }
+  st { hoResultCons = newRes `union` hoResultCons st }
 
 getConsHOClass :: QName -> M ConsHOClass
-getConsHOClass qn = getState >+= \st ->
-  maybe (failM $ show qn ++ " not analysed") returnM
-  $ (flip lookupFM) qn $ (hoResultCons st)
+getConsHOClass qn = getState >>= \st ->
+  maybe (failM $ show qn ++ " not analysed") return
+  $ Data.Map.lookup qn $ (hoResultCons st)
 
 -- HOFunResult
 
 addHOFuncAnalysis :: FuncHOResult -> M ()
 addHOFuncAnalysis newRes = updState$ \st ->
-  st { hoResultFunc = newRes `plusFM` hoResultFunc st }
+  st { hoResultFunc = newRes `union` hoResultFunc st }
 
 getFuncHOClass :: QName -> M FuncHOClass
-getFuncHOClass qn = getState >+= \st ->
-  maybe (failM $ show qn ++ " not analysed") returnM
-  $ (flip lookupFM) qn $ (hoResultFunc st)
+getFuncHOClass qn = getState >>= \st ->
+  maybe (failM $ show qn ++ " not analysed") return
+  $ Data.Map.lookup qn $ (hoResultFunc st)
 
 -- IDs
 
 getNextID :: M Int
-getNextID = getState >+= \st -> returnM (nextID st)
+getNextID = getState >>= \st -> return (nextID st)
 
 setNextID :: Int -> M ()
 setNextID i = updState (\st -> st { nextID = i })
 
 takeNextID :: M Int
 takeNextID =
-  getState >+= \st ->
+  getState >>= \st ->
   let i = nextID st in
-  putState (st { nextID = (i + 1) }) >+
-  returnM i
+  putState (st { nextID = (i + 1) }) >>
+  return i
 
 takeNextIDs :: Int -> M [Int]
 takeNextIDs n =
-  getState >+= \st ->
+  getState >>= \st ->
   let i = nextID st in
-  putState (st { nextID = (i + n) }) >+
-  returnM [i .. i+n-1]
+  putState (st { nextID = (i + n) }) >>
+  return [i .. i+n-1]
 
 -- DetMode
 
 isDetMode :: M Bool
-isDetMode = getState >+= \st -> returnM (detMode st)
+isDetMode = getState >>= \st -> return (detMode st)
 
 setDetMode :: Bool -> M ()
 setDetMode dm = updState (\st -> st { detMode = dm })
@@ -194,22 +164,22 @@ setDetMode dm = updState (\st -> st { detMode = dm })
 -- afterwards
 doInDetMode :: Bool -> M a -> M a
 doInDetMode dm action =
-  isDetMode      >+= \old ->
-  setDetMode dm  >+
-  action         >+= \res ->
-  setDetMode old >+
-  returnM res
+  isDetMode      >>= \old ->
+  setDetMode dm  >>
+  action         >>= \res ->
+  setDetMode old >>
+  return res
 
 isTraceFailure :: M Bool
-isTraceFailure = getState >+= \st ->
-                 returnM (optTraceFailure (compOptions st))
+isTraceFailure = getState >>= \st ->
+                 return (optTraceFailure (compOptions st))
 
 -- Compiler options
 getCompOptions :: M Options
-getCompOptions = getState >+= \ st -> returnM (compOptions st)
+getCompOptions = getState >>= \ st -> return (compOptions st)
 
 getCompOption :: (Options -> a) -> M a
-getCompOption select = getCompOptions >+= (returnM . select)
+getCompOption select = getCompOptions >>= (return . select)
 
 strictSupply :: M Bool
 strictSupply = getCompOption $ \opts ->
@@ -221,31 +191,31 @@ strictSupply = getCompOption $ \opts ->
 
 trProg :: Prog -> M (AH.Prog, AnalysisResult)
 trProg p@(Prog m is ts fs _) =
-  getState >+= \st ->
+  getState >>= \st ->
   let modNDRes     = analyseND     p (ndResult st)
       modHOResType = analyseHOType p (hoResultType st)
       modHOResCons = analyseHOCons p
-      modHOResFunc = analyseHOFunc p (hoResultType st `plusFM` modHOResType)
+      modHOResFunc = analyseHOFunc p (hoResultType st `union` modHOResType)
       modTypeMap   = getTypeMap    ts
       visInfo      = analyzeVisibility p
 
-      visNDRes     = modNDRes     `delListFromFM` getPrivateFunc visInfo
+      visNDRes     = getPrivateFunc visInfo `deleteAll` modNDRes
 
-      visHOType    = modHOResType `delListFromFM` getPrivateType visInfo
-      visHOCons    = modHOResCons `delListFromFM` getPrivateCons visInfo
-      visHOFun     = modHOResFunc `delListFromFM` getPrivateFunc visInfo
+      visHOType    = getPrivateType visInfo `deleteAll` modHOResType
+      visHOCons    = getPrivateCons visInfo `deleteAll` modHOResCons
+      visHOFun     = getPrivateFunc visInfo `deleteAll` modHOResFunc
 
-      visType      = modTypeMap   `delListFromFM` getPrivateCons visInfo
+      visType      = getPrivateCons visInfo `deleteAll` modTypeMap
       anaResult    = (visType, visNDRes, visHOType, visHOCons, visHOFun)
   in
-  addNDAnalysis     modNDRes     >+
-  addHOTypeAnalysis modHOResType >+
-  addHOConsAnalysis modHOResCons >+
-  addHOFuncAnalysis modHOResFunc >+
-  addTypeMap        modTypeMap   >+
+  addNDAnalysis     modNDRes     >>
+  addHOTypeAnalysis modHOResType >>
+  addHOConsAnalysis modHOResCons >>
+  addHOFuncAnalysis modHOResFunc >>
+  addTypeMap        modTypeMap   >>
   -- translation of the functions
-  mapM trFunc fs >+= \fss ->
-  returnM $ (AH.Prog m is [] (concat fss) [], anaResult)
+  mapM trFunc fs >>= \fss ->
+  return $ (AH.Prog m is [] (concat fss) [], anaResult)
 
 -- ---------------------------------------------------------------------------
 -- Translation of function declarations
@@ -253,40 +223,40 @@ trProg p@(Prog m is ts fs _) =
 
 trFunc :: FuncDecl -> M [AH.FuncDecl]
 trFunc f@(Func qn _ _ _ _) =
-  checkGlobal f  >+
-  getCompOptions >+= \opts ->
+  checkGlobal f  >>
+  getCompOptions >>= \opts ->
   case optOptimization opts > OptimNone of
     -- translate all functions as non-deterministic by default
-    False -> trNDFunc f >+= \ fn -> returnM [fn]
+    False -> trNDFunc f >>= \ fn -> return [fn]
     True  ->
-      getNDClass     qn >+= \ndCl ->
-      getFuncHOClass qn >+= \hoCl ->
-      liftIO (showAnalysis opts (snd qn ++ " is " ++ show (ndCl, hoCl))) >+
+      getNDClass     qn >>= \ndCl ->
+      getFuncHOClass qn >>= \hoCl ->
+      liftIO (showAnalysis opts (snd qn ++ " is " ++ show (ndCl, hoCl))) >>
       case ndCl of
-        ND -> trNDFunc f >+= \ fn -> returnM [fn]
+        ND -> trNDFunc f >>= \ fn -> return [fn]
         D  -> case hoCl of
           -- create both deterministic and non-deterministic function
-          FuncHO                  -> trDetFunc f >+= \ fd ->
-                                     trNDFunc  f >+= \ fn ->
-                                     returnM [fd, fn]
-          FuncHORes _             -> trDetFunc f >+= \ fd -> returnM [fd]
+          FuncHO                  -> trDetFunc f >>= \ fd ->
+                                     trNDFunc  f >>= \ fn ->
+                                     return [fd, fn]
+          FuncHORes _             -> trDetFunc f >>= \ fd -> return [fd]
           FuncFO | isGlobalDecl f -> trGlobalDecl f
-                 | otherwise      -> trDetFunc f >+= \ fn -> returnM [fn]
+                 | otherwise      -> trDetFunc f >>= \ fn -> return [fn]
 
 --- Check if a function representing a global variable
 --- is first-order and determinismic.
 checkGlobal :: FuncDecl -> M ()
 checkGlobal f@(Func qn _ _ _ _)
   | isGlobalDecl f =
-      getNDClass     qn >+= \ndCl ->
-      getFuncHOClass qn >+= \hoCl ->
+      getNDClass     qn >>= \ndCl ->
+      getFuncHOClass qn >>= \hoCl ->
       case (ndCl, hoCl) of
         (ND, _     ) -> failM $ "Non-determinismic initial value for global `"
                             ++ show (unRenameQName qn) ++ "'"
-        (D , FuncFO) -> returnM ()
+        (D , FuncFO) -> return ()
         (D , _     ) -> failM $ "Higher-order type for global `"
                             ++ show (unRenameQName qn) ++ "'"
-  | otherwise      = returnM ()
+  | otherwise      = return ()
 
 --- Compute if the function declaration is intended to represent
 --- a global variable, i.e., has the form `fun = global val Temporary`.
@@ -320,11 +290,11 @@ globalTemporary = renameQName ("Global", "Temporary")
 trGlobalDecl :: FuncDecl -> M [AH.FuncDecl]
 trGlobalDecl (Func qn a v t r) = doInDetMode True $ case r of
   (Rule _ (Comb _ _ [e, _]))  | a == 0  ->
-    trCompleteExpr e       >+= \e'      ->
-    renameFun qn           >+= \qn'     ->
-    renameFun globalGlobal >+= \global' ->
-    trDetType 0 t          >+= \t'      ->
-    returnM $
+    trCompleteExpr e       >>= \e'      ->
+    renameFun qn           >>= \qn'     ->
+    renameFun globalGlobal >>= \global' ->
+    trDetType 0 t          >>= \t'      ->
+    return $
       [ AH.Func "" qn' 2 (cvVisibility v) (toTypeSig t')
         (AHG.simpleRule (map AH.PVar [coverName, constStoreName])
                     (AH.Symbol $ mkGlobalName qn))
@@ -350,34 +320,34 @@ cvVisibility Private = AH.Private
 --- Translation into a deterministic function.
 trDetFunc :: FuncDecl -> M AH.FuncDecl
 trDetFunc (Func qn a v t r) = doInDetMode True $
-  renameFun qn      >+= \qn' ->
-  trDetType  a t >+= \t'  ->
-  trRule qn' a r >+= \r'  ->
-  returnM (AH.Func "" qn' (a + 1) (cvVisibility v) (toTypeSig t') r')
+  renameFun qn      >>= \qn' ->
+  trDetType  a t >>= \t'  ->
+  trRule qn' a r >>= \r'  ->
+  return (AH.Func "" qn' (a + 1) (cvVisibility v) (toTypeSig t') r')
 
 --- Translation into a non-deterministic function.
 trNDFunc :: FuncDecl -> M AH.FuncDecl
 trNDFunc (Func qn a v t r) = doInDetMode False $
-  renameFun qn        >+= \qn' ->
-  trNonDetType a t >+= \t'  ->
-  trRule qn'   a r >+= \r'  ->
-  returnM (AH.Func "" qn' (a + 2) (cvVisibility v) (toTypeSig t') r')
+  renameFun qn        >>= \qn' ->
+  trNonDetType a t >>= \t'  ->
+  trRule qn'   a r >>= \r'  ->
+  return (AH.Func "" qn' (a + 2) (cvVisibility v) (toTypeSig t') r')
 
 --- Rename a function w.r.t. its non-determinism
 --- and higher-order classification.
 renameFun :: QName -> M QName
 renameFun qn@(q, n) =
-  isDetMode         >+= \dm   ->
-  getNDClass qn     >+= \ndCl ->
-  getFuncHOClass qn >+= \hoCl ->
-  returnM (q, funcPrefix dm ndCl hoCl ++ n)
+  isDetMode         >>= \dm   ->
+  getNDClass qn     >>= \ndCl ->
+  getFuncHOClass qn >>= \hoCl ->
+  return (q, funcPrefix dm ndCl hoCl ++ n)
 
 --- Rename a constructor w.r.t. its higher-order classification.
 renameCons :: QName -> M QName
 renameCons qn@(q, n) =
-  isDetMode         >+= \dm   ->
-  getConsHOClass qn >+= \hoCl ->
-  returnM (q, consPrefix dm hoCl ++ n)
+  isDetMode         >>= \dm   ->
+  getConsHOClass qn >>= \hoCl ->
+  return (q, consPrefix dm hoCl ++ n)
 
 -- -----------------------------------------------------------------------------
 -- Translation of Types
@@ -462,19 +432,19 @@ trNonDetType = trTypeExpr nondetFuncType
 
 trExprType :: TypeExpr -> M AH.TypeExpr
 trExprType ty =
-  isDetMode >+= \dm ->
-  returnM $ trHOTypeExpr (if dm then detFuncType else nondetFuncType) ty
+  isDetMode >>= \dm ->
+  return $ trHOTypeExpr (if dm then detFuncType else nondetFuncType) ty
 
 trTypeExpr :: (AH.TypeExpr -> AH.TypeExpr -> AH.TypeExpr)
            -> (AH.TypeExpr -> AH.TypeExpr)
            -> Int -> TypeExpr -> M AH.TypeExpr
 trTypeExpr combFunc addArgs n t
     -- all arguments are applied
-  | n == 0 = returnM $ addArgs (trHOTypeExpr combFunc t)
+  | n == 0 = return $ addArgs (trHOTypeExpr combFunc t)
   | n >  0 = case t of
               (FuncType t1 t2) ->
-                trTypeExpr combFunc addArgs (n-1) t2 >+= \t2' ->
-                returnM $ AH.FuncType (trHOTypeExpr combFunc t1) t2'
+                trTypeExpr combFunc addArgs (n-1) t2 >>= \t2' ->
+                return $ AH.FuncType (trHOTypeExpr combFunc t1) t2'
               _                -> failM $ "trTypeExpr: " ++ show (n, t)
   | n <  0 = failM $ "trTypeExpr: " ++ show (n, t)
 
@@ -516,37 +486,37 @@ nondetFuncType t1 t2 = AH.TCons (basics, "Func") [t1, t2]
 --- and coder depth argument to all functions.
 trRule :: QName -> Int -> Rule -> M AH.Rules
 trRule qn _ (Rule vs e) =
-  isDetMode         >+= \dm ->
-  isTraceFailure    >+= \fc ->
-  trBody qn vs e    >+= \e' ->
+  isDetMode         >>= \dm ->
+  isTraceFailure    >>= \fc ->
+  trBody qn vs e    >>= \e' ->
   let vs' = map cvVarIndex vs
             ++ [topSupplyName | not dm] ++ [coverName, constStoreName]
       e'' = if fc then failCheck qn (map cvVar vs) e' else e'
-  in  returnM $ AHG.simpleRule (map AH.PVar vs') e''
+  in  return $ AHG.simpleRule (map AH.PVar vs') e''
 trRule qn a (External _) =
-  isDetMode      >+= \dm ->
-  isTraceFailure >+= \fc ->
+  isDetMode      >>= \dm ->
+  isTraceFailure >>= \fc ->
   let vs  = [1 .. a]
       vs' = map cvVarIndex vs
             ++ [topSupplyName | not dm] ++ [coverName, constStoreName]
       e   = funcCall (externalFunc qn) (map AH.Var vs')
       e'  = if fc then failCheck qn (map cvVar vs) e else e
-  in  returnM $ AHG.simpleRule (map AH.PVar vs') e'
+  in  return $ AHG.simpleRule (map AH.PVar vs') e'
 
 --- Translate a function body.
 trBody :: QName -> [Int] -> Expr -> M AH.Expr
 trBody qn vs e = case e of
   Case _ (Var i) bs ->
-    getMatchedType (head bs)  >+= \ty  ->
-    mapM trBranch bs          >+= \bs' ->
+    getMatchedType (head bs)  >>= \ty  ->
+    mapM trBranch bs          >>= \bs' ->
     let lbs = litBranches bs' in
-    consBranches qn vs i ty   >+= \cbs ->
-    returnM $ AH.Case (cvVar i) (bs' ++ lbs ++ cbs)
+    consBranches qn vs i ty   >>= \cbs ->
+    return $ AH.Case (cvVar i) (bs' ++ lbs ++ cbs)
   _ -> trCompleteExpr e
 
 getMatchedType :: BranchExpr -> M QName
 getMatchedType (Branch (Pattern p _) _) = getType p
-getMatchedType (Branch (LPattern  l) _) = returnM $ case l of
+getMatchedType (Branch (LPattern  l) _) = return $ case l of
   Intc _   -> curryInt
   Floatc _ -> curryFloat
   Charc _  -> curryChar
@@ -556,9 +526,9 @@ trBranch (Branch p e) = liftM2 AH.Branch (trPattern p) (trCompleteExpr e)
 
 trPattern :: Pattern -> M AH.Pattern
 trPattern (Pattern qn vs) =
-  renameCons qn >+= \qn' ->
-  returnM $ AH.PComb qn' $ map (AH.PVar . cvVarIndex) vs
-trPattern (LPattern    l) = returnM $ AH.PLit $ cvLit l
+  renameCons qn >>= \qn' ->
+  return $ AH.PComb qn' $ map (AH.PVar . cvVarIndex) vs
+trPattern (LPattern    l) = return $ AH.PLit $ cvLit l
 
 --- During unification the internal representation of `Int` and `Char` values
 --- is changed to an algebraic data type. Hence, we have to extend the pattern
@@ -588,7 +558,8 @@ litBranches bs = case branchPairs of
     mkBranch cons match = AH.Branch (AH.PComb cons [AH.PVar litVar])
                         $ funcCall match
                           [ AHG.list2ac $ map pair2ac
-                                       $ map (first AH.Lit) branchPairs
+                                        $ map (\(a, b) -> (AH.Lit a, b))
+                                              branchPairs
                           , AH.Var litVar, coverVar, constStoreVar
                           ]
     litVar = (5000, "l")
@@ -622,8 +593,8 @@ litBranches bs = case branchPairs of
 ---                   used to compute the names of the additional constructors.
 consBranches :: QName -> [Int] -> Int -> QName -> M [AH.BranchExpr]
 consBranches qn' vs v typeName =
-  isDetMode      >+= \dm ->
-  isTraceFailure >+= \fc ->
+  isDetMode      >>= \dm ->
+  isTraceFailure >>= \fc ->
   let (vs1, _ : vs2) = break (== v) vs
       vars1     = map cvVar vs1
       vars2     = map cvVar vs2
@@ -640,7 +611,7 @@ consBranches qn' vs v typeName =
 
       lambdaExpr = AH.Lambda [AH.PVar z] $ AHG.applyF qn' $ concat
         [vars1, (AH.Var z) : vars2, mbSuppVar, [coverVar, constStoreVar]]
-  in returnM $
+  in return $
     [ AH.Branch (AH.PComb (mkChoiceName  typeName) (map AH.PVar [d, i, l, r]))
       (narrow [AH.Var d, AH.Var i, recCall (AH.Var l), recCall (AH.Var r)])
     , AH.Branch (AH.PComb (mkChoicesName typeName) (map AH.PVar [d, i, xs]))
@@ -660,39 +631,39 @@ consBranches qn' vs v typeName =
 --- variables are bound by nested let expressions.
 trCompleteExpr :: Expr -> M AH.Expr
 trCompleteExpr e =
-  getNextID   >+= \i       -> -- save current variable id
-  trExpr e    >+= \(g, e') ->
-  setNextID i >+              -- and reset the variable id
+  getNextID   >>= \i       -> -- save current variable id
+  trExpr e    >>= \(g, e') ->
+  setNextID i >>              -- and reset the variable id
   case g of
-    []  -> returnM e'
+    []  -> return e'
     [v] -> letIdVar [(supplyName v, topSupplyVar)] e'
     _   -> failM "TransFunctions.trCompleteExpr"
 
 --- Transform an expression and compute a list of new supply variables
 --- to be bound.
 trExpr :: Expr -> M ([VarIndex], AH.Expr)
-trExpr (Var                 i) = returnM ([], cvVar     i)
-trExpr (Lit                 l) = returnM ([], cvLitExpr l)
+trExpr (Var                 i) = return ([], cvVar     i)
+trExpr (Lit                 l) = return ([], cvLitExpr l)
 trExpr e@(Comb ConsCall qn es) = case getString e of
-  Just s -> returnM ([], toCurryString s)
-  _      -> renameCons     qn            >+= \qn'      ->
-            mapM trExpr es >+= unzipArgs >+= \(g, es') ->
+  Just s -> return ([], toCurryString s)
+  _      -> renameCons     qn            >>= \qn'      ->
+            mapM trExpr es >>= unzipArgs >>= \(g, es') ->
             genIds g (AHG.applyF qn' es')
 
 -- fully applied functions
 trExpr (Comb FuncCall qn es) =
-  getCompOption (\opts -> optOptimization opts > OptimNone) >+= \opt ->
-  getNDClass qn     >+= \ndCl ->
-  getFuncHOClass qn >+= \hoCl ->
-  isDetMode         >+= \dm   ->
-  renameFun qn      >+= \qn'  ->
-  mapM trExpr es >+= unzipArgs >+= \(g, es') ->
+  getCompOption (\opts -> optOptimization opts > OptimNone) >>= \opt ->
+  getNDClass qn     >>= \ndCl ->
+  getFuncHOClass qn >>= \hoCl ->
+  isDetMode         >>= \dm   ->
+  renameFun qn      >>= \qn'  ->
+  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
   if ndCl == ND || not opt || (hoCl == FuncHO && not dm)
    -- for non-deterministic functions and higher-order functions
    -- translated in non-determinism mode we just call the function
    -- with the additional arguments (idsupply, capsule nesting depth
    -- and the constraint store)
-    then takeNextID >+= \i -> genIds (i:g)
+    then takeNextID >>= \i -> genIds (i:g)
           (AHG.applyF qn' (es' ++ [supplyVar i, coverVar, constStoreVar]))
     -- for deterministic functions with higher-order result
     -- in non-determinism mode we need to wrap the result
@@ -704,38 +675,38 @@ trExpr (Comb FuncCall qn es) =
 
 -- partially applied functions
 trExpr (Comb (FuncPartCall i) qn es) =
-  getCompOption (\opts -> optOptimization opts > OptimNone) >+= \opt ->
-  getNDClass qn     >+= \ndCl ->
-  getFuncHOClass qn >+= \hoCl ->
-  isDetMode         >+= \dm   ->
-  renameFun qn      >+= \qn'  ->
-  mapM trExpr es >+= unzipArgs  >+= \(g, es') ->
+  getCompOption (\opts -> optOptimization opts > OptimNone) >>= \opt ->
+  getNDClass qn     >>= \ndCl ->
+  getFuncHOClass qn >>= \hoCl ->
+  isDetMode         >>= \dm   ->
+  renameFun qn      >>= \qn'  ->
+  mapM trExpr es >>= unzipArgs  >>= \(g, es') ->
   genIds g (wrapPartCall False dm opt ndCl hoCl i (AHG.applyF qn' es'))
 
 -- calls to partially applied constructors are treated like calls to partially
 -- applied deterministic first order functions.
 trExpr (Comb (ConsPartCall i) qn es) =
-  isDetMode     >+= \dm  ->
-  renameCons qn >+= \qn' ->
-  mapM trExpr es >+= unzipArgs >+= \(g, es') ->
+  isDetMode     >>= \dm  ->
+  renameCons qn >>= \qn' ->
+  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
   genIds g (wrapPartCall True  dm True D FuncFO i (AHG.applyF qn' es'))
 
 trExpr (Let ds e) =
   let (vs, es) = unzip ds in
-  mapM trExpr es >+= unzipArgs >+= \(g, es') ->
-  trExpr e       >+=               \(ge, e') ->
+  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
+  trExpr e       >>=               \(ge, e') ->
   genIds (g ++ ge) (AHG.clet (zipWith AHG.declVar (map cvVarIndex vs) es') e')
 
 trExpr (Or e1 e2) =
-  trExpr e1  >+= \(vs1, e1') ->
-  trExpr e2  >+= \(vs2, e2') ->
-  takeNextID >+= \i          ->
+  trExpr e1  >>= \(vs1, e1') ->
+  trExpr e2  >>= \(vs2, e2') ->
+  takeNextID >>= \i          ->
   genIds (i : vs1 ++ vs2)
     (choice [e1', e2', supplyVar i, coverVar, constStoreVar])
 
 trExpr (Free vs e) =
-  takeNextIDs (length vs) >+= \is   ->
-  trExpr e             >+= \(g, e') ->
+  takeNextIDs (length vs) >>= \is   ->
+  trExpr e             >>= \(g, e') ->
   genIds (is ++ g) (AHG.clet (zipWith mkFree vs is) e')
   where mkFree v i = AHG.declVar (cvVarIndex v) (generate $ supplyVar i)
 
@@ -745,8 +716,8 @@ trExpr (Free vs e) =
 trExpr (Case _ _ _) = failM "TransFunctions.trExpr: case expression"
 
 trExpr (Typed e ty) =
-  trExpr e      >+= \(g, e') ->
-  trExprType ty >+= \ty'     ->
+  trExpr e      >>= \(g, e') ->
+  trExprType ty >>= \ty'     ->
   genIds g (AH.Typed e' ty')
 
 getString :: Expr -> Maybe String
@@ -767,21 +738,21 @@ getString e = case e of
     _                                        -> Nothing
 
 unzipArgs :: [([VarIndex], AH.Expr)] -> M ([VarIndex], [AH.Expr])
-unzipArgs ises = returnM (concat is, es) where (is, es) = unzip ises
+unzipArgs ises = return (concat is, es) where (is, es) = unzip ises
 
 genIds :: [VarIndex] -> AH.Expr -> M ([VarIndex], AH.Expr)
-genIds []       e = returnM ([], e)
+genIds []       e = return ([], e)
 genIds ns@(_:_) e =
   -- get next free variable id
-  getNextID >+= \i ->
+  getNextID >>= \i ->
   -- create splitting of supply variables
   let (vroot, v', vs)    = splitSupply i ns
       supply (v, v1, v2) = [ (supplyName v1, leftSupply  [supplyVar v])
                            , (supplyName v2, rightSupply [supplyVar v])
                            ]
   in
-  letIdVar (concatMap supply vs) e >+= \e' ->
-  setNextID v' >+ returnM ([vroot], e')
+  letIdVar (concatMap supply vs) e >>= \e' ->
+  setNextID v' >> return ([vroot], e')
 
 --- Split up an identifier supply to saturate
 --- the given list of requested supplies.
@@ -936,8 +907,8 @@ funId  = AHG.applyF (prelude, "id") []
 -- Strict or lazy computation of supplies
 letIdVar :: [(AH.VarIName, AH.Expr)] -> AH.Expr -> M AH.Expr
 letIdVar ds e =
-  strictSupply >+= \strict ->
-  returnM $ AHG.clet (map (uncurry AHG.declVar) ds)
+  strictSupply >>= \strict ->
+  return $ AHG.clet (map (uncurry AHG.declVar) ds)
           $ if strict then foldr seqCall e (map (AH.Var . fst) ds) else e
 
 curryInt :: QName

@@ -5,29 +5,41 @@
 --- an AbstractHaskell program in standard Haskell syntax.
 ---
 --- @author Björn Peemöller
---- @version July 2015
+--- @version May 2017
 ------------------------------------------------------------------------------
-module AbstractHaskellPrinter
+module AbstractHaskell.Printer
   ( Options (..), defaultOptions, pPrint, ppProg, ppHeader, ppImports
   , ppDecls
   ) where
 
 import Text.Pretty
 
-import AbstractHaskell
-import AbstractHaskellGoodies (tyVarsOf)
-import Names           (isHaskellModule, prelude, curryPrelude, addTrace)
+import AbstractHaskell.Types
+import AbstractHaskell.Goodies (tyVarsOf)
 
-data Options = Options { currentModule :: String, traceFailure :: Bool }
+data Options = Options
+  { currentModule :: String
+  , qualImpModule :: String -> Bool -- should a module be qualified imported?
+  , traceFailure  :: Bool
+  , kics2Mode     :: Bool
+  }
 
 defaultOptions :: Options
-defaultOptions = Options { currentModule = "", traceFailure = False }
+defaultOptions = Options
+  { currentModule = ""
+  , qualImpModule = const False
+  , traceFailure = False
+  , kics2Mode = False
+  }
+
+pPrint :: Doc -> String
+pPrint = showWidth 80
 
 -- ---------------------------------------------------------------------------
--- Functions to print an AbstractHaskell program in standard Curry syntax
+-- Functions to print an AbstractHaskell program in standard Haskell syntax
 -- ---------------------------------------------------------------------------
 
---- Shows an AbstractHaskell program in standard Curry syntax.
+--- Shows an AbstractHaskell program in standard Haskell syntax.
 --- The export list contains the public functions and the
 --- types with their data constructors (if all data constructors are public),
 --- otherwise only the type constructors.
@@ -60,7 +72,7 @@ ppDecls opts os ts fs = compose (<$+$>)
 -- ---------------------------------------------------------------------------
 
 --- Create the export specification for a list of types and a list of functions.
---- Note that for types all constructors are exported regardless of the Curry
+--- Note that for types all constructors are exported regardless of the Haskell
 --- export specification (= the visibility information of the constructors)
 --- because record update expressions have been previously desugared into
 --- case expressions mentioning all constructors belonging to the set of labels
@@ -78,16 +90,16 @@ ppExports opts ts fs = tupledSpaced $ filter (not . isEmpty)
   ppTypeExport :: TypeDecl -> Doc
   ppTypeExport (Type     qn vis _ _)
     | vis == Public = ppQName opts qn <+> text "(..)"
-    | otherwise     = empty
+    | otherwise     = Text.Pretty.empty
   ppTypeExport (TypeSyn  qn vis _ _)
     | vis == Public = ppQName opts qn
-    | otherwise     = empty
-  ppTypeExport (Instance _  _   _ _) = empty
+    | otherwise     = Text.Pretty.empty
+  ppTypeExport (Instance _  _   _ _) = Text.Pretty.empty
 
   ppFuncExport :: FuncDecl -> Doc
   ppFuncExport (Func _ qn _ vis _ _)
     | vis == Public = ppPrefixQOp opts qn
-    | otherwise     = empty
+    | otherwise     = Text.Pretty.empty
 
 -- ---------------------------------------------------------------------------
 -- Imports + infix operator declarations
@@ -98,13 +110,12 @@ ppImports opts = vsep . map (ppImport opts)
 
 ppImport :: Options -> String -> Doc
 ppImport opts imp
-    -- Haskell modules are imported unqualified
-  | isHaskellModule imp = indent $ text "import" <+> text imp
-    -- all Curry modules are imported qualified
-  | traceFailure opts   = indent $ fillSep $ map text
-                          ["import", "qualified", addTrace imp, "as", imp]
-  | otherwise           = indent $ fillSep $ map text
-                          ["import", "qualified", imp]
+    -- Import module qualified if required:
+  | qualImpModule opts imp = indent $ fillSep $ map text
+                               ["import", "qualified", imp]
+  | traceFailure opts      = indent $ fillSep $ map text $
+                               ["import", "qualified", addTrace imp, "as", imp]
+  | otherwise              = indent $ text "import" <+> text imp
 
 ppOpDecls :: [OpDecl] -> Doc
 ppOpDecls = vsep . map ppOpDecl
@@ -131,7 +142,7 @@ ppTypeDecl opts (TypeSyn qname _ vs ty) = indent $
    text "type" <+> ppName qname <+> fillSep (map ppTypeVar vs)
                </> equals <+> ppTypeExp opts ty
 ppTypeDecl opts (Type    qname _ vs cs)
-  | null cs   = empty
+  | null cs   = Text.Pretty.empty
   | otherwise = indent $
     (text "data" <+> ppName qname <+> fillSep (map ppTypeVar vs))
     $$ ppConsDecls opts cs
@@ -153,7 +164,7 @@ ppConsDecl o (Cons (_, qn) _ _ tys) = indent $ fillSep
 
 ppContexts :: Options -> [Context] -> Doc
 ppContexts opts cs
-  | null cs   = empty
+  | null cs   = Text.Pretty.empty
   | otherwise = tupled (map (ppContext opts) cs) <+> doubleArrow
 
 ppContext :: Options -> Context -> Doc
@@ -165,10 +176,10 @@ ppTypeExp o = ppTypeExpr o 0
 
 --- Shows an AbstractHaskell type expression in standard Haskell syntax.
 ppTypeExpr :: Options -> Int -> TypeExpr -> Doc
-ppTypeExpr _ _ (TVar         v)  = ppTypeVar v
-ppTypeExpr o p (FuncType t1 t2)  = parensIf (p > 0) $
+ppTypeExpr _ _ (TVar           v) = ppTypeVar v
+ppTypeExpr o p (FuncType   t1 t2) = parensIf (p > 0) $
   ppTypeExpr o 1 t1 </> rarrow <+> ppTypeExp o t2
-ppTypeExpr o p (TCons   qn tys)
+ppTypeExpr o p (TCons     qn tys)
   | isList qn && length tys == 1 = brackets (ppTypeExp o (head tys))
   | isTuple qn                   = tupled (map (ppTypeExp o) tys)
   | otherwise                    = parensIf (p > 1 && not (null tys))
@@ -195,14 +206,14 @@ ppFuncDecl opts (Func cmt (_,name) _ _ ty (Rules rs))
   =  ppComment cmt
   $$ indent (ppTypeSig opts name ty)
   $$ vsep (map (ppRule opts name) rs)
-ppFuncDecl _    (Func _ _ _ _ _ External) = empty
+ppFuncDecl _    (Func _ _ _ _ _ External) = Text.Pretty.empty
 
 ppComment :: String -> Doc
 ppComment = vsep . map (\c -> text "---" <+> text c) . lines
 
 --- Shows an AbstractHaskell type signature of a given function name.
 ppTypeSig :: Options -> String -> TypeSig -> Doc
-ppTypeSig _    _ Untyped         = empty
+ppTypeSig _    _ Untyped         = Text.Pretty.empty
 ppTypeSig opts f (CType ctxt ty) = hsep [ ppPrefixOp f, doubleColon
                                         , ppScopedTyVars ty
                                         , ppContexts opts ctxt
@@ -211,7 +222,7 @@ ppTypeSig opts f (CType ctxt ty) = hsep [ ppPrefixOp f, doubleColon
 
 ppScopedTyVars :: TypeExpr -> Doc
 ppScopedTyVars ty
-  | null tvs  = empty
+  | null tvs  = Text.Pretty.empty
   | otherwise = text "forall" <+> fillSep (map ppTypeVar tvs) <+> dot
   where tvs = tyVarsOf ty
 
@@ -229,7 +240,7 @@ ppCond opts (c, e) = bar <+> ppExpr opts 0 c </> equals <+> ppExpr opts 0 e
 
 ppLocalDecls :: Options -> [LocalDecl] -> Doc
 ppLocalDecls opts ds
-  | null ds   = empty
+  | null ds   = Text.Pretty.empty
   | otherwise = text "where" $$ ppBlock opts ds
 
 ppBlock :: Options -> [LocalDecl] -> Doc
@@ -293,12 +304,15 @@ ppVar :: VarIName -> Doc
 ppVar (_, name) = text name
 
 ppLitPattern :: Options -> Literal -> Doc
-ppLitPattern opts l = case l of
-  Charc   _ -> wrapUnboxed (curryPrelude, "C_Char" )
-  Floatc  _ -> wrapUnboxed (curryPrelude, "C_Float")
-  Intc    _ -> parens (ppQName opts (curryPrelude, "C_Int") <+> parens (ppLiteral l))
-  Stringc _ -> ppLiteral l
- where wrapUnboxed c = parens (ppQName opts c <+> ppLiteral l <> char '#')
+ppLitPattern opts l
+  | kics2Mode opts = case l of
+    Charc   _ -> wrapUnboxed (curryPrelude, "C_Char")
+    Floatc  _ -> wrapUnboxed (curryPrelude, "C_Float")
+    Intc    _ -> parens (ppQName opts (curryPrelude, "C_Char") <+>
+                         parens (ppLiteral l))
+    Stringc _ -> ppLiteral l
+  | otherwise =  ppLiteral l
+  where wrapUnboxed c = parens (ppQName opts c <+> ppLiteral l <> char '#')
 
 ppBranchExpr :: Options -> BranchExpr -> Doc
 ppBranchExpr opts (Branch p e) = indent $
@@ -328,12 +342,11 @@ ppName (_, n) = text n
 
 ppQName :: Options -> QName -> Doc
 ppQName opts (modName, symName)
-    -- all Haskell modules are imported unqualified
-  | isHaskellModule modName       = text symName
-    -- the current module isn't imported at all
-  | modName == currentModule opts = text symName
-    -- all Curry modules are imported qualified
-  | otherwise                     = text $ modName ++ "." ++ symName
+    -- do not qualify names from current module or if it is not required:
+  | modName == currentModule opts ||
+    not (qualImpModule opts modName) = text symName
+    -- otherwise, qualifiy the name:
+  | otherwise                        = text $ modName ++ "." ++ symName
 
 isList :: QName -> Bool
 isList (_, s) = s == "[]"
@@ -373,3 +386,47 @@ list = fillEncloseSep lbracket rbracket (comma <> space)
 
 tupled :: [Doc] -> Doc
 tupled = fillEncloseSep lparen rparen (comma <> space)
+
+curryPrelude :: String
+curryPrelude = "Curry_Prelude"
+
+renameModule :: String -> String
+renameModule = onLastIdentifier ("Curry_" ++)
+
+unRenameModule :: String -> String
+unRenameModule = onLastIdentifier (dropPrefix "Curry_")
+
+addTrace :: String -> String
+addTrace = renameModule . onLastIdentifier ("Trace_" ++) . unRenameModule
+
+removeTrace :: String -> String
+removeTrace = renameModule . onLastIdentifier (dropPrefix "Trace_")
+            . unRenameModule
+
+onLastIdentifier :: (String -> String) -> String -> String
+onLastIdentifier f = joinModuleIdentifiers . onLast f . splitModuleIdentifiers
+
+onLast :: (a -> a) -> [a] -> [a]
+onLast _ []           = error "Names.onLast: empty list"
+onLast f [x]          = [f x]
+onLast f (x:xs@(_:_)) = x : onLast f xs
+
+--- Split up the components of a module identifier. For instance,
+--- `splitModuleIdentifiers "Data.Set"` evaluates to `["Data", "Set"]`.
+splitModuleIdentifiers :: String -> [String]
+splitModuleIdentifiers s = let (pref, rest) = break (== '.') s in
+  pref : case rest of
+    []     -> []
+    _ : s' -> splitModuleIdentifiers s'
+
+--- Join the components of a module identifier. For instance,
+--- `joinModuleIdentifiers ["Data", "Set"]` evaluates to `"Data.Set"`.
+joinModuleIdentifiers :: [String] -> String
+joinModuleIdentifiers = foldr1 combine
+  where combine xs ys = xs ++ '.' : ys
+
+dropPrefix :: String -> String -> String
+dropPrefix pfx s
+  | take n s == pfx = drop n s
+  | otherwise       = s
+  where n = length pfx

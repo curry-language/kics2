@@ -40,6 +40,8 @@ docs/src/version.tex
 docs/src/tooldocs/casc/curry-style-guide.html
 cabal-dev/
 pkg/
+.stack-work
+stack.yaml.lock
 
 # binaries
 benchmarks/Benchmarks

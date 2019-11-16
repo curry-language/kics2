@@ -16,19 +16,19 @@ module System.CurryPath
   , lookupModuleSourceInLoadPath, lookupModuleSource
   ) where
 
-import Char         ( toLower )
-import Directory    ( doesFileExist )
-import Distribution ( curryCompiler, installDir, rcFileName )
-import FileGoodies  ( fileSuffix, stripSuffix )
-import FilePath     ( FilePath, (</>), (<.>), addTrailingPathSeparator
-                    , dropFileName, joinPath, splitDirectories
-                    , splitExtension, splitFileName, splitSearchPath
-                    , takeFileName
-                    )
-import List         ( split )
-import System       ( getEnviron, system )
+import Data.Char           ( toLower )
+import Data.List           ( split )
+import System.Directory    ( doesFileExist )
+import System.Environment  ( getEnv )
+import System.Process      ( system )
+import System.FilePath     ( FilePath, (</>), (<.>), addTrailingPathSeparator
+                           , dropFileName, joinPath, splitDirectories
+                           , splitExtension, splitFileName, splitSearchPath
+                           , takeFileName, takeExtension, dropExtension
+                           )
+import Language.Curry.Distribution ( curryCompiler, installDir, rcFileName )
 
-import Data.PropertyFile ( getPropertyFromFile )
+import Data.PropertyFile   ( getPropertyFromFile )
 
 -----------------------------------------------------------
 --- Functions for handling file names of Curry modules
@@ -66,8 +66,8 @@ joinModuleIdentifiers = foldr1 combine
 --- Strips the suffix ".curry" or ".lcurry" from a file name.
 stripCurrySuffix :: String -> String
 stripCurrySuffix s =
-  if fileSuffix s `elem` ["curry","lcurry"]
-  then stripSuffix s
+  if takeExtension s `elem` [".curry",".lcurry"]
+  then dropExtension s
   else s
 
 --- A module path consists of a directory prefix (which can be omitted)
@@ -135,7 +135,7 @@ getLoadPathForModule modpath = do
   mblib  <- getPropertyFromFile rcfile "libraries"
   let fileDir = dropFileName modpath
   if curryCompiler `elem` ["pakcs","kics","kics2"] then
-    do currypath <- getEnviron "CURRYPATH"
+    do currypath <- getEnv "CURRYPATH"
        let llib = maybe [] (\l -> if null l then [] else splitSearchPath l)
                         mblib
        return $ (fileDir : (if null currypath

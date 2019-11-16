@@ -31,8 +31,8 @@ module EliminateCond (eliminateCond) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies
-import State
-import List (elemIndex,nub)
+import Control.Monad.Trans.State
+import Data.List (elemIndex,nub)
 
 -- main elimination function that eliminates cond calls in the whole
 -- program
@@ -58,37 +58,37 @@ transExpr f e = trExpr transVar transLit transComb transLet
  where
   -- This is where the interesting stuff happens, if a call to
   -- cond is found, the call to an auxiliary function is generated
-  transVar ty v = returnS $ AVar ty v
-  transLit ty l = returnS $ ALit ty l
+  transVar ty v = return $ AVar ty v
+  transLit ty l = return $ ALit ty l
   transComb ty cType (cName, cTy) cargs =
     case (cName, cargs) of
      (("Prelude","cond"),[cond, expr])
-       -> cond `bindS` \newArg1 ->
-          expr `bindS` \newArg2 ->
+       -> cond >>= \newArg1 ->
+          expr >>= \newArg2 ->
           makeAuxFuncCall f ty newArg1 newArg2
-     _ -> sequenceS cargs `bindS` \newArgs ->
-          returnS (AComb ty cType (cName, cTy) newArgs)
+     _ -> sequence cargs >>= \newArgs ->
+          return (AComb ty cType (cName, cTy) newArgs)
   -- for other expressions the transformation has to be done
   -- for their subexpressions
   transLet ty bindings exp =
    let (vars, exps) = unzip bindings
-   in sequenceS exps `bindS` \newExps ->
-      exp            `bindS` \newExp  ->
-      returnS (ALet ty (zip vars newExps) newExp)
+   in sequence exps >>= \newExps ->
+      exp            >>= \newExp  ->
+      return (ALet ty (zip vars newExps) newExp)
   transFree ty vars exp =
-    exp `bindS` \newExp ->
-    returnS (AFree ty vars newExp)
+    exp >>= \newExp ->
+    return (AFree ty vars newExp)
   transOr ty exp1 exp2 =
-   exp1 `bindS` \nExp1 ->
-   exp2 `bindS` \nExp2 ->
-   returnS (AOr ty nExp1 nExp2)
+   exp1 >>= \nExp1 ->
+   exp2 >>= \nExp2 ->
+   return (AOr ty nExp1 nExp2)
   transCase ty ct exp bexps =
-    exp `bindS` \nExp ->
-    sequenceS bexps `bindS` \nBexps ->
-    returnS (ACase ty ct nExp nBexps)
-  transBranch pat exp = exp `bindS` \ newExp ->
-                        returnS (ABranch pat newExp)
-  transTyped ty exp tyExp = exp `bindS` \e' -> returnS (ATyped ty e' tyExp)
+    exp >>= \nExp ->
+    sequence bexps >>= \nBexps ->
+    return (ACase ty ct nExp nBexps)
+  transBranch pat exp = exp >>= \ newExp ->
+                        return (ABranch pat newExp)
+  transTyped ty exp tyExp = exp >>= \e' -> return (ATyped ty e' tyExp)
 
 
 -- This function creates a new function for a call to cond.
@@ -97,7 +97,7 @@ transExpr f e = trExpr transVar transLit transComb transLet
 -- unbound variables in the second argument of the cond call
 -- and the first argument (the Success-expression).
 -- The created function performs pattern matching on the
--- Success-exression and returns the second argument of
+-- Success-exression and return the second argument of
 -- the cond-call with all unbound variables replaced
 -- by the arguments of the newly created function
 -- The created function is saved in the state, the
@@ -105,9 +105,9 @@ transExpr f e = trExpr transVar transLit transComb transLet
 makeAuxFuncCall :: QName -> TypeExpr -> AExpr TypeExpr -> AExpr TypeExpr
                 -> State ([AFuncDecl TypeExpr], Int) (AExpr TypeExpr)
 makeAuxFuncCall name ty cond newBody =
-  getS                            `bindS` \(funs,idx) ->
-  putS (newFun idx:funs, idx + 1) `bindS` \_          ->
-  returnS $ AComb ty FuncCall (mkNewName name idx, funtype)
+  get                            >>= \(funs,idx) ->
+  put (newFun idx:funs, idx + 1) >>= \_          ->
+  return $ AComb ty FuncCall (mkNewName name idx, funtype)
                               (map (uncurry (flip AVar)) typedVars ++ [cond])
  where
   newFun i = AFunc (mkNewName name i) numArgs Private funtype rule

@@ -17,15 +17,16 @@ module System.FrontendExec
   , callFrontend, callFrontendWithParams
   ) where
 
-import Char         ( toUpper )
-import Distribution ( curryCompiler, curryCompilerMajorVersion
-                    , curryCompilerMinorVersion, installDir, rcFileName )
-import List         ( intercalate, nub )
-import FilePath     ( FilePath, (</>), takeDirectory, takeFileName )
-import System       ( system )
-
-import Data.PropertyFile ( getPropertiesFromFile )
-import System.CurryPath  ( getLoadPathForModule )
+import Data.Char           ( toUpper )
+import Data.List           ( intercalate, nub )
+import Data.PropertyFile   ( getPropertiesFromFile )
+import System.FilePath     ( FilePath, (</>), takeDirectory, takeFileName )
+import System.Process      ( system )
+import System.CurryPath    ( getLoadPathForModule )
+import Language.Curry.Distribution 
+                           ( curryCompiler, curryCompilerMajorVersion
+                           , curryCompilerMinorVersion, installDir, rcFileName 
+                           )
 
 -------------------------------------------------------------------
 -- calling the front end
@@ -226,7 +227,7 @@ callFrontendWithParams target params modpath = do
              then system syscall
              else system (syscall ++ " > " ++ lf ++ " 2>&1")
   if retcode == 0
-   then done
+   then return ()
    else ioError (userError "Illegal source program")
  where
    callParseCurry = do
