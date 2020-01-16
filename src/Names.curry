@@ -179,6 +179,7 @@ genRename n
   | n == "[]"     = "OP_List"
   | n == ":"      = "OP_Cons"
   | n == "()"     = "OP_Unit"
+  | n == "(->)"   = "Func"
   | head n == '(' = "OP_Tuple" ++ show (length n - 1)
   | otherwise     = replaceNonIdChars "C_" "OP_" n
 

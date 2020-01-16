@@ -10,32 +10,30 @@ module REPL where
 import AbstractCurry.Types hiding (preludeName)
 import AbstractCurry.Files
 import AbstractCurry.Select
-import Char              (isAlpha, isAlphaNum, isDigit, isSpace, toLower)
-import Directory
-import Distribution      ( baseVersion, installDir )
-import FilePath          ( (</>), (<.>)
-                         , splitSearchPath, splitFileName, splitExtension
-                         , searchPathSeparator)
-import Files             (lookupFileInPath)
-import IO
-import IOExts
-import List              (intercalate, intersperse, isPrefixOf, nub)
-import ReadNumeric       (readNat)
-import ReadShowTerm      (readsTerm)
-import Sort              (mergeSort)
-import System            (system, getArgs, getEnviron, getPID, exitWith)
-import Time
+import Language.Curry.Distribution ( baseVersion, installDir )
+import System.Directory
+import System.FilePath    ( (</>), (<.>)
+                          , splitSearchPath, splitFileName, splitExtension
+                          , searchPathSeparator, findFileWithSuffix)
+import System.Environment (system, getArgs, getEnv, getPID, exitWith)
+import System.IO
+import System.IOExts
+import Data.Char          (isAlpha, isAlphaNum, isDigit, isSpace, toLower)
+import Data.List          (intercalate, intersperse, isPrefixOf, nub, sort)
+import Data.Time
+import Numeric            (readNat)
+import ReadShowTerm       (readsTerm)
 
 import Files                (removeFileIfExists)
 import GhciComm             (stopGhciComm)
 import qualified Installation as Inst
-import Names               (funcInfoFile, moduleNameToPath)
+import Names                (funcInfoFile, moduleNameToPath)
 import RCFile
-import Utils               ( showMonoTypeExpr, showMonoQualTypeExpr
-                           , notNull, strip )
+import Utils                ( showMonoTypeExpr, showMonoQualTypeExpr
+                            , notNull, strip )
 
-import System.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
-                           , sysLibPath )
+import System.CurryPath     ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
+                            , sysLibPath )
 import System.FrontendExec
 
 import Linker
@@ -80,7 +78,7 @@ main = do
 --- and the "libraries" property defined in ~/.kics2rc
 defaultImportPaths :: ReplState -> IO [String]
 defaultImportPaths rst = do
-  currypath <- getEnviron "CURRYPATH"
+  currypath <- getEnv "CURRYPATH"
   let rclibs = rcValue (rcvars rst) "libraries"
   return $ filter (/= ".") $ splitSearchPath currypath ++ splitSearchPath rclibs
 
@@ -678,8 +676,8 @@ processAdd rst args
     add rst' m = let mdl = stripCurrySuffix m in
       if validModuleName mdl
       then do
-        mbf <- lookupFileInPath (moduleNameToPath mdl) [".curry", ".lcurry"]
-                                (loadPaths rst')
+        mbf <- findFileWithSuffix (moduleNameToPath mdl) [".curry", ".lcurry"]
+                                  (loadPaths rst')
         case mbf of
           Nothing -> do
             writeErrorMsg $ "Source file of module '" ++ mdl ++ "' not found"
@@ -724,9 +722,9 @@ processPrograms rst _ = printAllLoadPathPrograms rst >> return (Just rst)
 processEdit :: ReplState -> String -> IO (Maybe ReplState)
 processEdit rst args = do
   modname <- getModuleName rst args
-  mbf <- lookupFileInPath (moduleNameToPath modname) [".curry", ".lcurry"]
-                          (loadPaths rst)
-  editenv <- getEnviron "EDITOR"
+  mbf <- findFileWithSuffix (moduleNameToPath modname) [".curry", ".lcurry"]
+                            (loadPaths rst)
+  editenv <- getEnv "EDITOR"
   let editcmd  = rcValue (rcvars rst) "editcommand"
       editprog = if null editcmd then editenv else editcmd
   if null editenv && null editcmd
@@ -761,12 +759,12 @@ getModuleName rst args =
 processShow :: ReplState -> String -> IO (Maybe ReplState)
 processShow rst args = do
   modname <- getModuleName rst args
-  mbf <- lookupFileInPath (moduleNameToPath modname) [".curry", ".lcurry"]
-                          (loadPaths rst)
+  mbf <- findFileWithSuffix (moduleNameToPath modname) [".curry", ".lcurry"]
+                            (loadPaths rst)
   case mbf of
     Nothing -> skipCommand "source file not found"
     Just fn -> do
-      pager <- getEnviron "PAGER"
+      pager <- getEnv "PAGER"
       let rcshowcmd = rcValue (rcvars rst) "showcommand"
           showprog  = if not (null rcshowcmd)
                         then rcshowcmd

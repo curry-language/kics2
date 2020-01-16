@@ -9,9 +9,9 @@ module GhciComm
   , evalMainCmd, evalCustomCmd
   ) where
 
-import IO     (Handle, hClose, hFlush, hGetLine, hPutStrLn)
-import IOExts (connectToCommand)
-import Time   (calendarTimeToString, getLocalTime)
+import System.IO     (Handle, hClose, hFlush, hGetLine, hPutStrLn)
+import System.IOExts (connectToCommand)
+import Data.Time     (calendarTimeToString, getLocalTime)
 
 --- Information for communication with ghci
 --- (ghc(i) command with arguments, handle, verbosity flag)

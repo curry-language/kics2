@@ -14,14 +14,15 @@ module Linker
   , getTimeCmd
   ) where
 
-import Directory
-import FilePath      ((</>), dropExtension, searchPathSeparator)
-import IO            (Handle, hFlush, hGetContents, hClose, stdout)
-import IOExts        (execCmd)
-import List          (intercalate, isInfixOf)
-import Maybe         (isNothing)
+import System.Environment
+import System.Process
+import System.Directory
+import System.FilePath      ((</>), dropExtension, searchPathSeparator)
+import System.IO            (Handle, hFlush, hGetContents, hClose, stdout)
+import System.IOExts        (execCmd)
+import Data.List            (intercalate, isInfixOf)
+import Data.Maybe           (isNothing)
 import ReadShowTerm  (readQTermFile)
-import System
 
 import qualified Installation as Inst
 import GhciComm

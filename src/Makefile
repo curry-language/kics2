@@ -41,7 +41,7 @@ bootstrap-start: clean
 ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
 	$(MAKE) CompileBoot
 else
-	# Compile in several steps to avoid memory overflow with PAKCS:
+	$(MAKE) $(SUBDIR)/Curry_Names.hs
 	$(MAKE) $(SUBDIR)/Curry_ModuleDeps.hs
 	$(MAKE) $(SUBDIR)/Curry_TransTypes.hs
 	$(MAKE) $(SUBDIR)/Curry_TransFunctions.hs
@@ -89,9 +89,9 @@ $(INSTALLCURRY): $(INSTALLHS)
 CompileInitial: Compile.curry $(INSTALLCURRY)
 	mkdir -p $(LOCALBIN)
 ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
-	$(KICS2) $(CURRY_OPTS) :set parser -Wall :set v2 :load Compile :save :quit
+	$(KICS2) $(CURRY_OPTS) --nocypm :load Compile :save :quit
 else
-	pakcs $(CURRY_OPTS) :load Compile :save :quit || (exit 1)
+	pakcs $(CURRY_OPTS)    --nocypm :load Compile :save :quit || (exit 1)
 endif
 	mv Compile $(COMP)
 
