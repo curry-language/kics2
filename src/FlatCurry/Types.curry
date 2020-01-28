@@ -81,8 +81,13 @@ data TypeExpr
   | FuncType TypeExpr TypeExpr       -- function type t1->t2
   | TCons QName [TypeExpr]           -- type constructor application
                                      -- TCons module name typeargs
-  | ForallType  [TVarIndex] TypeExpr -- forall type
+  | ForallType  [(TVarIndex, Kind)] TypeExpr -- forall type
  deriving (Eq, Ord, Read, Show)
+
+data Kind
+  = KStar
+  | KArrow Kind Kind
+  deriving (Eq, Ord, Read, Show)
 
 --- Data type for operator declarations.
 --- An operator declaration `fix p n` in Curry corresponds to the
