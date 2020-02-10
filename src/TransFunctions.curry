@@ -7,7 +7,7 @@
 --- --------------------------------------------------------------------------
 module TransFunctions ( State (..), defaultState, trProg, runIOES ) where
 
-import Data.List      (nub)
+import Data.List      (nub, partition)
 import Control.Monad
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Except
@@ -290,7 +290,7 @@ globalTemporary = renameQName ("Global", "Temporary")
 trGlobalDecl :: FuncDecl -> M [AH.FuncDecl]
 trGlobalDecl (Func qn a v t r) = doInDetMode True $ case r of
   (Rule _ (Comb _ _ [e, _]))  | a == 0  ->
-    trCompleteExpr e       >>= \e'      ->
+    trCompleteExpr qn e       >>= \e'      ->
     renameFun qn           >>= \qn'     ->
     renameFun globalGlobal >>= \global' ->
     trDetType 0 t          >>= \t'      ->
@@ -354,71 +354,47 @@ renameCons qn@(q, n) =
 -- -----------------------------------------------------------------------------
 
 toTypeSig :: AH.TypeExpr -> AH.TypeSig
-toTypeSig ty = AH.CType (genContext [] ty) (toLocalTypeSig (AHG.tyVarsOf ty) ty)
+toTypeSig = AH.CType [] . genContext
 
---- Insert Curry contexts for nested forall types in a type expression. The
---- first parameter denotes the type variables that are currently in scope.
-toLocalTypeSig :: [AH.TVarIName] -> AH.TypeExpr -> AH.TypeExpr
-toLocalTypeSig _   (AH.TVar tv) = AH.TVar tv
-toLocalTypeSig tvs (AH.TCons qn tys) = AH.TCons qn $ map (toLocalTypeSig tvs) tys
-toLocalTypeSig tvs (AH.FuncType ty1 ty2) =
-  AH.FuncType (toLocalTypeSig tvs ty1) (toLocalTypeSig tvs ty2)
-toLocalTypeSig tvs (AH.ForallType tvs' cx ty) =
-  AH.ForallType tvs' (cx ++ genContext tvs ty) $
-    toLocalTypeSig (tvs ++ tvs') ty
+genContext :: AH.TypeExpr -> AH.TypeExpr
+genContext = snd . toTypeSig' []
+  where
+    toTypeSig' vs (AH.FuncType ty1 ty2) =
+      let (cty1, ty1') = toTypeSig' vs ty1
+          (cty2, ty2') = toTypeSig' vs ty2
+      in (cty1++cty2, AH.FuncType ty1' ty2')
+    toTypeSig' vs (AH.ForallType tvs cs ty) =
+      let vs' = vs ++ tvs
+          (cty, ty') = toTypeSig' vs' ty
+          (here, before) = partition (isSaturatedWith vs') $ cty
+      in (before, AH.ForallType tvs (cs ++ map mkContext (nub here)) ty')
+    toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
+      Just AH.KindStar -> ([t], t)
+      _                -> ([] , t)
+    toTypeSig' vs t@(AH.TCons qname tys) =
+      let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
+      in if qname == (curryPrelude, "C_Apply") && isTypeVar (head tys)
+           then (t : concat ctys, AH.TCons qname tys')
+           else (    concat ctys, AH.TCons qname tys')
 
---- Generate context elements from gathered context type expressions
-genContext :: [AH.TVarIName] -> AH.TypeExpr -> [AH.Context]
-genContext tvs = map mkContext . gatherContextTypeExprs tvs
+    isSaturatedWith vs ty = all (elemFst vs) $ typeVars ty []
 
---- Generate a context element
-mkContext :: AH.TypeExpr -> AH.Context
-mkContext ty = AH.Context (curryPrelude, "Curry") [ty]
+    typeVars (AH.TVar tv) vs = tv:vs
+    typeVars (AH.TCons _ tys) vs = foldr typeVars vs tys
+    typeVars (AH.ForallType _ _ ty) vs = typeVars ty vs
+    typeVars (AH.FuncType ty1 ty2) vs = typeVars ty1 (typeVars ty2 vs)
 
---- Gather those type expressions for which a Curry context has to be generated.
---- In particular, these type expression are either type variables of simple
---- kind that are not from outer scope (in that case, a Curry context would
---- be generated in that scope) or type variable applications to an arbitrary
---- type expression in which not all type variable are from outer scope
---- (otherwise a Curry context would be generated in that scope). The first
---- parameter denotes these type variables from outer scope.
-gatherContextTypeExprs :: [AH.TVarIName] -> AH.TypeExpr -> [AH.TypeExpr]
-gatherContextTypeExprs tvs ty = nub $ gatherContextTypeExprs' [] ty
- where
-  gatherContextTypeExprs' acc ty'@(AH.TVar  tv)
-    | isHigherKinded tv ty || tv `elem` tvs = acc
-    | otherwise = ty' : acc
-  gatherContextTypeExprs' acc (AH.FuncType ty1 ty2)
-    = gatherContextTypeExprs' (gatherContextTypeExprs' acc ty1) ty2
-  gatherContextTypeExprs' acc ty'@(AH.TCons qn tys)
-    | qn == (curryPrelude, "C_Apply") && isTypeVar (head tys) &&
-      any (`notElem` tvs) (AHG.tyVarsOf ty')
-      = ty' : gatherContextTypeExprs' acc (head $ tail tys)
-    | otherwise = foldl gatherContextTypeExprs' acc tys
-  -- Only keep those type expressions that do not contain any variables that
-  -- are locally quantified within the forall type
-  gatherContextTypeExprs' acc (AH.ForallType tvs' _ ty')
-    = acc ++ (filter (all (`notElem` tvs') . AHG.tyVarsOf) $
-                gatherContextTypeExprs (tvs ++ AHG.tyVarsOf ty) ty')
+    elemFst []         _ = False
+    elemFst ((x,_):xs) e = x == e || elemFst xs e
 
---- State whether a type expression is a type variable
-isTypeVar :: AH.TypeExpr -> Bool
-isTypeVar (AH.TVar _) = True
-isTypeVar (AH.FuncType _ _) = False
-isTypeVar (AH.TCons _ _) = False
-isTypeVar (AH.ForallType _ _ _) = False
+    arityKind AH.KindStar         = 0
+    arityKind (AH.KindArrow _ k2) = arityKind k2 + 1
 
---- State whether a type variable is occuring with a higher kind than * in a
---- type expression, where * is the kind of simple types
-isHigherKinded :: AH.TVarIName -> AH.TypeExpr -> Bool
-isHigherKinded _  (AH.TVar         _)      = False
-isHigherKinded tv (AH.FuncType ty1 ty2)    =
-  isHigherKinded tv ty1 || isHigherKinded tv ty2
-isHigherKinded tv (AH.ForallType tvs _ ty) =
-  tv `notElem` tvs && isHigherKinded tv ty
-isHigherKinded tv (AH.TCons qn tys)
-  | qn == (curryPrelude, "C_Apply") = AH.TVar tv == head tys
-  | otherwise = or (map (isHigherKinded tv) tys)
+    isTypeVar ty = case ty of
+      AH.TVar _ -> True
+      _         -> False
+
+    mkContext ty = AH.Context (curryPrelude, "Curry") [ty]
 
 trDetType :: Int -> TypeExpr -> M AH.TypeExpr
 trDetType = trTypeExpr detFuncType
@@ -442,6 +418,9 @@ trTypeExpr combFunc addArgs n t
     -- all arguments are applied
   | n == 0 = return $ addArgs (trHOTypeExpr combFunc t)
   | n >  0 = case t of
+              ForallType vs ty ->
+                trTypeExpr combFunc addArgs n ty >>= \ty' ->
+                return $ AH.ForallType (map trTVarKind vs) [] ty'
               (FuncType t1 t2) ->
                 trTypeExpr combFunc addArgs (n-1) t2 >>= \t2' ->
                 return $ AH.FuncType (trHOTypeExpr combFunc t1) t2'
@@ -457,10 +436,18 @@ trHOTypeExpr f (FuncType  t1 t2) = f (trHOTypeExpr f t1) (trHOTypeExpr f t2)
 trHOTypeExpr f (TCons     qn ts) = AH.TCons qn (map (trHOTypeExpr f) ts)
 trHOTypeExpr f (ForallType is t) =
   let t' = trHOTypeExpr f t
-  in AH.ForallType (map cvTVarIndex is) (genContext [] t') t'
+      is' = map trTVarKind is
+  in genContext $ AH.ForallType is' [] t'
 
 cvTVarIndex :: TVarIndex -> AH.TVarIName
 cvTVarIndex i = (i, 't' : show i)
+
+trKind :: Kind -> AH.Kind
+trKind KStar = AH.KindStar
+trKind (KArrow k1 k2) = AH.KindArrow (trKind k1) (trKind k2)
+
+trTVarKind :: (TVarIndex, Kind) -> (AH.TVarIName, AH.Kind)
+trTVarKind (i, k) = (cvTVarIndex i, trKind k)
 
 supplyType :: AH.TypeExpr
 supplyType  = AH.TCons (basics, "IDSupply") []
@@ -508,11 +495,11 @@ trBody :: QName -> [Int] -> Expr -> M AH.Expr
 trBody qn vs e = case e of
   Case _ (Var i) bs ->
     getMatchedType (head bs)  >>= \ty  ->
-    mapM trBranch bs          >>= \bs' ->
+    mapM (trBranch qn) bs          >>= \bs' ->
     let lbs = litBranches bs' in
     consBranches qn vs i ty   >>= \cbs ->
     return $ AH.Case (cvVar i) (bs' ++ lbs ++ cbs)
-  _ -> trCompleteExpr e
+  _ -> trCompleteExpr qn e
 
 getMatchedType :: BranchExpr -> M QName
 getMatchedType (Branch (Pattern p _) _) = getType p
@@ -521,8 +508,8 @@ getMatchedType (Branch (LPattern  l) _) = return $ case l of
   Floatc _ -> curryFloat
   Charc _  -> curryChar
 
-trBranch :: BranchExpr -> M AH.BranchExpr
-trBranch (Branch p e) = liftM2 AH.Branch (trPattern p) (trCompleteExpr e)
+trBranch :: QName -> BranchExpr -> M AH.BranchExpr
+trBranch qname (Branch p e) = liftM2 AH.Branch (trPattern p) (trCompleteExpr qname e)
 
 trPattern :: Pattern -> M AH.Pattern
 trPattern (Pattern qn vs) =
@@ -629,10 +616,10 @@ consBranches qn' vs v typeName =
 
 --- Translation of an expression where all newly introduced supply
 --- variables are bound by nested let expressions.
-trCompleteExpr :: Expr -> M AH.Expr
-trCompleteExpr e =
+trCompleteExpr :: QName -> Expr -> M AH.Expr
+trCompleteExpr qname e =
   getNextID   >>= \i       -> -- save current variable id
-  trExpr e    >>= \(g, e') ->
+  trExpr qname e    >>= \(g, e') ->
   setNextID i >>              -- and reset the variable id
   case g of
     []  -> return e'
@@ -641,23 +628,23 @@ trCompleteExpr e =
 
 --- Transform an expression and compute a list of new supply variables
 --- to be bound.
-trExpr :: Expr -> M ([VarIndex], AH.Expr)
-trExpr (Var                 i) = return ([], cvVar     i)
-trExpr (Lit                 l) = return ([], cvLitExpr l)
-trExpr e@(Comb ConsCall qn es) = case getString e of
+trExpr :: QName -> Expr -> M ([VarIndex], AH.Expr)
+trExpr _ (Var                 i) = return ([], cvVar     i)
+trExpr _ (Lit                 l) = return ([], cvLitExpr l)
+trExpr qname e@(Comb ConsCall qn es) = case getString e of
   Just s -> return ([], toCurryString s)
   _      -> renameCons     qn            >>= \qn'      ->
-            mapM trExpr es >>= unzipArgs >>= \(g, es') ->
+            mapM (trExpr qname) es >>= unzipArgs >>= \(g, es') ->
             genIds g (AHG.applyF qn' es')
 
 -- fully applied functions
-trExpr (Comb FuncCall qn es) =
+trExpr qname (Comb FuncCall qn es) =
   getCompOption (\opts -> optOptimization opts > OptimNone) >>= \opt ->
   getNDClass qn     >>= \ndCl ->
   getFuncHOClass qn >>= \hoCl ->
   isDetMode         >>= \dm   ->
   renameFun qn      >>= \qn'  ->
-  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
+  mapM (trExpr qname) es >>= unzipArgs >>= \(g, es') ->
   if ndCl == ND || not opt || (hoCl == FuncHO && not dm)
    -- for non-deterministic functions and higher-order functions
    -- translated in non-determinism mode we just call the function
@@ -674,49 +661,49 @@ trExpr (Comb FuncCall qn es) =
       _                    -> AHG.applyF qn' (es' ++ [coverVar, constStoreVar])
 
 -- partially applied functions
-trExpr (Comb (FuncPartCall i) qn es) =
+trExpr qname (Comb (FuncPartCall i) qn es) =
   getCompOption (\opts -> optOptimization opts > OptimNone) >>= \opt ->
   getNDClass qn     >>= \ndCl ->
   getFuncHOClass qn >>= \hoCl ->
   isDetMode         >>= \dm   ->
   renameFun qn      >>= \qn'  ->
-  mapM trExpr es >>= unzipArgs  >>= \(g, es') ->
+  mapM (trExpr qname) es >>= unzipArgs  >>= \(g, es') ->
   genIds g (wrapPartCall False dm opt ndCl hoCl i (AHG.applyF qn' es'))
 
 -- calls to partially applied constructors are treated like calls to partially
 -- applied deterministic first order functions.
-trExpr (Comb (ConsPartCall i) qn es) =
+trExpr qname (Comb (ConsPartCall i) qn es) =
   isDetMode     >>= \dm  ->
   renameCons qn >>= \qn' ->
-  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
+  mapM (trExpr qname) es >>= unzipArgs >>= \(g, es') ->
   genIds g (wrapPartCall True  dm True D FuncFO i (AHG.applyF qn' es'))
 
-trExpr (Let ds e) =
+trExpr x (Let ds e) =
   let (vs, es) = unzip ds in
-  mapM trExpr es >>= unzipArgs >>= \(g, es') ->
-  trExpr e       >>=               \(ge, e') ->
+  mapM (trExpr x) es >>= unzipArgs >>= \(g, es') ->
+  trExpr x e       >>=               \(ge, e') ->
   genIds (g ++ ge) (AHG.clet (zipWith AHG.declVar (map cvVarIndex vs) es') e')
 
-trExpr (Or e1 e2) =
-  trExpr e1  >>= \(vs1, e1') ->
-  trExpr e2  >>= \(vs2, e2') ->
+trExpr x (Or e1 e2) =
+  trExpr x e1  >>= \(vs1, e1') ->
+  trExpr x e2  >>= \(vs2, e2') ->
   takeNextID >>= \i          ->
   genIds (i : vs1 ++ vs2)
     (choice [e1', e2', supplyVar i, coverVar, constStoreVar])
 
-trExpr (Free vs e) =
+trExpr s (Free vs e) =
   takeNextIDs (length vs) >>= \is   ->
-  trExpr e             >>= \(g, e') ->
+  trExpr s e             >>= \(g, e') ->
   genIds (is ++ g) (AHG.clet (zipWith mkFree vs is) e')
   where mkFree v i = AHG.declVar (cvVarIndex v) (generate $ supplyVar i)
 
 -- This case should not occur because:
 --   * Nested case expressions have been lifted using LiftCase
 --   * The outer case expression has been handled by trBody
-trExpr (Case _ _ _) = failM "TransFunctions.trExpr: case expression"
+trExpr x c@(Case _ _ _) = failM $ "TransFunctions.trExpr: " ++ show c ++ show x
 
-trExpr (Typed e ty) =
-  trExpr e      >>= \(g, e') ->
+trExpr x (Typed e ty) =
+  trExpr x e      >>= \(g, e') ->
   trExprType ty >>= \ty'     ->
   genIds g (AH.Typed e' ty')
 

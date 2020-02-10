@@ -131,7 +131,8 @@ liftCasesFunc onlyNested mod aux f (esMain,i0,ffMain) =
 genFuncCall :: String -> String -> Int -> TypeExpr -> [TypedVar]
             -> AExpr TypeExpr -> AExpr TypeExpr
 genFuncCall mod aux i ty env e =
-  AComb ty FuncCall (newName mod aux i, funtype) (map (uncurry (flip AVar)) env ++ [e])
+  AComb ty FuncCall (newName mod aux i, funtype)
+    (map (uncurry (flip AVar)) env ++ [e])
   where funtype = foldr FuncType (FuncType (annExpr e) ty) (map snd env)
 
 genFunc :: String -> String -> Int -> TypeExpr
@@ -153,8 +154,9 @@ genFunc mod aux i ty env e ct bs =
     funtype = foldr FuncType ty (map snd args)
 
 removePVars :: [TypedVar] -> APattern TypeExpr -> [TypedVar]
-removePVars e = trPattern (\ _ _ vs -> filter (\v -> fst v `notElem` map fst vs) e)
-                          (\_ _ -> e)
+removePVars e = trPattern
+  (\ _ _ vs -> filter (\v -> fst v `notElem` map fst vs) e)
+  (\_ _ -> e)
 
 genAuxName :: [String] -> String
 genAuxName = foldl addUnderscores "_case_"
@@ -166,4 +168,4 @@ newName :: String -> String -> Int -> QName
 newName m l i = (m, l ++ show i)
 
 nextLocalName :: [VarIndex] -> VarIndex
-nextLocalName vs =  (foldr max 0 vs + 1)
+nextLocalName vs = foldr max 0 vs + 1

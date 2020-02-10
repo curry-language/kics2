@@ -281,7 +281,7 @@ tConsArgs texpr = case texpr of
 trTypeExpr :: (TVarIndex -> a) ->
               (QName -> [a] -> a) ->
               (a -> a -> a) ->
-              ([TVarIndex] -> a -> a) -> TypeExpr -> a
+              ([(TVarIndex, Kind)] -> a -> a) -> TypeExpr -> a
 trTypeExpr tvar _ _ _ (TVar n) = tvar n
 trTypeExpr tvar tcons functype foralltype (TCons name args)
   = tcons name (map (trTypeExpr tvar tcons functype foralltype) args)
@@ -328,7 +328,8 @@ updFuncTypes :: (TypeExpr -> TypeExpr -> TypeExpr) -> TypeExpr -> TypeExpr
 updFuncTypes functype = trTypeExpr TVar TCons functype ForallType
 
 --- update all forall types
-updForallTypes :: ([TVarIndex] -> TypeExpr -> TypeExpr) -> TypeExpr -> TypeExpr
+updForallTypes :: ([(TVarIndex, Kind)] -> TypeExpr -> TypeExpr)
+               -> TypeExpr -> TypeExpr
 updForallTypes = trTypeExpr TVar TCons FuncType
 
 -- Auxiliary Functions
@@ -1010,4 +1011,3 @@ unAnnExpr = trExpr var lit comb lett fre or cse branch typed
 unAnnPattern :: APattern _ -> FC.Pattern
 unAnnPattern = trPattern (\_ qn vs -> FC.Pattern (fst qn) (map fst vs))
                          (\_ l -> FC.LPattern l)
-

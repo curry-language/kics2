@@ -19,7 +19,7 @@ module FlatCurry.Annotated.Types
   ) where
 
 import FlatCurry.Types ( QName, VarIndex, Visibility (..), TVarIndex
-                       , TypeDecl (..), OpDecl (..), Fixity (..)
+                       , TypeDecl (..), Kind(..), OpDecl (..), Fixity (..)
                        , TypeExpr (..), ConsDecl (..)
                        , Literal (..), CombType (..), CaseType (..)
                        )
@@ -62,4 +62,3 @@ data APattern a
   = APattern  a (QName, a) [(VarIndex, a)] --- constructor pattern
   | ALPattern a Literal                    --- literal pattern
  deriving (Eq, Ord, Read, Show)
-

@@ -225,10 +225,10 @@ extractFuncInfos funs =
   isIO AH.Untyped      = False
   isIO (AH.CType _ ty) = withIOResult ty
 
-  withIOResult (AH.TVar           _) = False
-  withIOResult (AH.FuncType    _ ty) = withIOResult ty
-  withIOResult (AH.TCons       tc _) = tc == (curryPrelude, "C_IO")
-  withIOResult (AH.ForallType _ _ _) = False
+  withIOResult (AH.TVar            _) = False
+  withIOResult (AH.FuncType     _ ty) = withIOResult ty
+  withIOResult (AH.TCons        tc _) = tc == (curryPrelude, "C_IO")
+  withIOResult (AH.ForallType _ _ ty) = withIOResult ty
 
 -- Patch Prelude in order to add some exports for predefined items
 patchPreludeExports :: AH.Prog -> AH.Prog

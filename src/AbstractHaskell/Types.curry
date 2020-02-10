@@ -14,9 +14,9 @@ module AbstractHaskell.Types where
 
 --- Data type for representing a Haskell module in the intermediate form.
 --- A value of this data type has the form
---- 
+---
 ---    (CProg modname imports typedecls functions opdecls)
---- 
+---
 --- where modname: name of this module,
 ---       imports: list of modules names that are imported,
 ---       typedecls, opdecls, functions: see below
@@ -82,11 +82,16 @@ data ConsDecl = Cons QName Int Visibility [TypeExpr]
 ---       "Int", "Float", "Bool", "Char", "IO",
 ---       "()" (unit type), "(,...,)" (tuple types), "[]" (list type)
 data TypeExpr
-  = TVar TVarIName                            -- type variable
-  | FuncType TypeExpr TypeExpr                -- function type t1->t2
-  | TCons QName [TypeExpr]                    -- type constructor application
-                                              -- (TCons (module,name) arguments)
-  | ForallType [TVarIName] [Context] TypeExpr -- explicitly quantified type expression
+  = TVar TVarIName                                    -- type variable
+  | FuncType TypeExpr TypeExpr                        -- function type t1->t2
+  | TCons QName [TypeExpr]                            -- type constructor application
+                                                      -- (TCons (module,name) arguments)
+  | ForallType [(TVarIName, Kind)] [Context] TypeExpr -- explicitly quantified type expression
+  deriving (Eq,Show)
+
+data Kind
+  = KindStar
+  | KindArrow Kind Kind
   deriving (Eq,Show)
 
 --- Data type to represent the type signature of a defined function.

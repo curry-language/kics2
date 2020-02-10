@@ -77,7 +77,7 @@ tyVarsOf :: TypeExpr -> [TVarIName]
 tyVarsOf (TVar             tv) = [tv]
 tyVarsOf (FuncType      t1 t2) = tyVarsOf t1 `union` tyVarsOf t2
 tyVarsOf (TCons         _ tys) = foldr union [] (map tyVarsOf tys)
-tyVarsOf (ForallType tvs _ ty) = tyVarsOf ty \\ tvs
+tyVarsOf (ForallType tvs _ ty) = tyVarsOf ty \\ map fst tvs
 
 -- -----------------------------------------------------------------------------
 -- Goodies for function declarations

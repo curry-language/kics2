@@ -117,4 +117,4 @@ dflt ty e
 
 --- Retrieve all type variables in a type expression.
 tyVars :: TypeExpr -> [TVarIndex]
-tyVars = nub . trTypeExpr (:[]) (\_ -> concat) (++) (flip (\\))
+tyVars = nub . trTypeExpr (:[]) (\_ -> concat) (++) (flip const)

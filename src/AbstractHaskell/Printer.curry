@@ -186,7 +186,8 @@ ppTypeExpr o p (TCons     qn tys)
                                  $ fillSep
                                  $ ppQName o qn : map (ppTypeExpr o 2) tys
 ppTypeExpr o p (ForallType vs cx t) = parensIf (p > 0) $ text "forall"
-  <+> fillSep (map ppTypeVar vs) <+> dot <+> ppContexts o cx <+> ppTypeExp o t
+  <+> fillSep (map (ppTypeVar . fst) vs) <+> dot
+  <+> ppContexts o cx <+> ppTypeExp o t
 
 ppTypeVar :: TVarIName -> Doc
 ppTypeVar (_, name) = text name

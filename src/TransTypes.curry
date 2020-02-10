@@ -81,6 +81,13 @@ fcy2absVis FC.Private = Private
 fcy2absTVar :: FC.TVarIndex -> TVarIName
 fcy2absTVar i = (i, 't' : show i)
 
+fcy2absTVarKind :: (FC.TVarIndex, FC.Kind) -> (TVarIName, Kind)
+fcy2absTVarKind (i, k) = (fcy2absTVar i, fcy2absKind k)
+
+fcy2absKind :: FC.Kind -> Kind
+fcy2absKind FC.KStar          = KindStar
+fcy2absKind (FC.KArrow k1 k2) = KindArrow (fcy2absKind k1) (fcy2absKind k2)
+
 fcy2absCDecl :: [TVarIName] -> ConsHOResult -> FC.ConsDecl -> [ConsDecl]
 fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
   | isHigherOrder = [foCons, hoCons]
@@ -91,81 +98,72 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
     hoCons = Cons (mkHoConsName qf) ar vis' (map (fcy2absHOTExp targs) texps)
     vis' = fcy2absVis vis
 
-
 fcy2absTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
-fcy2absTExp _     (FC.TVar i)          = TVar (fcy2absTVar i)
-fcy2absTExp targs (FC.TCons qf texps)  =
-  TCons qf (map (fcy2absTExp targs) texps)
-fcy2absTExp targs (FC.FuncType t1 t2)  =
-  FuncType (fcy2absTExp targs t1) $ FuncType coverType $
-    FuncType consStoreType (fcy2absTExp targs t2)
-fcy2absTExp targs (FC.ForallType is t) =
-  let t' = fcy2absTExp targs t
-  in ForallType (map fcy2absTVar is) (genContext targs t') t'
+fcy2absTExp _ = genContext . fcy2absTExp'
+  where
+    fcy2absTExp' (FC.TVar i)          =
+      TVar (fcy2absTVar i)
+    fcy2absTExp' (FC.TCons qf texps)  =
+      TCons qf (map fcy2absTExp' texps)
+    fcy2absTExp' (FC.FuncType t1 t2)  =
+      FuncType (fcy2absTExp' t1) $
+        FuncType coverType $
+          FuncType consStoreType (fcy2absTExp' t2)
+    fcy2absTExp' (FC.ForallType is t) =
+      ForallType (map fcy2absTVarKind is) [] $ fcy2absTExp' t
 
 fcy2absHOTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
-fcy2absHOTExp _     (FC.TVar         i)  = TVar (fcy2absTVar i)
-fcy2absHOTExp targs (FC.TCons   qf tys)  =
-  TCons qf (map (fcy2absHOTExp targs) tys)
-fcy2absHOTExp targs (FC.FuncType t1 t2)  = funcType (fcy2absHOTExp targs t1)
-                                                    (fcy2absHOTExp targs t2)
-  where funcType ta tb = TCons (basics "Func") [ta, tb]
-fcy2absHOTExp targs (FC.ForallType is t) =
-  let t' = fcy2absHOTExp targs t
-  in ForallType (map fcy2absTVar is) (genContext targs t') t'
+fcy2absHOTExp _ = genContext . fcy2absHOTExp'
+  where
+    fcy2absHOTExp' (FC.TVar         i)  =
+      TVar (fcy2absTVar i)
+    fcy2absHOTExp' (FC.TCons   qf tys)  =
+      TCons qf (map fcy2absHOTExp' tys)
+    fcy2absHOTExp' (FC.FuncType t1 t2)  =
+      funcType (fcy2absHOTExp' t1) (fcy2absHOTExp' t2)
+        where funcType ta tb = TCons (basics "Func") [ta, tb]
+    fcy2absHOTExp' (FC.ForallType is t) =
+      ForallType (map fcy2absTVarKind is) [] $ fcy2absHOTExp' t
 
---- Generate context elements from gathered context type expressions
-genContext :: [TVarIName] -> TypeExpr -> [Context]
-genContext tvs = map mkContext . gatherContextTypeExprs tvs
+genContext :: TypeExpr -> TypeExpr
+genContext = snd . toTypeSig' []
+  where
+    toTypeSig' vs (FuncType ty1 ty2) =
+      let (cty1, ty1') = toTypeSig' vs ty1
+          (cty2, ty2') = toTypeSig' vs ty2
+      in (cty1++cty2, FuncType ty1' ty2')
+    toTypeSig' vs (ForallType tvs cs ty) =
+      let vs' = vs ++ tvs
+          (cty, ty') = toTypeSig' vs' ty
+          (here, before) = partition (isSaturatedWith vs') $ cty
+      in (before, ForallType tvs (cs ++ map mkContext (nub here)) ty')
+    toTypeSig' vs t@(TVar tv) = case Prelude.lookup tv vs of
+      Just KindStar -> ([t], t)
+      _                -> ([] , t)
+    toTypeSig' vs t@(TCons qname tys) =
+      let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
+      in if qname == (curryPrelude, "C_Apply") && isTypeVar (head tys)
+           then (t : concat ctys, TCons qname tys')
+           else (    concat ctys, TCons qname tys')
 
---- Generate a context element
-mkContext :: TypeExpr -> Context
-mkContext ty = Context (curryPrelude, "Curry") [ty]
+    isSaturatedWith vs ty = all (elemFst vs) $ typeVars ty []
 
---- Gather those type expressions for which a Curry context has to be generated.
---- In particular, these type expression are either type variables of simple
---- kind that are not from outer scope (in that case, a Curry context would
---- be generated in that scope) or type variable applications to an arbitrary
---- type expression in which not all type variable are from outer scope
---- (otherwise a Curry context would be generated in that scope). The first
---- parameter denotes these type variables from outer scope.
-gatherContextTypeExprs :: [TVarIName] -> TypeExpr -> [TypeExpr]
-gatherContextTypeExprs tvs ty = nub $ gatherContextTypeExprs' [] ty
- where
-  gatherContextTypeExprs' acc ty'@(TVar  tv)
-    | isHigherKinded tv ty || tv `elem` tvs = acc
-    | otherwise = ty' : acc
-  gatherContextTypeExprs' acc (FuncType ty1 ty2)
-    = gatherContextTypeExprs' (gatherContextTypeExprs' acc ty1) ty2
-  gatherContextTypeExprs' acc ty'@(TCons qn tys)
-    | qn == (curryPrelude, "C_Apply") && isTypeVar (head tys) &&
-      any (`notElem` tvs) (tyVarsOf ty')
-      = ty' : gatherContextTypeExprs' acc (head $ tail tys)
-    | otherwise = foldl gatherContextTypeExprs' acc tys
-  -- Only keep those type expressions that do not contain any variables that
-  -- are locally quantified within the forall type
-  gatherContextTypeExprs' acc (ForallType tvs' _ ty')
-    = acc ++ (filter (all (`notElem` tvs') . tyVarsOf) $
-                gatherContextTypeExprs (tvs ++ tyVarsOf ty) ty')
+    typeVars (TVar tv) vs = tv:vs
+    typeVars (TCons _ tys) vs = foldr typeVars vs tys
+    typeVars (ForallType _ _ ty) vs = typeVars ty vs
+    typeVars (FuncType ty1 ty2) vs = typeVars ty1 (typeVars ty2 vs)
 
---- State whether a type expression is a type variable
-isTypeVar :: TypeExpr -> Bool
-isTypeVar (TVar _) = True
-isTypeVar (FuncType _ _) = False
-isTypeVar (TCons _ _) = False
-isTypeVar (ForallType _ _ _) = False
+    elemFst []         _ = False
+    elemFst ((x,_):xs) e = x == e || elemFst xs e
 
---- State whether a type variable is occuring with a higher kind than * in a
---- type expression, where * is the kind of simple types
-isHigherKinded :: TVarIName -> TypeExpr -> Bool
-isHigherKinded _  (TVar         _)      = False
-isHigherKinded tv (FuncType ty1 ty2)    =
-  isHigherKinded tv ty1 || isHigherKinded tv ty2
-isHigherKinded tv (ForallType tvs _ ty) =
-  tv `notElem` tvs && isHigherKinded tv ty
-isHigherKinded tv (TCons qn tys)
-  | qn == (curryPrelude, "C_Apply") = TVar tv == head tys
-  | otherwise = or (map (isHigherKinded tv) tys)
+    arityKind KindStar         = 0
+    arityKind (KindArrow _ k2) = arityKind k2 + 1
+
+    isTypeVar ty = case ty of
+      TVar _ -> True
+      _      -> False
+
+    mkContext ty = Context (curryPrelude, "Curry") [ty]
 
 -- ---------------------------------------------------------------------------
 -- Generate instance of Show class:
