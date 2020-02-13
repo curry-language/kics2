@@ -99,8 +99,9 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
     vis' = fcy2absVis vis
 
 fcy2absTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
-fcy2absTExp _ = genContext . fcy2absTExp'
+fcy2absTExp vs = genContext vs' . fcy2absTExp'
   where
+    vs' = map (\v -> (v, KindStar)) vs -- the kind does not matter, trust me.
     fcy2absTExp' (FC.TVar i)          =
       TVar (fcy2absTVar i)
     fcy2absTExp' (FC.TCons qf texps)  =
@@ -115,7 +116,7 @@ fcy2absTExp _ = genContext . fcy2absTExp'
 fcy2absHOTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
 fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
   where
-    let vs' = map (\v -> (v, KindStar)) vs' -- the kind does not matter, trust me.
+    vs' = map (\v -> (v, KindStar)) vs -- the kind does not matter, trust me.
     fcy2absHOTExp' (FC.TVar         i)  =
       TVar (fcy2absTVar i)
     fcy2absHOTExp' (FC.TCons   qf tys)  =
