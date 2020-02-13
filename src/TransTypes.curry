@@ -113,8 +113,9 @@ fcy2absTExp _ = genContext . fcy2absTExp'
       ForallType (map fcy2absTVarKind is) [] $ fcy2absTExp' t
 
 fcy2absHOTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
-fcy2absHOTExp _ = genContext . fcy2absHOTExp'
+fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
   where
+    let vs' = map (\v -> (v, KindStar)) vs' -- the kind does not matter, trust me.
     fcy2absHOTExp' (FC.TVar         i)  =
       TVar (fcy2absTVar i)
     fcy2absHOTExp' (FC.TCons   qf tys)  =
@@ -133,8 +134,11 @@ fcy2absHOTExp _ = genContext . fcy2absHOTExp'
 -- When traversing back up, we add Curry contexts to ForallTypes
 -- as far up the TypeExpr as possible
 -- while still having all required type variables in scope.
-genContext :: TypeExpr -> TypeExpr
-genContext = snd . toTypeSig' []
+-- In contrast to genContext from TransFunctions,
+-- we get a list of already bound variables here.
+-- Those variables are already bound by the left side of a datatype definition
+genContext :: [(TVarIName, Kind)] -> TypeExpr -> TypeExpr
+genContext bvs = snd . toTypeSig' bvs
   where
     toTypeSig' vs (FuncType ty1 ty2) =
       let (cty1, ty1') = toTypeSig' vs ty1
@@ -143,18 +147,19 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (before, here) = partition (isSaturatedWith vs) $ nub cty
+          (here, before) = partition (isSaturatedWith tvs) $ nub cty
       in (before, ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(TVar tv) = case Prelude.lookup tv vs of
       Just KindStar -> ([t], t)
-      _                -> ([] , t)
+      _             -> ([] , t)
     toTypeSig' vs t@(TCons qname tys) =
       let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
       in if qname == (curryPrelude, "C_Apply") && isTypeVar (head tys)
            then (t : concat ctys, TCons qname tys')
            else (    concat ctys, TCons qname tys')
 
-    isSaturatedWith vs ty = all (elemFst vs) $ nub $ typeVars ty []
+    -- if any TypeVar in ty is quanitifed by vs, we have to add a Context for ty
+    isSaturatedWith vs ty = any (elemFst vs) $ nub $ typeVars ty []
 
     typeVars (TVar tv) vs = tv:vs
     typeVars (TCons _ tys) vs = foldr typeVars vs tys

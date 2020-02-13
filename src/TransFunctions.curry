@@ -377,7 +377,7 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (AH.ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (before, here) = partition (isSaturatedWith vs) $ nub cty
+          (before, here) = partition (isSaturatedWith tvs) $ nub cty
       in (before, AH.ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just AH.KindStar -> ([t], t)
@@ -388,7 +388,8 @@ genContext = snd . toTypeSig' []
            then (t : concat ctys, AH.TCons qname tys')
            else (    concat ctys, AH.TCons qname tys')
 
-    isSaturatedWith vs ty = all (elemFst vs) $ nub $ typeVars ty []
+    -- if any TypeVar in ty is quanitifed by vs, we have to add a Context for ty
+    isSaturatedWith vs ty = any (elemFst vs) $ nub $ typeVars ty []
 
     typeVars (AH.TVar tv) vs = tv:vs
     typeVars (AH.TCons _ tys) vs = foldr typeVars vs tys
