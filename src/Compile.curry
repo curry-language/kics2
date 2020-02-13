@@ -29,7 +29,8 @@ import FlatCurry.Annotated.Goodies (unAnnProg)
 import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)
 import qualified AbstractHaskell.Printer as AHP
-import Analysis               (AnalysisResult, showAnalysisResult, readAnalysisResult)
+import Analysis                  ( AnalysisResult, showAnalysisResult
+                                 , readAnalysisResult)
 import CompilerOpts
 import RCFile
 import Files                     ( withBaseName, withDirectory, withExtension
@@ -283,6 +284,7 @@ integrateExternals opts (AH.Prog m is td fd od) fn = do
                    ]
   ppOpts = AHP.defaultOptions { AHP.traceFailure  = optTraceFailure opts
                               , AHP.currentModule = m
+                              , AHP.kics2Mode     = True
                               , AHP.qualImpModule = isCurryModule }
 
 -- lookup an external file for a module and return either the content or an

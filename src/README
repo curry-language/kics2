@@ -7,7 +7,7 @@ These are:
 
 - abstract-curry
 - currypath
-- finitemap
+- containers
 - flatcurry
 - flatcurry-annotated
 - frontend-exec
@@ -16,3 +16,13 @@ These are:
 - redblacktree
 - scc
 - wlpprint
+- time
+- distribution
+- directory
+- filepath
+- io-extra
+- process
+- queue
+- abstract-haskell
+- transformers
+- read-legacy

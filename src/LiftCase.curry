@@ -22,7 +22,8 @@ module LiftCase (isCaseAuxFuncName, liftCases) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies
-import Data.List                   (isPrefixOf, partition, delete, nub, sortBy)
+import Data.List
+import Data.Maybe
 import Data.Map
 
 isCaseAuxFuncName :: String -> Bool
@@ -54,19 +55,34 @@ sequence l i = foldr once ([],i,id,[]) l
 liftCasesFunc :: Bool -> String -> String -> AFuncDecl TypeExpr -> Result
               -> Result
 liftCasesFunc onlyNested mod aux f (esMain,i0,ffMain) =
-  ((updFuncBody (const exp) f:) . esMain, iMain, ffMain . ffeMain)
+  ((updFuncBody (const exp) f:) . esMain, iMain, ffMain . ffeMain')
   where
     body = funcBody f
-
+    ffeMain' xs = xs ++ map (insertVars (funcType f)) (ffeMain [])
     (exp, iMain, ffeMain, _) =
-     if onlyNested then case body of
-      ACase ty cm (AVar ty' v) bs ->
-         let (e' , i' , ffe , _) = trans (AVar ty' v) i0
-             (bs', i'', ffbs, _) =
-               sequence (map (\ (ABranch p be) -> branch p (trans be)) bs) i'
-         in (ACase ty cm e' bs',  i'', ffe . ffbs, [])
-      _            -> trans body i0
-     else trans body i0
+      if onlyNested then case body of
+        ACase ty cm (AVar ty' v) bs ->
+          let (e' , i' , ffe , _) = trans (AVar ty' v) i0
+              (bs', i'', ffbs, _) =
+                sequence (map (\ (ABranch p be) -> branch p (trans be)) bs) i'
+          in (ACase ty cm e' bs',  i'', ffe . ffbs, [])
+        _                           -> trans body i0
+      else trans body i0
+
+    insertVars ty = updFunc id id id (updateType (collectVars ty)) id
+
+    updateType vs ty = forallType ty $
+      catMaybes $ map (lookupKeep vs) (nub $ allFreeVars ty)
+
+    forallType ty vs = if Prelude.null vs then ty else ForallType vs ty
+
+    lookupKeep vs v = fmap (\k -> (v,k)) $ Prelude.lookup v vs
+
+    allFreeVars =
+      trTypeExpr (:[]) (const concat) (++) (flip (\\) . map fst)
+
+    collectVars =
+      trTypeExpr (const []) (const . const []) (const . const []) (++)
 
     trans = trExpr var lit comb leT freE or casE branch typed
 

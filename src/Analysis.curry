@@ -20,7 +20,7 @@ module Analysis
 import FlatCurry.Types
 import FlatCurry.Goodies
 import Data.Maybe        (fromJust, fromMaybe)
-import Data.List         (partition)
+import Data.List         (partition, isPrefixOf, isInfixOf)
 import Data.Map as Map
 import Data.Set as Set (Set, empty, union, insert, toList)
 import Prelude  as P
@@ -104,9 +104,16 @@ analyseND p importedInfo =
       start = Map.fromList $ map initValue fs
   in  fullIteration ndFunc (map getFunctionCalls fs) importedInfo start
   where
-    initValue f = let name = funcName f
-                  in (name, if name == qmark then ND else D)
+    initValue f =
+      let name = funcName f
+      in (name, if name == qmark || isDictWithArrow name then ND else D)
     getFunctionCalls f = (f, funcCalls f)
+    -- we classify some typeclass functions involving (->) as ND,
+    -- to avoid having to give a D version as that is not possible currently.
+    isDictWithArrow (_, name) =
+      "hash_lparen_minus_gt_rparen" `isInfixOf` name &&
+      any (`isPrefixOf` name) dictNames
+    dictNames = ["OP_uscore_impl_hash", "uscore_inst_hash"]
 
 --- Analysis function for non-determinism analysis.
 ndFunc:: Analysis FuncDecl NDClass

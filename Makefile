@@ -38,13 +38,13 @@ PROFILING       = yes
 export CURRYSYSTEM = kics2
 
 # The major version number
-MAJORVERSION    = 2
+MAJORVERSION    = 3
 # The minor version number
-MINORVERSION    = 3
+MINORVERSION    = 0
 # The revision version number
 REVISIONVERSION = 0
 # The build version number (if >0, then it is a pre-release)
-BUILDVERSION    = 0
+BUILDVERSION    = 1
 # Complete version
 export VERSION  = $(MAJORVERSION).$(MINORVERSION).$(REVISIONVERSION)
 # The version date:

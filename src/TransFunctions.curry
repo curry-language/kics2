@@ -229,6 +229,9 @@ trFunc f@(Func qn _ _ _ _) =
     -- translate all functions as non-deterministic by default
     False -> trNDFunc f >>= \ fn -> return [fn]
     True  ->
+      -- Due to some restrictions with correctly translating
+      -- typeconstructor-class instances for (->) in DetMode, we set all
+      -- corresponding functions to be NonDet during the analysis already.
       getNDClass     qn >>= \ndCl ->
       getFuncHOClass qn >>= \hoCl ->
       liftIO (showAnalysis opts (snd qn ++ " is " ++ show (ndCl, hoCl))) >>
@@ -356,6 +359,14 @@ renameCons qn@(q, n) =
 toTypeSig :: AH.TypeExpr -> AH.TypeSig
 toTypeSig = AH.CType [] . genContext
 
+-- Note: all types are fully quantified and in weak prenex form.
+-- To generate Curry contexts for each type with kind *,
+-- we pass down the kind of bound type variables and pass up types
+-- with kind * that contain at least one type variable.
+-- Those TypeExprs are parts of the whole TypeExpr.
+-- When traversing back up, we add Curry contexts to ForallTypes
+-- as far up the TypeExpr as possible
+-- while still having all required type variables in scope.
 genContext :: AH.TypeExpr -> AH.TypeExpr
 genContext = snd . toTypeSig' []
   where
@@ -366,8 +377,8 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (AH.ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (here, before) = partition (isSaturatedWith vs') $ cty
-      in (before, AH.ForallType tvs (cs ++ map mkContext (nub here)) ty')
+          (before, here) = partition (isSaturatedWith vs) $ nub cty
+      in (before, AH.ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just AH.KindStar -> ([t], t)
       _                -> ([] , t)
@@ -377,7 +388,7 @@ genContext = snd . toTypeSig' []
            then (t : concat ctys, AH.TCons qname tys')
            else (    concat ctys, AH.TCons qname tys')
 
-    isSaturatedWith vs ty = all (elemFst vs) $ typeVars ty []
+    isSaturatedWith vs ty = all (elemFst vs) $ nub $ typeVars ty []
 
     typeVars (AH.TVar tv) vs = tv:vs
     typeVars (AH.TCons _ tys) vs = foldr typeVars vs tys

@@ -125,6 +125,14 @@ fcy2absHOTExp _ = genContext . fcy2absHOTExp'
     fcy2absHOTExp' (FC.ForallType is t) =
       ForallType (map fcy2absTVarKind is) [] $ fcy2absHOTExp' t
 
+-- Note: all types are fully quantified and in weak prenex form.
+-- To generate Curry contexts for each type with kind *,
+-- we pass down the kind of bound type variables and pass up types
+-- with kind * that contain at least one type variable.
+-- Those TypeExprs are parts of the whole TypeExpr.
+-- When traversing back up, we add Curry contexts to ForallTypes
+-- as far up the TypeExpr as possible
+-- while still having all required type variables in scope.
 genContext :: TypeExpr -> TypeExpr
 genContext = snd . toTypeSig' []
   where
@@ -135,8 +143,8 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (here, before) = partition (isSaturatedWith vs') $ cty
-      in (before, ForallType tvs (cs ++ map mkContext (nub here)) ty')
+          (before, here) = partition (isSaturatedWith vs) $ nub cty
+      in (before, ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(TVar tv) = case Prelude.lookup tv vs of
       Just KindStar -> ([t], t)
       _                -> ([] , t)
@@ -146,7 +154,7 @@ genContext = snd . toTypeSig' []
            then (t : concat ctys, TCons qname tys')
            else (    concat ctys, TCons qname tys')
 
-    isSaturatedWith vs ty = all (elemFst vs) $ typeVars ty []
+    isSaturatedWith vs ty = all (elemFst vs) $ nub $ typeVars ty []
 
     typeVars (TVar tv) vs = tv:vs
     typeVars (TCons _ tys) vs = foldr typeVars vs tys
