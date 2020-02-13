@@ -309,7 +309,7 @@ ppLitPattern opts l
   | kics2Mode opts = case l of
     Charc   _ -> wrapUnboxed (curryPrelude, "C_Char")
     Floatc  _ -> wrapUnboxed (curryPrelude, "C_Float")
-    Intc    _ -> parens (ppQName opts (curryPrelude, "C_Char") <+>
+    Intc    _ -> parens (ppQName opts (curryPrelude, "C_Int") <+>
                          parens (ppLiteral l))
     Stringc _ -> ppLiteral l
   | otherwise =  ppLiteral l

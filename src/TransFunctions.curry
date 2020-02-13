@@ -377,7 +377,7 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (AH.ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (before, here) = partition (isSaturatedWith tvs) $ nub cty
+          (here, before) = partition (isSaturatedWith tvs) $ nub cty
       in (before, AH.ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just AH.KindStar -> ([t], t)
