@@ -3,16 +3,16 @@
 ---
 --- @author Michael Hanus
 --- @version January 2018
---- @category general
 ------------------------------------------------------------------------------
 
-module Data.Time(ClockTime,
-                 CalendarTime(..),ctYear,ctMonth,ctDay,ctHour,ctMin,ctSec,ctTZ,
-                 getClockTime,getLocalTime,toUTCTime,toClockTime,toCalendarTime,
-                 clockTimeToInt,calendarTimeToString,toDayString,toTimeString,
-                 addSeconds,addMinutes,addHours,addDays,addMonths,addYears,
-                 daysOfMonth,validDate,compareCalendarTime,compareClockTime
-                 ) where
+module Data.Time
+ ( ClockTime, CalendarTime(..)
+ , ctYear, ctMonth, ctDay, ctHour, ctMin, ctSec, ctTZ
+ , getClockTime, getLocalTime, toUTCTime, toClockTime, toCalendarTime
+ , clockTimeToInt, calendarTimeToString, toDayString, toTimeString
+ , addSeconds, addMinutes, addHours, addDays, addMonths, addYears
+ , daysOfMonth, validDate, compareCalendarTime, compareClockTime
+ ) where
 
 
 --- ClockTime represents a clock time in some internal representation.
