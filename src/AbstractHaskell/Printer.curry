@@ -168,7 +168,9 @@ ppContexts opts cs
   | otherwise = tupled (map (ppContext opts) cs) <+> doubleArrow
 
 ppContext :: Options -> Context -> Doc
-ppContext opts (Context qn ts) = ppTypeExp opts (TCons qn ts)
+ppContext opts (Context tvs cxs qn ts) = text "forall"
+  <+> fillSep (map ppTypeVar tvs) <+> dot
+  <+> ppContexts opts cxs <+> ppTypeExp opts (TCons qn ts)
 
 --- pretty a top-level type expression
 ppTypeExp :: Options -> TypeExpr -> Doc

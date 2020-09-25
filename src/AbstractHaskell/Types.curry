@@ -65,7 +65,7 @@ data TypeDecl
   deriving Show
 
 --- A single type context is class name applied to type variables.
-data Context = Context QName [TypeExpr]
+data Context = Context [TVarIName] [Context] QName [TypeExpr]
   deriving (Eq,Show)
 
 --- A constructor declaration consists of the name and arity of the

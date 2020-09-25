@@ -406,7 +406,7 @@ genContext = snd . toTypeSig' []
       AH.TVar _ -> True
       _         -> False
 
-    mkContext ty = AH.Context (curryPrelude, "Curry") [ty]
+    mkContext ty = AH.Context [] [] (curryPrelude, "Curry") [ty]
 
 trDetType :: Int -> TypeExpr -> M AH.TypeExpr
 trDetType = trTypeExpr detFuncType

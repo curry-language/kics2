@@ -177,7 +177,7 @@ genContext bvs = snd . toTypeSig' bvs
       TVar _ -> True
       _      -> False
 
-    mkContext ty = Context (curryPrelude, "Curry") [ty]
+    mkContext ty = Context [] [] (curryPrelude, "Curry") [ty]
 
 -- ---------------------------------------------------------------------------
 -- Generate instance of Show class:
@@ -868,7 +868,7 @@ newVars = zip [1..]
 mkInstance :: QName -> [QName] -> TypeExpr -> [TVarIName] -> [(QName, Rule)]
            -> TypeDecl
 mkInstance qn addContexts ctype targs = Instance qn ctype $
-  concatMap (\name -> map (\tv -> Context name [TVar tv]) targs) (qn:addContexts)
+  concatMap (\name -> map (\tv -> Context [] [] name [TVar tv]) targs) (qn:addContexts)
 
 mkEmptyInstance :: QName -> TypeExpr -> TypeDecl
 mkEmptyInstance qn ctype = Instance qn ctype [] []

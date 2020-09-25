@@ -255,8 +255,8 @@ renameSymbolInTypeSig ren (CType tc te) =
   CType (map (renameSymbolInContext ren) tc) (renameSymbolInTypeExpr ren te)
 
 renameSymbolInContext :: (QName -> QName) -> Context -> Context
-renameSymbolInContext ren (Context qn texps) =
-  Context (ren qn) (map (renameSymbolInTypeExpr ren) texps)
+renameSymbolInContext ren (Context tvs cxs qn texps) =
+  Context tvs cxs (ren qn) (map (renameSymbolInTypeExpr ren) texps)
 
 renameSymbolInFunc :: (QName -> QName) -> FuncDecl -> FuncDecl
 renameSymbolInFunc ren (Func cmt qf ar vis ctype rules) =
