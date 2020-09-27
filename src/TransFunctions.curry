@@ -388,7 +388,7 @@ genContext = snd . toTypeSig' []
            then (t : concat ctys, AH.TCons qname tys')
            else (    concat ctys, AH.TCons qname tys')
 
-    -- if any TypeVar in ty is quanitifed by vs, we have to add a Context for ty
+    -- if any TypeVar in ty is quantified by vs, we have to add a Context for ty
     isSaturatedWith vs ty = any (elemFst vs) $ nub $ typeVars ty []
 
     typeVars (AH.TVar tv) vs = tv:vs
