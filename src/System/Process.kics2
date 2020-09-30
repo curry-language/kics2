@@ -31,7 +31,7 @@ external_d_C_prim_system :: Curry_Prelude.C_String -> Cover -> ConstStore
                          -> Curry_Prelude.C_IO Curry_Prelude.C_Int
 external_d_C_prim_system str _ _ = toCurry system str
 
-external_d_C_prim_getEnvironment :: Cover -> ConstStore ->
+external_d_C_prim_getEnvironment :: Cover -> ConstStore
                                  -> Curry_Prelude.C_IO (Curry_Prelude.OP_List (Curry_Prelude.OP_Tuple2 Curry_Prelude.C_String Curry_Prelude.C_String))
 external_d_C_prim_getEnvironment _ _ = toCurry getEnvironment
 
