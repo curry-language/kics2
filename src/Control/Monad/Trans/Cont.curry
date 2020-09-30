@@ -4,7 +4,9 @@ import Data.Functor.Identity
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 
-newtype ContT r m a = ContT { runContT :: (a -> m r) -> m r }
+-- TODO: Should be a newtype, workaround for issue #22
+-- (partially applied newtypes cause partially applied type synonyms)
+data ContT r m a = ContT { runContT :: (a -> m r) -> m r }
 
 evalContT :: (Monad m) => ContT r m r -> m r
 evalContT m = runContT m return

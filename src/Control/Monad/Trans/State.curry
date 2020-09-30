@@ -4,7 +4,9 @@ import Data.Functor.Identity
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 
-newtype StateT s m a = StateT {
+-- TODO: Should be a newtype, workaround for issue #22
+-- (partially applied newtypes cause partially applied type synonyms)
+data StateT s m a = StateT {
     runStateT :: s -> m (a, s)
   }
 
