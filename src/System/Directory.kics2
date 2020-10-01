@@ -20,7 +20,7 @@ external_d_C_prim_fileSize s _ _ = toCurry
   ) s
 
 external_d_C_prim_getModificationTime :: Curry_Prelude.C_String -> Cover -> ConstStore
-                                      -> Curry_Prelude.C_IO Curry_Time.C_ClockTime
+                                      -> Curry_Prelude.C_IO Data.Curry_Time.C_ClockTime
 external_d_C_prim_getModificationTime s _ _ = toCurry getModificationTime s
 
 external_d_C_getCurrentDirectory :: Cover -> ConstStore -> Curry_Prelude.C_IO (Curry_Prelude.C_String)
