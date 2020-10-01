@@ -8,7 +8,7 @@ SUBDIR     = .curry/kics2
 # see https://ghc.haskell.org/trac/ghc/ticket/7068
 GHC_OPTS2  = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-spec-constr
 # ghc language extensions for compiling translated Curry programs
-GHC_EXTS   = -XMultiParamTypeClasses -XFlexibleInstances -XRelaxedPolyRec
+GHC_EXTS   = -XMultiParamTypeClasses -XFlexibleInstances -XRelaxedPolyRec -XPolyKinds
 # ghc includes for compiling translated Curry programs
 GHC_INCL   = -i$(ROOT)/runtime:$(ROOT)/runtime/idsupplyghc:$(ROOT)/src/$(SUBDIR):$(LIBDIR)/$(SUBDIR)
 # Call to ghc binary
