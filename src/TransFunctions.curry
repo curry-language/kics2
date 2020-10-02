@@ -360,17 +360,17 @@ toTypeSig :: AH.TypeExpr -> AH.TypeSig
 toTypeSig = AH.CType [] . genContext
 
 -- Note: all types are fully quantified and in weak prenex form.
--- To generate Curry contexts for each type with kind *,
--- we pass down the kind of bound type variables and pass up types
--- with kind * that contain at least one type variable.
--- Those TypeExprs are parts of the whole TypeExpr.
+-- To generate Curry contexts, we pass down the kind of bound type
+-- variables and pass up type variables from the child TypeExprs together
+-- with their kinds and the updated TypeExpr.
+--
 -- When traversing back up, we add Curry contexts to ForallTypes
--- as far up the TypeExpr as possible
--- while still having all required type variables in scope.
+-- as far up the TypeExpr as possible while still having all
+-- required type variables in scope.
 genContext :: AH.TypeExpr -> AH.TypeExpr
 genContext = snd . toTypeSig' []
   where
-    toTypeSig' :: [(AH.TVarIName, AH.Kind)] -> AH.TypeExpr -> ([AH.TypeExpr], AH.TypeExpr)
+    toTypeSig' :: [(AH.TVarIName, AH.Kind)] -> AH.TypeExpr -> ([(AH.TypeExpr, AH.Kind)], AH.TypeExpr)
     toTypeSig' vs (AH.FuncType ty1 ty2) =
       let (cty1, ty1') = toTypeSig' vs ty1
           (cty2, ty2') = toTypeSig' vs ty2
@@ -378,16 +378,14 @@ genContext = snd . toTypeSig' []
     toTypeSig' vs (AH.ForallType tvs cs ty) =
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
-          (here, before) = partition (isSaturatedWith tvs) $ nub cty
+          (here, before) = partition (isSaturatedWith tvs . fst) $ nub cty
       in (before, AH.ForallType tvs (nub $ cs ++ map mkContext here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
-      Just AH.KindStar -> ([t], t)
-      _                -> ([] , t)
+      Just kind -> ([(t, kind)], t)
+      Nothing   -> ([],          t)
     toTypeSig' vs t@(AH.TCons qname tys) =
       let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
-      in if qname == (curryPrelude, "C_Apply") && isTypeVar (head tys)
-           then (t : concat ctys, AH.TCons qname tys')
-           else (    concat ctys, AH.TCons qname tys')
+      in (concat ctys, AH.TCons qname tys')
 
     -- if any TypeVar in ty is quantified by vs, we have to add a Context for ty
     isSaturatedWith vs ty = any (elemFst vs) $ nub $ typeVars ty []
@@ -407,7 +405,23 @@ genContext = snd . toTypeSig' []
       AH.TVar _ -> True
       _         -> False
 
-    mkContext ty = AH.Context [] [] (curryPrelude, "Curry") [ty]
+    -- The Curry contexts are generated based on the type variable's
+    -- kind by using the QuantifiedConstraints language extension.
+    -- For example:
+    --
+    -- Curry a                                             when a :: *
+    -- forall x. Curry x => Curry (C_Apply a x)            when a :: * -> *
+    -- forall x y. ( Curry x
+    --             , Curry y
+    --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: * -> * -> *
+    -- forall x.   ( forall z. Curry z => (C_Apply x z)
+    --             , Curry y
+    --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) -> *
+    --
+    -- and so on...
+
+    -- TODO: Actually use the kind as described above
+    mkContext (ty, kind) = AH.Context [] [] (curryPrelude, "Curry") [ty]
 
 trDetType :: Int -> TypeExpr -> M AH.TypeExpr
 trDetType = trTypeExpr detFuncType
