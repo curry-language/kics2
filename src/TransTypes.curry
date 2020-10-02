@@ -141,6 +141,7 @@ fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
 genContext :: [(TVarIName, Kind)] -> TypeExpr -> TypeExpr
 genContext bvs = snd . toTypeSig' bvs
   where
+    toTypeSig' :: [(TVarIName, Kind)] -> TypeExpr -> ([TypeExpr], TypeExpr)
     toTypeSig' vs (FuncType ty1 ty2) =
       let (cty1, ty1') = toTypeSig' vs ty1
           (cty2, ty2') = toTypeSig' vs ty2

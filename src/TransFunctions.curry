@@ -370,6 +370,7 @@ toTypeSig = AH.CType [] . genContext
 genContext :: AH.TypeExpr -> AH.TypeExpr
 genContext = snd . toTypeSig' []
   where
+    toTypeSig' :: [(AH.TVarIName, AH.Kind)] -> AH.TypeExpr -> ([AH.TypeExpr], AH.TypeExpr)
     toTypeSig' vs (AH.FuncType ty1 ty2) =
       let (cty1, ty1') = toTypeSig' vs ty1
           (cty2, ty2') = toTypeSig' vs ty2
