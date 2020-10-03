@@ -21,7 +21,7 @@ CURRY_OPTS =
 # Source modules of the compiler (without standard libraries)
 COMPILE_DEPS = Analysis Classification CompilerOpts EliminateCond Files      \
                LiftCase Message ModuleDeps                                   \
-               Names SimpleMake TransFunctions TransTypes Utils
+               Names SimpleMake GenContext TransFunctions TransTypes Utils
 
 # Source modules of the REPL (without standard libraries)
 REPL_DEPS = Files GhciComm Linker Names RCFile Utils
