@@ -13,6 +13,7 @@ import qualified FlatCurry.Types as FC
 import FlatCurry.Goodies
 import AbstractHaskell.Types
 import AbstractHaskell.Goodies
+import GenContext
 import Data.List
 import Data.Map
 import Names
@@ -126,59 +127,6 @@ fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
         where funcType ta tb = TCons (basics "Func") [ta, tb]
     fcy2absHOTExp' (FC.ForallType is t) =
       ForallType (map fcy2absTVarKind is) [] $ fcy2absHOTExp' t
-
--- Note: all types are fully quantified and in weak prenex form.
--- To generate Curry contexts for each type with kind *,
--- we pass down the kind of bound type variables and pass up types
--- with kind * that contain at least one type variable.
--- Those TypeExprs are parts of the whole TypeExpr.
--- When traversing back up, we add Curry contexts to ForallTypes
--- as far up the TypeExpr as possible
--- while still having all required type variables in scope.
--- In contrast to genContext from TransFunctions,
--- we get a list of already bound variables here.
--- Those variables are already bound by the left side of a datatype definition
-genContext :: [(TVarIName, Kind)] -> TypeExpr -> TypeExpr
-genContext bvs = snd . toTypeSig' bvs
-  where
-    toTypeSig' :: [(TVarIName, Kind)] -> TypeExpr -> ([TypeExpr], TypeExpr)
-    toTypeSig' vs (FuncType ty1 ty2) =
-      let (cty1, ty1') = toTypeSig' vs ty1
-          (cty2, ty2') = toTypeSig' vs ty2
-      in (cty1++cty2, FuncType ty1' ty2')
-    toTypeSig' vs (ForallType tvs cs ty) =
-      let vs' = vs ++ tvs
-          (cty, ty') = toTypeSig' vs' ty
-          (here, before) = partition (isSaturatedWith tvs) $ nub cty
-      in (before, ForallType tvs (nub $ cs ++ map mkContext here) ty')
-    toTypeSig' vs t@(TVar tv) = case Prelude.lookup tv vs of
-      Just KindStar -> ([t], t)
-      _             -> ([] , t)
-    toTypeSig' vs t@(TCons qname tys) =
-      let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
-      in if qname == (curryPrelude, "C_Apply") && isTypeVar (head tys)
-           then (t : concat ctys, TCons qname tys')
-           else (    concat ctys, TCons qname tys')
-
-    -- if any TypeVar in ty is quanitifed by vs, we have to add a Context for ty
-    isSaturatedWith vs ty = any (elemFst vs) $ nub $ typeVars ty []
-
-    typeVars (TVar tv) vs = tv:vs
-    typeVars (TCons _ tys) vs = foldr typeVars vs tys
-    typeVars (ForallType _ _ ty) vs = typeVars ty vs
-    typeVars (FuncType ty1 ty2) vs = typeVars ty1 (typeVars ty2 vs)
-
-    elemFst []         _ = False
-    elemFst ((x,_):xs) e = x == e || elemFst xs e
-
-    arityKind KindStar         = 0
-    arityKind (KindArrow _ k2) = arityKind k2 + 1
-
-    isTypeVar ty = case ty of
-      TVar _ -> True
-      _      -> False
-
-    mkContext ty = Context [] [] (curryPrelude, "Curry") [ty]
 
 -- ---------------------------------------------------------------------------
 -- Generate instance of Show class:
