@@ -6,7 +6,7 @@ import Control.Concurrent (forkIO)
 import System.IO
 
 external_d_C_prim_execCmd :: Curry_Prelude.C_String -> Cover -> ConstStore
-  -> Curry_Prelude.C_IO (Curry_Prelude.OP_Tuple3 Curry_IO.C_Handle Curry_IO.C_Handle Curry_IO.C_Handle)
+  -> Curry_Prelude.C_IO (Curry_Prelude.OP_Tuple3 System.Curry_IO.C_Handle System.Curry_IO.C_Handle System.Curry_IO.C_Handle)
 external_d_C_prim_execCmd str _ _ = toCurry
   (\s -> do (h1,h2,h3,_) <- runInteractiveCommand s
             return (OneHandle h1, OneHandle h2, OneHandle h3)) str
@@ -17,7 +17,7 @@ external_d_C_prim_evalCmd cmd args input _ _
   = toCurry readProcessWithExitCode cmd args input
 
 external_d_C_prim_connectToCmd :: Curry_Prelude.C_String -> Cover -> ConstStore
-                               -> Curry_Prelude.C_IO Curry_IO.C_Handle
+                               -> Curry_Prelude.C_IO System.Curry_IO.C_Handle
 external_d_C_prim_connectToCmd str _ _ = toCurry
   (\s -> do (hin,hout,herr,_) <- runInteractiveCommand s
             forkIO (forwardError herr)
