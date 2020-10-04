@@ -364,7 +364,7 @@ ifeq ($(shell test -x "$(CURRYFRONTEND)" ; echo $$?),0)
 	ln -s $(CURRYFRONTEND) $(CYMAKE)
 else
 	cd $(FRONTENDDIR) && $(MAKE)
-	cd $(BINDIR) && ln -s ../pkg/bin/curry-frontend$(EXE_SUFFIX) $(notdir $(CYMAKE))
+	cd $(BINDIR) && ln -s ../frontend/bin/curry-frontend$(EXE_SUFFIX) $(notdir $(CYMAKE))
 endif
 
 .PHONY: scripts
