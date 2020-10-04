@@ -14,6 +14,7 @@ module Linker
   , getTimeCmd
   ) where
 
+import Control.Applicative  (when)
 import System.Environment
 import System.Process
 import System.Directory
@@ -125,7 +126,8 @@ mainModuleIdent = "Curry_Main_Goal"
 --- Show an info message for a given verbosity level
 writeVerboseInfo :: ReplState -> Int -> String -> IO ()
 writeVerboseInfo rst lvl msg =
-  unless (verbose rst < lvl) (putStrLn msg >> hFlush stdout)
+  -- TODO/STYLE: Use 'unless' again once re-added to 'Applicative'
+  when (verbose rst < lvl) (putStrLn msg >> hFlush stdout)
 
 --- Reads the determinism infomation for the main goal file
 readInfoFile :: ReplState -> IO [((String,String),Bool)]

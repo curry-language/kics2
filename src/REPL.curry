@@ -10,12 +10,16 @@ module REPL where
 import AbstractCurry.Types hiding (preludeName)
 import AbstractCurry.Files
 import AbstractCurry.Select
+import Control.Applicative (when)
+import Control.Monad      (foldM)
+import Control.Monad.IO.Class (liftIO)
 import Language.Curry.Distribution ( baseVersion, installDir )
 import System.Directory
 import System.FilePath    ( (</>), (<.>)
                           , splitSearchPath, splitFileName, splitExtension
-                          , searchPathSeparator, findFileWithSuffix)
-import System.Environment (system, getArgs, getEnv, getPID, exitWith)
+                          , searchPathSeparator)
+import System.Environment (getArgs, getEnv)
+import System.Process     (system, exitWith, getPID)
 import System.IO
 import System.IOExts
 import Data.Char          (isAlpha, isAlphaNum, isDigit, isSpace, toLower)
@@ -85,7 +89,7 @@ defaultImportPaths rst = do
 defaultImportPathsWith :: ReplState -> String -> IO [String]
 defaultImportPathsWith rst dirs = do
   defipath <- defaultImportPaths rst
-  adirs    <- mapIO getAbsolutePath (splitSearchPath dirs)
+  adirs    <- mapM getAbsolutePath (splitSearchPath dirs)
   return (adirs ++ defipath)
 
 processArgsAndStart :: ReplState -> [String] -> IO ()
@@ -276,7 +280,7 @@ writeMainGoalFile rst imports mtype goal = writeFile mainGoalFile $
 
 -- Remove mainGoalFile and auxiliaries
 cleanMainGoalFile :: ReplState -> IO ()
-cleanMainGoalFile rst = unless keepfiles $ do
+cleanMainGoalFile rst = when (not keepfiles) $ do -- TODO/STYLE: unless
   system $ Inst.installDir </>  "bin" </> "cleancurry " ++ mainGoalFile
   removeFileIfExists mainGoalFile
  where keepfiles = rcValue (rcvars rst) "keepfiles" == "yes"
@@ -473,7 +477,7 @@ makeMainGoalMonomorphic' rst qty@(CQualType _ ty) goal
       writeErrorMsg "cannot handle arbitrary overloaded top-level expressions"
       return False
   | otherwise = do
-    unless (newgoal == goal) $ writeSimpleMainGoalFile rst newgoal
+    when (newgoal /= goal) $ writeSimpleMainGoalFile rst newgoal -- TODO/STYLE: unless
     return True
  where newgoal = if isIOReturnType ty
                  then '(' : goal ++ ") Prelude.>>= Prelude.print"
@@ -550,7 +554,7 @@ execMain rst _ mainexp = do -- _ was cmpstatus
   writeVerboseInfo rst 1 $ "Evaluating expression: " ++ strip mainexp
   writeVerboseInfo rst 3 $ "Executing: " ++ timecmd
   cmdstatus <- system timecmd
-  unless (cmdstatus == 0) $
+  when (cmdstatus /= 0) $ -- TODO/STYLE: unless
     putStrLn ("Evaluation terminated with non-zero status " ++ show cmdstatus)
   return (setExitStatus cmdstatus rst)
 
@@ -671,7 +675,7 @@ processReload rst args
 processAdd :: ReplState -> String -> IO (Maybe ReplState)
 processAdd rst args
   | null args = skipCommand "Missing module name"
-  | otherwise = Just `liftIO` foldIO add rst (words args)
+  | otherwise = Just `liftIO` foldM add rst (words args)
   where
     add rst' m = let mdl = stripCurrySuffix m in
       if validModuleName mdl
@@ -799,7 +803,7 @@ processSave rst args
   | otherwise = do
     (rst', status) <- compileProgramWithGoal rst True
                       (if null args then "main" else args)
-    unless (status == MainError) $ do
+    when (status /= MainError) $ do -- TODO/STYLE: unless
       renameFile ("." </> outputSubdir rst' </> "Main") (mainMod rst')
       writeVerboseInfo rst' 1 ("Executable saved in '" ++ mainMod rst' ++ "'")
     cleanMainGoalFile rst'
@@ -811,13 +815,14 @@ processFork rst args
   | otherwise = do
     (rst', status) <- compileProgramWithGoal rst True
                       (if null args then "main" else args)
-    unless (status == MainError) $ do
+    when (status /= MainError) $ do -- TODO/STYLE: unless
       pid <- getPID
       let execname = "." </> outputSubdir rst' </> "kics2fork" ++ show pid
       renameFile ("." </> outputSubdir rst' </> "Main") execname
       writeVerboseInfo rst' 3 ("Starting executable '" ++ execname ++ "'...")
+      -- TODO/STYLE: Add Control.Monad.void
       system ("( "++execname++" && rm -f "++execname++ ") "++
-              "> /dev/null 2> /dev/null &") >> done
+              "> /dev/null 2> /dev/null &") >> return ()
     cleanMainGoalFile rst'
     return (Just rst')
 
@@ -910,7 +915,7 @@ setPrompt rst p
 
 setNoGhci :: ReplState -> String -> IO (Maybe ReplState)
 setNoGhci rst _ = do
-  maybe done stopGhciComm (ghcicomm rst)
+  maybe (return ()) stopGhciComm (ghcicomm rst) -- TODO/STYLE: void
   return $ Just rst { useGhci = False, ghcicomm = Nothing }
 
 setOptionPath :: ReplState -> String -> IO (Maybe ReplState)
@@ -1053,18 +1058,18 @@ printHelpOnCommands = putStrLn $ unlines
 
 --- Print all Curry programs in current load path
 printAllLoadPathPrograms :: ReplState -> IO ()
-printAllLoadPathPrograms rst = mapIO_ printDirPrograms (loadPaths rst)
+printAllLoadPathPrograms rst = mapM_ printDirPrograms (loadPaths rst)
  where
   printDirPrograms dir = do
     putStrLn $ "Curry programs in directory '" ++ dir ++ "':"
     progs <- getDirPrograms "" dir
-    putStrLn $ unwords $ mergeSort $ progs
+    putStrLn $ unwords $ sort $ progs
     putStrLn ""
 
   getDirPrograms prefix dir = do
     exdir <- doesDirectoryExist dir
     files <- if exdir then getDirectoryContents dir else return []
-    subprogs <- mapIO (\d -> getDirPrograms (prefix ++ d ++ ".") (dir </> d))
+    subprogs <- mapM (\d -> getDirPrograms (prefix ++ d ++ ".") (dir </> d))
                       (filter (\f -> let c = head f in c>='A' && c<='Z') files)
     return $ concat subprogs ++
       concatMap (\f -> let (base, sfx) = splitExtension f
@@ -1168,7 +1173,7 @@ checkForWish =
 readAndProcessSourceFileOptions :: ReplState -> String -> IO (Maybe ReplState)
 readAndProcessSourceFileOptions rst fname = do
   opts <- readSourceFileOptions fname
-  unless (null opts) $ writeVerboseInfo rst 1 $
+  when (not $ null opts) $ writeVerboseInfo rst 1 $ -- TODO/STYLE: unless
     "Source file options: " ++ intercalate " | " (map unwords opts)
   processSourceFileOptions rst opts
 
@@ -1217,7 +1222,7 @@ terminateSourceProgGUIs rst
   | null sguis = return rst
   | otherwise  = do
       writeVerboseInfo rst 1 "Terminating source program GUIs..."
-      catch (mapIO_ (\ (_,(_,h)) -> hPutStrLn h "q" >> hFlush h >> hClose h) sguis)
-            (\_ -> done)
+      catch (mapM_ (\ (_,(_,h)) -> hPutStrLn h "q" >> hFlush h >> hClose h) sguis)
+            (\_ -> return ()) -- TODO/STYLE: const void
       return rst { sourceguis = [] }
  where sguis = sourceguis rst
