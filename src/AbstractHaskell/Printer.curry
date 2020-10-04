@@ -170,7 +170,7 @@ ppContexts opts cs
 ppContext :: Options -> Context -> Doc
 ppContext opts (Context tvs cxs qn ts) = quantifiedVars <+> ppContexts opts cxs
                                                         <+> ppTypeExp opts (TCons qn ts)
-  where quantifiedVars | null tvs  = empty
+  where quantifiedVars | null tvs  = Text.Pretty.empty
                        | otherwise = text "forall" <+> fillSep (map ppTypeVar tvs) <+> dot
 
 --- pretty a top-level type expression

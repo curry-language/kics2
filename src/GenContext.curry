@@ -69,7 +69,7 @@ genContext bvs = snd . toTypeSig' bvs
 --             , Curry y
 --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) * -> -> *
 mkContext :: AH.TypeExpr -> AH.Kind -> AH.Context
-mkContext = snd . mkContext' 0
+mkContext ty = snd . mkContext' 0 ty
   where
     -- The integer tracks the fresh type variable index.
     mkContext' :: Int -> AH.TypeExpr -> AH.Kind -> (Int, AH.Context)
