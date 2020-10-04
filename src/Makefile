@@ -6,7 +6,7 @@
 SUBDIR     = .curry/kics2
 # ghc options
 # see https://ghc.haskell.org/trac/ghc/ticket/7068
-GHC_OPTS2  = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-spec-constr
+GHC_OPTS2  = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
 # ghc language extensions for compiling translated Curry programs
 GHC_EXTS   = -XMultiParamTypeClasses -XFlexibleInstances -XRelaxedPolyRec -XPolyKinds
 # ghc includes for compiling translated Curry programs
