@@ -12,7 +12,6 @@ import AbstractCurry.Files
 import AbstractCurry.Select
 import Control.Applicative (when)
 import Control.Monad      (foldM)
-import Control.Monad.IO.Class (liftIO)
 import Language.Curry.Distribution ( baseVersion, installDir )
 import System.Directory
 import System.FilePath    ( (</>), (<.>)
@@ -675,7 +674,7 @@ processReload rst args
 processAdd :: ReplState -> String -> IO (Maybe ReplState)
 processAdd rst args
   | null args = skipCommand "Missing module name"
-  | otherwise = Just `liftIO` foldM add rst (words args)
+  | otherwise = Just `fmap` foldM add rst (words args)
   where
     add rst' m = let mdl = stripCurrySuffix m in
       if validModuleName mdl
@@ -929,10 +928,8 @@ setOptionNDMode :: (Int -> NonDetMode) -> Int
 setOptionNDMode mode defDepth rst args
   | null args = return (Just rst { ndMode = mode defDepth })
   | otherwise = case readNat args of
-      Nothing    -> skipCommand "illegal number"
-      Just (n,s) -> if null (strip s)
-                      then return (Just rst { ndMode = mode n })
-                      else skipCommand "illegal number"
+      [(n,s)] | null (strip s) -> return (Just rst { ndMode = mode n })
+      _                        -> skipCommand "illegal number"
 
 setOptionSupply :: ReplState -> String -> IO (Maybe ReplState)
 setOptionSupply rst args
