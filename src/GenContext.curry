@@ -6,7 +6,7 @@
 --- @author Kai-Oliver Prott, Fredrik Wieczerkowski
 --- @version October 2020
 --- --------------------------------------------------------------------------
-module GenContext (genContext) where
+module GenContext (genContext, mkContext) where
 
 import Data.List (nub, partition)
 
@@ -33,7 +33,7 @@ genContext bvs = snd . toTypeSig' bvs
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
           (here, before) = partition (isSaturatedWith tvs . fst) $ nub cty
-      in (before, AH.ForallType tvs (nub $ cs ++ map mkContext here) ty')
+      in (before, AH.ForallType tvs (nub $ cs ++ map (uncurry mkContext) here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just kind -> ([(t, kind)], t)
       Nothing   -> ([],          t)
@@ -56,33 +56,33 @@ genContext bvs = snd . toTypeSig' bvs
       AH.TVar _ -> True
       _         -> False
 
-    -- The Curry contexts are generated based on the type variable's
-    -- kind by using the QuantifiedConstraints language extension.
-    -- Consider the following examples (with simplified type variable names):
-    --
-    -- Curry a                                             when a :: *
-    -- forall x. Curry x => Curry (C_Apply a x)            when a :: * -> *
-    -- forall x y. ( Curry x
-    --             , Curry y
-    --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: * -> * -> *
-    -- forall x y. ( forall z. Curry z => (C_Apply x z)
-    --             , Curry y
-    --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) * -> -> *
-    mkContext :: (AH.TypeExpr, AH.Kind) -> AH.Context
-    mkContext = snd . mkContext' 0
-      where
-        -- The integer tracks the fresh type variable index.
-        mkContext' :: Int -> (AH.TypeExpr, AH.Kind) -> (Int, AH.Context)
-        mkContext' n (ty, kind) = case kind of
-          AH.KindStar        -> (n,   AH.Context []     []       (curryPrelude, "Curry") [ty])
-          AH.KindArrow k1 k2 -> (n'', AH.Context (v:vs) (cx:cxs) (curryPrelude, "Curry") [ty'])
-            where
-              arityKind AH.KindStar        = 0
-              arityKind (AH.KindArrow _ k) = arityKind k + 1
+-- The Curry contexts are generated based on the type variable's
+-- kind by using the QuantifiedConstraints language extension.
+-- Consider the following examples (with simplified type variable names):
+--
+-- Curry a                                             when a :: *
+-- forall x. Curry x => Curry (C_Apply a x)            when a :: * -> *
+-- forall x y. ( Curry x
+--             , Curry y
+--             ) => Curry (C_Apply (C_Apply a x) y)    when a :: * -> * -> *
+-- forall x y. ( forall z. Curry z => (C_Apply x z)
+--             , Curry y
+--             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) * -> -> *
+mkContext :: AH.TypeExpr -> AH.Kind -> AH.Context
+mkContext = snd . mkContext' 0
+  where
+    -- The integer tracks the fresh type variable index.
+    mkContext' :: Int -> AH.TypeExpr -> AH.Kind -> (Int, AH.Context)
+    mkContext' n ty kind = case kind of
+      AH.KindStar        -> (n,   AH.Context []     []       (curryPrelude, "Curry") [ty])
+      AH.KindArrow k1 k2 -> (n'', AH.Context (v:vs) (cx:cxs) (curryPrelude, "Curry") [ty'])
+        where
+          arityKind AH.KindStar        = 0
+          arityKind (AH.KindArrow _ k) = arityKind k + 1
 
-              arity     = arityKind kind
-              (v:vs)    = map (\i -> (i, 'x':(show i))) $ take arity [n ..]
-              n'        = n + arity
-              ty'       = foldl (\t tv -> AH.TCons (curryPrelude, "C_Apply") [t, AH.TVar tv]) ty (v:vs)
-              (n'', cx) = mkContext' n' (AH.TVar v, k1)
-              cxs       = map (\tv -> snd $ mkContext' n' (AH.TVar tv, AH.KindStar)) $ vs
+          arity     = arityKind kind
+          (v:vs)    = map (\i -> (i, 'x':(show i))) $ take arity [n ..]
+          n'        = n + arity
+          ty'       = foldl (\t tv -> AH.TCons (curryPrelude, "C_Apply") [t, AH.TVar tv]) ty (v:vs)
+          (n'', cx) = mkContext' n' (AH.TVar v) k1
+          cxs       = map (\tv -> snd $ mkContext' n' (AH.TVar tv) AH.KindStar) $ vs
