@@ -117,8 +117,8 @@ rnmProg name p = updProgName (const name) (updQNamesInProg rnm p)
 -- Selectors
 
 --- transform type declaration
-trType :: (QName -> Visibility -> [TVarIndex] -> [ConsDecl] -> a) ->
-          (QName -> Visibility -> [TVarIndex] -> TypeExpr   -> a) -> TypeDecl -> a
+trType :: (QName -> Visibility -> [(TVarIndex, Kind)] -> [ConsDecl] -> a) ->
+          (QName -> Visibility -> [(TVarIndex, Kind)] -> TypeExpr   -> a) -> TypeDecl -> a
 trType typ _      (Type    name vis params  cs) = typ name vis params cs
 trType _  typesyn (TypeSyn name vis params syn) = typesyn name vis params syn
 
@@ -131,7 +131,7 @@ typeVisibility :: TypeDecl -> Visibility
 typeVisibility = trType (\_ vis _ _ -> vis) (\_ vis _ _ -> vis)
 
 --- get type parameters of type declaration
-typeParams :: TypeDecl -> [TVarIndex]
+typeParams :: TypeDecl -> [(TVarIndex, Kind)]
 typeParams = trType (\_ _ params _ -> params) (\_ _ params _ -> params)
 
 --- get constructor declarations from type declaration
@@ -151,7 +151,7 @@ isTypeSyn = trType (\_ _ _ _ -> False) (\_ _ _ _ -> True)
 --- update type declaration
 updType :: (QName -> QName) ->
            (Visibility -> Visibility) ->
-           ([TVarIndex] -> [TVarIndex]) ->
+           ([(TVarIndex, Kind)] -> [(TVarIndex, Kind)]) ->
            ([ConsDecl] -> [ConsDecl]) ->
            (TypeExpr -> TypeExpr)     -> TypeDecl -> TypeDecl
 updType fn fv fp fc fs = trType typ typesyn
@@ -168,7 +168,7 @@ updTypeVisibility :: Update TypeDecl Visibility
 updTypeVisibility f = updType id f id id id
 
 --- update type parameters of type declaration
-updTypeParams :: Update TypeDecl [TVarIndex]
+updTypeParams :: Update TypeDecl [(TVarIndex, Kind)]
 updTypeParams f = updType id id f id id
 
 --- update constructor declarations of type declaration

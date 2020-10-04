@@ -60,8 +60,8 @@ type TVarIndex = Int
 --- Thus, a data type declaration consists of the name of the data type,
 --- a list of type parameters and a list of constructor declarations.
 data TypeDecl
-  = Type    QName Visibility [TVarIndex] [ConsDecl]
-  | TypeSyn QName Visibility [TVarIndex] TypeExpr
+  = Type    QName Visibility [(TVarIndex, Kind)] [ConsDecl]
+  | TypeSyn QName Visibility [(TVarIndex, Kind)] TypeExpr
   deriving (Eq, Ord, Read, Show)
 
 --- A constructor declaration consists of the name and arity of the
