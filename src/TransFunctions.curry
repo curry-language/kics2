@@ -394,7 +394,7 @@ trTypeExpr combFunc addArgs n t
 --- to combine the two type expressions of a functional type.
 trHOTypeExpr :: (AH.TypeExpr -> AH.TypeExpr -> AH.TypeExpr)
              -> TypeExpr -> AH.TypeExpr
-trHOTypeExpr _ (TVar          i) = AH.TVar (cvTVarIndex i)
+trHOTypeExpr _ (TVar     (i, _)) = AH.TVar (cvTVarIndex i)
 trHOTypeExpr f (FuncType  t1 t2) = f (trHOTypeExpr f t1) (trHOTypeExpr f t2)
 trHOTypeExpr f (TCons     qn ts) = AH.TCons qn (map (trHOTypeExpr f) ts)
 trHOTypeExpr f (ForallType is t) =

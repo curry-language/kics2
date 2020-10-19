@@ -103,7 +103,7 @@ substPattern sub (ALPattern t    l) = ALPattern (subst sub t) l
 --- @param sub - the substitution to search in
 --- @return either the looked-up and converted type or the default type
 subst :: AFCSubst -> TypeExpr -> TypeExpr
-subst sub e@(TVar        n) = maybe e id (lookupAFCSubst sub n)
+subst sub e@(TVar   (n, _)) = maybe e id (lookupAFCSubst sub n)
 subst sub (TCons     t tys) = TCons t (map (subst sub) tys)
 subst sub (FuncType    a b) = FuncType (subst sub a) (subst sub b)
 subst sub (ForallType ns t) = ForallType ns (subst sub t)
