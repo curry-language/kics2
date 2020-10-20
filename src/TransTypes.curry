@@ -103,7 +103,7 @@ fcy2absTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
 fcy2absTExp vs = genContext vs' . fcy2absTExp'
   where
     vs' = map (\v -> (v, KindStar)) vs -- the kind does not matter, trust me.
-    fcy2absTExp' (FC.TVar (i, _))     =
+    fcy2absTExp' (FC.TVar i)          =
       TVar (fcy2absTVar i)
     fcy2absTExp' (FC.TCons qf texps)  =
       TCons qf (map fcy2absTExp' texps)
@@ -118,7 +118,7 @@ fcy2absHOTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
 fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
   where
     vs' = map (\v -> (v, KindStar)) vs -- the kind does not matter, trust me.
-    fcy2absHOTExp' (FC.TVar    (i, _))  =
+    fcy2absHOTExp' (FC.TVar         i)  =
       TVar (fcy2absTVar i)
     fcy2absHOTExp' (FC.TCons   qf tys)  =
       TCons qf (map fcy2absHOTExp' tys)

@@ -58,7 +58,7 @@ dpFunc afunc@(AFunc f k v t r)
   | take 6 (snd f) `elem` ["_impl#", "_inst#"] = afunc
   | otherwise
   = let vs = tyVars t
-        (r', sigma) = runState (dpRule r) (fromList (zip (map fst vs) (map TVar vs)))
+        (r', sigma) = runState (dpRule r) (fromList (zip vs (map TVar vs)))
     in  substFunc sigma (AFunc f k v t r')
 
 --- Transform a single rule.
@@ -107,7 +107,7 @@ dpExpr = trExpr var lit cmb lat fre orr cse bra typ
 dflt :: TypeExpr -> AExpr TypeExpr -> DPM (AExpr TypeExpr)
 dflt ty e
   = get >>= \sub ->
-    let new = filter (\v -> not (v `member` sub)) $ map fst vs in
+    let new = filter (\v -> not (v `member` sub)) vs in
     if Prelude.null new
       then return e
       else let sub' = fromList $ zip new (repeat defaultType) in
@@ -116,5 +116,5 @@ dflt ty e
   where vs = tyVars ty
 
 --- Retrieve all type variables in a type expression.
-tyVars :: TypeExpr -> [TVarWithKind]
+tyVars :: TypeExpr -> [TVarIndex]
 tyVars = nub . trTypeExpr (:[]) (\_ -> concat) (++) (flip const)

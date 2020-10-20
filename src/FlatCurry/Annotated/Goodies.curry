@@ -250,8 +250,8 @@ updQNamesInConsDecl f = updCons f id id (map (updQNamesInTypeExpr f))
 --- get index from type variable
 tVarIndex :: TypeExpr -> TVarIndex
 tVarIndex texpr = case texpr of
-  (TVar (n, _)) -> n
-  _             -> error "AnnotatedFlatCurryGoodies.tVarIndex: no type variable"
+  (TVar n) -> n
+  _        -> error "AnnotatedFlatCurryGoodies.tVarIndex: no type variable"
 
 --- get domain from functional type
 domain :: TypeExpr -> TypeExpr
@@ -278,7 +278,7 @@ tConsArgs texpr = case texpr of
   _              -> error "AnnotatedFlatCurryGoodies.tConsArgs: no functional type"
 
 --- transform type expression
-trTypeExpr :: (TVarWithKind -> a) ->
+trTypeExpr :: (TVarIndex -> a) ->
               (QName -> [a] -> a) ->
               (a -> a -> a) ->
               ([(TVarIndex, Kind)] -> a -> a) -> TypeExpr -> a
@@ -316,7 +316,7 @@ isForallType
 -- Update Operations
 
 --- update all type variables
-updTVars :: (TVarWithKind -> TypeExpr) -> TypeExpr -> TypeExpr
+updTVars :: (TVarIndex -> TypeExpr) -> TypeExpr -> TypeExpr
 updTVars tvar = trTypeExpr tvar TCons FuncType ForallType
 
 --- update all type constructors
@@ -350,7 +350,7 @@ resultType (ForallType ns t) = ForallType ns t
 
 --- rename variables in type expression
 rnmAllVarsInTypeExpr :: (TVarIndex -> TVarIndex) -> TypeExpr -> TypeExpr
-rnmAllVarsInTypeExpr f = updTVars (\(i, k) -> TVar (f i, k))
+rnmAllVarsInTypeExpr f = updTVars (TVar . f)
 
 --- update all qualified names in type expression
 updQNamesInTypeExpr :: (QName -> QName) -> TypeExpr -> TypeExpr

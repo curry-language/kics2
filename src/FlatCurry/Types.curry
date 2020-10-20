@@ -81,7 +81,7 @@ data ConsDecl = Cons QName Int Visibility [TypeExpr]
 --- "Int", "Float", "Bool", "Char", "IO",
 --- "()" (unit type), "(,...,)" (tuple types), "[]" (list type)
 data TypeExpr
-  = TVar TVarWithKind                   -- type variable
+  = TVar TVarIndex                      -- type variable
   | FuncType TypeExpr TypeExpr          -- function type t1->t2
   | TCons QName [TypeExpr]              -- type constructor application
                                         -- TCons module name typeargs

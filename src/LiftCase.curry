@@ -79,7 +79,7 @@ liftCasesFunc onlyNested mod aux f (esMain,i0,ffMain) =
     lookupKeep vs v = fmap (\k -> (v,k)) $ Prelude.lookup v vs
 
     allFreeVars =
-      trTypeExpr ((:[]) . fst) (const concat) (++) (flip (\\) . map fst)
+      trTypeExpr (:[]) (const concat) (++) (flip (\\) . map fst)
 
     collectVars =
       trTypeExpr (const []) (const . const []) (const . const []) (++)
