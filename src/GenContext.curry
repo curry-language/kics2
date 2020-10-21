@@ -33,7 +33,7 @@ genContext bvs = snd . toTypeSig' bvs
       let vs' = vs ++ tvs
           (cty, ty') = toTypeSig' vs' ty
           (here, before) = partition (isSaturatedWith tvs . fst) $ nub cty
-      in (before, AH.ForallType tvs (nub $ cs ++ map (uncurry mkContext) here) ty')
+      in (before, AH.ForallType tvs (nub $ cs ++ map (uncurry $ mkContext (curryPrelude, "Curry")) here) ty')
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just kind -> ([(t, kind)], t)
       Nothing   -> ([],          t)
@@ -68,14 +68,14 @@ genContext bvs = snd . toTypeSig' bvs
 -- forall x y. ( forall z. Curry z => (C_Apply x z)
 --             , Curry y
 --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) * -> -> *
-mkContext :: AH.TypeExpr -> AH.Kind -> AH.Context
-mkContext ty = snd . mkContext' 0 ty
+mkContext :: AH.QName -> AH.TypeExpr -> AH.Kind -> AH.Context
+mkContext name ty = snd . mkContext' 0 ty
   where
     -- The integer tracks the fresh type variable index.
     mkContext' :: Int -> AH.TypeExpr -> AH.Kind -> (Int, AH.Context)
     mkContext' n ty kind = case kind of
-      AH.KindStar        -> (n,   AH.Context []     []       (curryPrelude, "Curry") [ty])
-      AH.KindArrow k1 k2 -> (n'', AH.Context (v:vs) (cx:cxs) (curryPrelude, "Curry") [ty'])
+      AH.KindStar        -> (n,   AH.Context []     []       name [ty])
+      AH.KindArrow k1 k2 -> (n'', AH.Context (v:vs) (cx:cxs) name [ty'])
         where
           arityKind AH.KindStar        = 0
           arityKind (AH.KindArrow _ k) = arityKind k + 1

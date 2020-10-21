@@ -817,7 +817,7 @@ newVars = zip [1..]
 mkInstance :: QName -> [QName] -> TypeExpr -> [(TVarIName, Kind)] -> [(QName, Rule)]
            -> TypeDecl
 mkInstance qn addContexts ctype targs = Instance qn ctype $
-  concatMap (\name -> map (\(tv, kind) -> mkContext (TVar tv) kind) targs) (qn:addContexts)
+  concatMap (\name -> map (\(tv, kind) -> mkContext name (TVar tv) kind) targs) (qn:addContexts)
 
 mkEmptyInstance :: QName -> TypeExpr -> TypeDecl
 mkEmptyInstance qn ctype = Instance qn ctype [] []
