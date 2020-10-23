@@ -35,11 +35,11 @@ transTypes hoResult = concatMap (genTypeDeclarations hoResult)
 genTypeDeclarations :: ConsHOResult -> FC.TypeDecl -> [TypeDecl]
 genTypeDeclarations hoResult tdecl = case tdecl of
   (FC.TypeSyn qf vis tnums texp) ->
-    [TypeSyn qf (fcy2absVis vis) (fst <$> fcy2absTVarKind <$> tnums) (fcy2absTExp [] texp)]
+    [TypeSyn qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absTExp [] texp)]
   t@(FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
-    | Prelude.null cs -> Type qf Public (fst <$> targs) [] : []
+    | Prelude.null cs -> Type qf Public (map fst targs) [] : []
       -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       -- !!! HACK: Since the C_Bool type and some of its type class     !!!
       -- !!! instances need to be defined in the runtime system,        !!!
@@ -49,11 +49,11 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       -- !!! C_Bool in the Curry_Prelude.                               !!!
       -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     | isBoolType qf   -> Type qf Public []              [] : []
-    | otherwise       -> Type qf Public (fst <$> targs) ds : instanceDecls
+    | otherwise       -> Type qf Public (map fst targs) ds : instanceDecls
     where
       isBoolType = (==) ("Curry_Prelude", "C_Bool")
       isDictType = (==) "OP_uscore_Dict_hash_" . take 20 . snd
-      ds = concatMap (fcy2absCDecl (fst <$> targs) hoResult) cs ++
+      ds = concatMap (fcy2absCDecl (map fst targs) hoResult) cs ++
             [ Cons (mkChoiceName  qf) 3 vis' [coverType, idType, ctype, ctype]
             , Cons (mkChoicesName qf) 2 vis' [coverType, idType, clisttype]
             , Cons (mkFailName    qf) 2 vis' [coverType, failInfoType]
@@ -71,7 +71,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
                                ]
       vis'      = fcy2absVis vis
       targs     = map fcy2absTVarKind tnums
-      ctype     = TCons qf $ TVar <$> fst <$> targs
+      ctype     = TCons qf $ map (TVar . fst) targs
       clisttype = listType ctype
   _ -> error "TransTypes.genTypeDeclarations"
 
@@ -156,7 +156,7 @@ showInstance isDict hoResult tdecl = case tdecl of
     | otherwise -> mkEmptyInstance (basics "Show") ctype
    where [cd, d,i,x,y,xs,c,e,us] = newVars ["cd", "d","i","x","y","xs","c","e","_"]
          targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ TVar <$> fst <$> targs
+         ctype = TCons qf $ map (TVar . fst) targs
   _ -> error "TransTypes.showInstance"
 
   -- Generate specific show for lists (only for finite lists!)
@@ -231,7 +231,7 @@ readInstance isDict tdecl = case tdecl of
     | otherwise -> mkEmptyInstance (basics "Read") ctype
    where
         targs = map fcy2absTVarKind tnums
-        ctype = TCons qf $ TVar <$> fst <$> targs
+        ctype = TCons qf $ map (TVar . fst) targs
         rule | isListType  qf = readListRule qf
              | isTupleType qf = readTupleRule (head cdecls)
              | otherwise      = readRule cdecls
@@ -354,7 +354,7 @@ nondetInstance isDict tdecl = case tdecl of
     | otherwise -> mkEmptyInstance (basics "NonDet") ctype
    where
      targs = map fcy2absTVarKind tnums
-     ctype = TCons qf $ TVar <$> fst <$> targs
+     ctype = TCons qf $ map (TVar . fst) targs
   _ -> error "TransTypes.nondetInstance"
 
 specialConsRules :: QName -> [(QName, Rule)]
@@ -430,7 +430,7 @@ generableInstance isDict hoResult tdecl = case tdecl of
     | otherwise -> mkEmptyInstance (basics "Generable") ctype
    where
       targs = map fcy2absTVarKind tnums
-      ctype = TCons qf $ TVar <$> fst <$> targs
+      ctype = TCons qf $ map (TVar . fst) targs
       [s,c] = newVars ["s","c"]
       idSupply = Var s
 
@@ -477,7 +477,7 @@ normalformInstance isDict hoResult tdecl = case tdecl of
        ]
     | otherwise -> mkEmptyInstance (basics "NormalForm") ctype
    where targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ TVar <$> fst <$> targs
+         ctype = TCons qf $ map (TVar . fst) targs
          --[cd, cont,i,x,y,xs] = newVars ["cd", "cont","i","x","y","xs"]
   _ -> error "TransTypes.normalformInstance"
 
@@ -621,7 +621,7 @@ unifiableInstance isDict hoResult tdecl = case tdecl of
        ]
     | otherwise -> mkEmptyInstance (basics "Unifiable") ctype
    where targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ TVar <$> fst <$> targs
+         ctype = TCons qf $ map (TVar . fst) targs
          newFail qn = (qn, simpleRule [PVar (1,"a"), PVar (2,"b"), PVar (3, "cd"), PVar (4, "_")]
                            (applyF (basics "Fail_C_Bool") [Var (3, "cd"), applyF (basics "unificationFail") [applyF (basics "showCons") [Var (1,"a")], applyF (basics "showCons") [Var (2,"b")]]])
                        )
@@ -760,7 +760,7 @@ curryInstance isDict tdecl = case tdecl of
     | otherwise -> mkEmptyInstance (basics "Curry") ctype
    where
       targs = map fcy2absTVarKind tnums
-      ctype = TCons qf $ TVar <$> fst <$> targs
+      ctype = TCons qf $ map (TVar . fst) targs
   _ -> error "TransTypes.curryInstance"
 
 -- ---------------------------------------------------------------------------
