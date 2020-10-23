@@ -160,7 +160,7 @@ tuple sizes cannot be compiled. If you want to increase this size
 two system files and install your system as follows:
 
  1. Change the definition of the constant `maxTupleArity` in the file
-    `kics2home/frontend/curry-frontend/src/Generators/GenFlatCurry.hs`
+    `kics2home/frontend/src/Generators/GenFlatCurry.hs`
     according to your required maximal arity.
  2. Delete the file `kics2home/lib/.curry/Prelude.fcy`.
  3. Re-install KiCS2 by running `make`.
