@@ -1,7 +1,0 @@
-resolver: lts-14.7
-packages:
-  - curry-base
-  - curry-frontend
-
-extra-deps:
-  - set-extra-1.4.1

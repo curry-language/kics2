@@ -1,11 +1,3 @@
-[submodule "curry-base"]
-  path = frontend/curry-base
-  url = https://git.ps.informatik.uni-kiel.de/curry/curry-base.git
-
-[submodule "curry-frontend"]
-  path = frontend/curry-frontend
-  url = https://git.ps.informatik.uni-kiel.de/curry/curry-frontend.git
-
 [submodule "currytools"]
   path = currytools
   url = https://git.ps.informatik.uni-kiel.de/curry/curry-tools.git
