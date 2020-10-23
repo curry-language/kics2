@@ -134,7 +134,7 @@ fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
 showInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
 showInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
-    | not isDict -> mkInstance (basics "Show") [] ctype targs $
+    | not isDict -> mkInstance (basics "Show") ctype targs $
        if isListType qf then [showRule4List] else
          [ ( pre "showsPrec"
          , simpleRule [PVar d, mkChoicePattern qf "i" ]
@@ -227,7 +227,7 @@ showConsRule hoResult (FC.Cons qn carity _ _)
 readInstance :: Bool -> FC.TypeDecl -> TypeDecl
 readInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
-    | not isDict -> mkInstance (pre "Read") [] ctype targs [rule]
+    | not isDict -> mkInstance (pre "Read") ctype targs [rule]
     | otherwise -> mkEmptyInstance (basics "Read") ctype
    where
         targs = map fcy2absTVarKind tnums
@@ -349,7 +349,7 @@ readParen (FC.Cons qn@(mn,_) carity _ _) = applyF (pre "readParen")
 nondetInstance :: Bool -> FC.TypeDecl -> TypeDecl
 nondetInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums _)
-    | not isDict -> mkInstance (basics "NonDet") [] ctype []
+    | not isDict -> mkInstance (basics "NonDet") ctype []
      $ specialConsRules qf ++ tryRules qf ++ matchRules qf
     | otherwise -> mkEmptyInstance (basics "NonDet") ctype
    where
@@ -425,7 +425,7 @@ matchRules qf = map nameRule
 generableInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
 generableInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
-    | not isDict -> mkInstance (basics "Generable") [] ctype targs
+    | not isDict -> mkInstance (basics "Generable") ctype targs
         [(basics "generate", simpleRule [PVar s,PVar c]  genBody)]
     | otherwise -> mkEmptyInstance (basics "Generable") ctype
    where
@@ -459,7 +459,7 @@ generableInstance isDict hoResult tdecl = case tdecl of
 normalformInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
 normalformInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
-    | not isDict -> mkInstance (basics "NormalForm") [] ctype targs $ concat
+    | not isDict -> mkInstance (basics "NormalForm") ctype targs $ concat
          -- $!!
        [ concatMap (normalformConsRule hoResult (basics "$!!")) cdecls
        , normalFormExtConsRules qf (basics "$!!")
@@ -590,7 +590,7 @@ searchNFCatchRule qf
 unifiableInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
 unifiableInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
-    | not isDict -> mkInstance (basics "Unifiable") [] ctype targs $ concat
+    | not isDict -> mkInstance (basics "Unifiable") ctype targs $ concat
          -- unification
        [ concatMap (unifiableConsRule hoResult (basics "=.=") (basics "=:=")) cdecls
        , [newFail (basics "=.=")]
@@ -756,7 +756,7 @@ bindGuardRule qf lazy = (funcName,
 curryInstance :: Bool -> FC.TypeDecl -> TypeDecl
 curryInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums _)
-    | not isDict -> mkInstance (basics "Curry") [] ctype targs []
+    | not isDict -> mkInstance (basics "Curry") ctype targs []
     | otherwise -> mkEmptyInstance (basics "Curry") ctype
    where
       targs = map fcy2absTVarKind tnums
@@ -814,10 +814,9 @@ mkVarName n i
 newVars :: [String] -> [(Int, String)]
 newVars = zip [1..]
 
-mkInstance :: QName -> [QName] -> TypeExpr -> [(TVarIName, Kind)] -> [(QName, Rule)]
+mkInstance :: QName -> TypeExpr -> [(TVarIName, Kind)] -> [(QName, Rule)]
            -> TypeDecl
-mkInstance qn addContexts ctype targs = Instance qn ctype $
-  concatMap (\name -> map (\(tv, kind) -> mkContext name (TVar tv) kind) targs) (qn:addContexts)
+mkInstance qn ctype targs = Instance qn ctype $ map (\(tv, kind) -> mkContext (basics "Curry") (TVar tv) kind) targs
 
 mkEmptyInstance :: QName -> TypeExpr -> TypeDecl
 mkEmptyInstance qn ctype = Instance qn ctype [] []
