@@ -5,3 +5,7 @@
 [submodule "lib-trunk"]
   path = lib-trunk
   url = https://git.ps.informatik.uni-kiel.de/curry/curry-libs.git
+
+[submodule "frontend"]
+	path = frontend
+	url = https://git.ps.informatik.uni-kiel.de/curry/curry-frontend.git
