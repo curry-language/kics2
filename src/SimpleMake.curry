@@ -7,12 +7,11 @@ smake :: String -> [String] -> IO a -> IO a -> IO a
 smake dest deps cmd alt = do
   destTime <- getDestTime dest
   depTimes <- getDepTimes deps
-  make destTime depTimes
-    where
-      make Nothing _              = cmd  -- target file is not existent
-      make (Just dep) destTimes
-        | outOfDate dep destTimes = cmd  -- target file is out-dated
-        | otherwise               = alt  -- target file is up-to-date
+
+  case (destTime, depTimes) of
+    (Just dt, Just dts) | outOfDate dt dts -> cmd -- target file is up-to-date
+                        | otherwise        -> alt -- target file is outdated
+    _                                      -> cmd -- either target file or not all deps exist
 
 getDestTime :: String -> IO (Maybe ClockTime)
 getDestTime fn = do
@@ -21,8 +20,8 @@ getDestTime fn = do
     then Just <$> getModificationTime fn
     else return Nothing
 
-getDepTimes :: [String] -> IO [ClockTime]
-getDepTimes = mapM getModificationTime
+getDepTimes :: [String] -> IO (Maybe [ClockTime])
+getDepTimes = fmap sequence . mapM getDestTime
 
 -- Check whether the destination file is outdated, i.e. if any file it
 -- depends on is newer
