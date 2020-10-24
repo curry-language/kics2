@@ -42,7 +42,7 @@ import EliminateCond             (eliminateCond)
 import DefaultPolymorphic        (defaultPolymorphic)
 import MissingImports            (fixMissingImports)
 import Message                   (putErrLn, showStatus, showDetail)
-import ModuleDeps                (ModuleIdent, Source, deps)
+import ModuleDeps                (ModuleIdent, Source, deps, updatePreludeImport)
 import Names
 import SimpleMake
 import TransFunctions
@@ -148,7 +148,7 @@ compileModule total state ((mid, (fn, _, tfcyFileName)), current) = do
   rawTfcy <- readCompleteFile tfcyFileName
   showStatus opts $ compMessage (current, total) "Compiling" mid (fn, dest)
 
-  let tfcy = filterPrelude opts (read rawTfcy)
+  let tfcy = updatePrelude opts (read rawTfcy)
   dump DumpTypedFlat opts typedName (show tfcy)
 
   showDetail opts "Lifting case expressions"
@@ -250,11 +250,9 @@ compMessage (curNum, maxNum) what m (src, dst)
   ++ " ( " ++ normalise src ++ ", " ++ normalise dst ++ " )"
   where sMaxNum  = show maxNum
 
-filterPrelude :: Options -> AProg a -> AProg a
-filterPrelude opts p@(AProg m imps td fd od)
-  | noPrelude = AProg m (filter (/= prelude) imps) td fd od
-  | otherwise = p
-  where noPrelude = NoImplicitPrelude `elem` optExtensions opts
+updatePrelude :: Options -> AProg a -> AProg a
+updatePrelude opts (AProg m imps td fd od) = AProg m imps' td fd od
+  where imps' = updatePreludeImport opts imps
 
 --
 integrateExternals :: Options -> AH.Prog -> FilePath -> IO String

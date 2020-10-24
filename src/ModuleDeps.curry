@@ -7,7 +7,7 @@
 --- @author  Björn Peemöller, Fabian Skrlac, Finn Teegen, Jan Tikovsky
 --- @version December 2018
 --- --------------------------------------------------------------------------
-module ModuleDeps (ModuleIdent, Source, Errors, deps) where
+module ModuleDeps (ModuleIdent, Source, Errors, deps, updatePreludeImport) where
 
 import Data.Char                   ( isSpace, toUpper )
 import Data.Map                    ( Map, empty, insert, toList, lookup )
@@ -41,7 +41,7 @@ import FlatCurry.Annotated.Files ( readTypedFlatCurryFileRaw
 import CompilerOpts
 import Installation (compilerName, majorVersion, minorVersion)
 import Message      (showStatus,showAnalysis)
-import Names        (moduleNameToPath)
+import Names        (moduleNameToPath, prelude)
 import RCFile       (rcValue)
 
 type ModuleIdent = String
@@ -107,7 +107,17 @@ sourceDeps opts mn fn mEnv = do
   tfcyName <- getTfcyFileName opts mn fn
   rawTfcyHeader <- readTfcyModuleHeader tfcyName
   let (m, is) = readModuleNameAndImports rawTfcyHeader
-  foldM (moduleDeps opts) (insert m (Just (fn, is, tfcyName)) mEnv) is
+      is'     = updatePreludeImport opts is
+  foldM (moduleDeps opts) (insert m (Just (fn, is', tfcyName)) mEnv) is'
+
+-- Remove Prelude import if NoImplicitPrelude is set, otherwise
+-- ensure that it is present.
+updatePreludeImport :: Options -> [String] -> [String]
+updatePreludeImport opts imps
+  | noPrelude = filter (/= prelude) imps
+  | otherwise = if hasPrelude then imps else prelude : imps
+  where noPrelude = NoImplicitPrelude `elem` optExtensions opts
+        hasPrelude = prelude `elem` imps
 
 -- Reads only module name and imports from a typed FlatCurry representation.
 readModuleNameAndImports :: String -> (ModuleIdent, [ModuleIdent])
