@@ -391,20 +391,36 @@ list = fillEncloseSep lbracket rbracket (comma <> space)
 tupled :: [Doc] -> Doc
 tupled = fillEncloseSep lparen rparen (comma <> space)
 
+curryPrefix :: String
+curryPrefix = "Curry_"
+
+tracePrefix :: String
+tracePrefix = "Trace_"
+
 curryPrelude :: String
-curryPrelude = "Curry_Prelude"
+curryPrelude = curryPrefix ++ "Prelude"
 
 renameModule :: String -> String
-renameModule = onLastIdentifier ("Curry_" ++)
+renameModule = onLastIdentifier (curryPrefix ++)
 
 unRenameModule :: String -> String
-unRenameModule = onLastIdentifier (dropPrefix "Curry_")
+unRenameModule = onLastIdentifier (dropPrefix curryPrefix)
 
 addTrace :: String -> String
-addTrace = renameModule . onLastIdentifier ("Trace_" ++) . unRenameModule
+addTrace m | hasCurryPrefix m = renameModule $ onLastIdentifier (tracePrefix ++) $ unRenameModule m
+           | otherwise        = m -- do not rename runtime modules
+
+hasCurryPrefix :: String -> Bool
+hasCurryPrefix = maybe False (`hasPrefix` curryPrefix) . maybeLast . splitModuleIdentifiers
+
+maybeLast :: [a] -> Maybe a
+maybeLast xs = case xs of
+  []     -> Nothing
+  [x]    -> Just x
+  (_:ys) -> maybeLast ys
 
 removeTrace :: String -> String
-removeTrace = renameModule . onLastIdentifier (dropPrefix "Trace_")
+removeTrace = renameModule . onLastIdentifier (dropPrefix tracePrefix)
             . unRenameModule
 
 onLastIdentifier :: (String -> String) -> String -> String
@@ -429,8 +445,10 @@ joinModuleIdentifiers :: [String] -> String
 joinModuleIdentifiers = foldr1 combine
   where combine xs ys = xs ++ '.' : ys
 
-dropPrefix :: String -> String -> String
+dropPrefix :: Eq a => [a] -> [a] -> [a]
 dropPrefix pfx s
-  | take n s == pfx = drop n s
-  | otherwise       = s
-  where n = length pfx
+  | s `hasPrefix` pfx = drop (length pfx) s
+  | otherwise         = s
+
+hasPrefix :: Eq a => [a] -> [a] -> Bool
+s `hasPrefix` pfx = take (length pfx) s == pfx
