@@ -94,7 +94,7 @@ addNDAnalysis newRes = updState $ \st ->
 
 getNDClass :: QName -> M NDClass
 getNDClass qn = getState >>= \st ->
-  maybe (failM $ show qn ++ " not analysed") return
+  maybe (failM $ show qn ++ " not analyzed (TransFunctions.getNDClass)") return
   $ Data.Map.lookup qn (ndResult st)
 
 -- HOTypeResult
@@ -105,7 +105,7 @@ addHOTypeAnalysis newRes = updState $ \st ->
 
 getTypeHOClass :: QName -> M TypeHOClass
 getTypeHOClass qn = getState >>= \st ->
-  maybe (failM $ show qn ++ " not analysed") return
+  maybe (failM $ show qn ++ " not analyzed (TransFunctions.getTypeHOClass)") return
   $ Data.Map.lookup qn (hoResultType st)
 
 -- HOConsResult
@@ -116,7 +116,7 @@ addHOConsAnalysis newRes = updState$ \st ->
 
 getConsHOClass :: QName -> M ConsHOClass
 getConsHOClass qn = getState >>= \st ->
-  maybe (failM $ show qn ++ " not analysed") return
+  maybe (failM $ show qn ++ " not analyzed (TransFunctions.getConsHOClass)") return
   $ Data.Map.lookup qn $ (hoResultCons st)
 
 -- HOFunResult
@@ -127,7 +127,7 @@ addHOFuncAnalysis newRes = updState$ \st ->
 
 getFuncHOClass :: QName -> M FuncHOClass
 getFuncHOClass qn = getState >>= \st ->
-  maybe (failM $ show qn ++ " not analysed") return
+  maybe (failM $ show qn ++ " not analyzed (TransFunctions.getFuncHOClass)") return
   $ Data.Map.lookup qn $ (hoResultFunc st)
 
 -- IDs
