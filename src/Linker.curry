@@ -127,7 +127,7 @@ mainModuleIdent = "Curry_Main_Goal"
 writeVerboseInfo :: ReplState -> Int -> String -> IO ()
 writeVerboseInfo rst lvl msg =
   -- TODO/STYLE: Use 'unless' again once re-added to 'Applicative'
-  when (verbose rst < lvl) (putStrLn msg >> hFlush stdout)
+  when (verbose rst >= lvl) (putStrLn msg >> hFlush stdout)
 
 --- Reads the determinism infomation for the main goal file
 readInfoFile :: ReplState -> IO [((String,String),Bool)]
