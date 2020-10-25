@@ -42,6 +42,7 @@ cabal-dev/
 pkg/
 .stack-work
 stack.yaml.lock
+TMPLIBOUT
 
 # binaries
 benchmarks/Benchmarks
