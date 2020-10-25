@@ -18,7 +18,8 @@ CCODE=0
 while [ $CCODE = 0 ] ; do
   compile_all | tee $TMPOUT
   echo NEW COMPILED LIBRARIES IN THIS ITERATION:
-  grep Compiling $TMPOUT
+  # TODO: Figure out why the Prelude recompiles each time
+  grep -P 'Compiling\s*(?!Prelude)\w+' $TMPOUT
   CCODE=$?
 done
 /bin/rm -r $TMPOUT
