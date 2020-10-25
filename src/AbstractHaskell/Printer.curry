@@ -12,6 +12,7 @@ module AbstractHaskell.Printer
   , ppDecls
   ) where
 
+import Data.List (isPrefixOf)
 import Text.Pretty
 
 import AbstractHaskell.Types
@@ -111,10 +112,9 @@ ppImports opts = vsep . map (ppImport opts)
 ppImport :: Options -> String -> Doc
 ppImport opts imp
     -- Import module qualified if required:
-  | qualImpModule opts imp = indent $ fillSep $ map text
-                               ["import", "qualified", imp]
-  | traceFailure opts      = indent $ fillSep $ map text $
-                               ["import", "qualified", addTrace imp, "as", imp]
+  | qualImpModule opts imp = indent $ fillSep $ map text $
+                               ["import", "qualified"] ++ if traceFailure opts then [addTrace imp, "as", imp]
+                                                                               else [imp]
   | otherwise              = indent $ text "import" <+> text imp
 
 ppOpDecls :: [OpDecl] -> Doc
@@ -398,7 +398,7 @@ tracePrefix :: String
 tracePrefix = "Trace_"
 
 curryPrelude :: String
-curryPrelude = curryPrefix ++ "Prelude"
+curryPrelude = renameModule "Prelude"
 
 renameModule :: String -> String
 renameModule = onLastIdentifier (curryPrefix ++)
@@ -407,17 +407,7 @@ unRenameModule :: String -> String
 unRenameModule = onLastIdentifier (dropPrefix curryPrefix)
 
 addTrace :: String -> String
-addTrace m | hasCurryPrefix m = renameModule $ onLastIdentifier (tracePrefix ++) $ unRenameModule m
-           | otherwise        = m -- do not rename runtime modules
-
-hasCurryPrefix :: String -> Bool
-hasCurryPrefix = maybe False (`hasPrefix` curryPrefix) . maybeLast . splitModuleIdentifiers
-
-maybeLast :: [a] -> Maybe a
-maybeLast xs = case xs of
-  []     -> Nothing
-  [x]    -> Just x
-  (_:ys) -> maybeLast ys
+addTrace = renameModule . onLastIdentifier (tracePrefix ++) . unRenameModule
 
 removeTrace :: String -> String
 removeTrace = renameModule . onLastIdentifier (dropPrefix tracePrefix)
@@ -447,8 +437,5 @@ joinModuleIdentifiers = foldr1 combine
 
 dropPrefix :: Eq a => [a] -> [a] -> [a]
 dropPrefix pfx s
-  | s `hasPrefix` pfx = drop (length pfx) s
-  | otherwise         = s
-
-hasPrefix :: Eq a => [a] -> [a] -> Bool
-s `hasPrefix` pfx = take (length pfx) s == pfx
+  | pfx `isPrefixOf` s = drop (length pfx) s
+  | otherwise          = s
