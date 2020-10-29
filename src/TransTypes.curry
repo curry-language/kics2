@@ -38,6 +38,8 @@ genTypeDeclarations hoResult tdecl = case tdecl of
     [TypeSyn qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absTExp [] texp)]
   (FC.TypeNew qf vis tnums c) ->
     [TypeNew qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult c)]
+    where
+      targs     = map fcy2absTVarKind tnums
   t@(FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
@@ -102,11 +104,10 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
     vis' = fcy2absVis vis
 
 fcy2absNewCDecl :: [TVarIName] -> ConsHOResult -> FC.NewConsDecl -> NewConsDecl
-fcy2absNewCDecl targs hoResult (FC.NewConsDecl qf vis texp) = undefined -- TODO
+fcy2absNewCDecl targs _ (FC.NewCons qf vis texp) = newCons
   where
-    isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
-    foCons = NewCons (mkFoConsName qf) vis' $ fcy2absTExp   targs texp
-    hoCons = NewCons (mkHoConsName qf) vis' $ fcy2absHOTExp targs texp
+    -- TODO: Generate higher-order constructor like in fcy2absCDecl?
+    newCons = NewCons (mkFoConsName qf) vis' $ fcy2absTExp targs texp
     vis' = fcy2absVis vis
 
 fcy2absTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
