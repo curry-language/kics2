@@ -66,12 +66,19 @@ type TVarWithKind = (TVarIndex, Kind)
 data TypeDecl
   = Type    QName Visibility [TVarWithKind] [ConsDecl]
   | TypeSyn QName Visibility [TVarWithKind] TypeExpr
+  | TypeNew QName Visibility [TVarWithKind] NewConsDecl
   deriving (Eq, Ord, Read, Show)
 
 --- A constructor declaration consists of the name and arity of the
 --- constructor and a list of the argument types of the constructor.
 data ConsDecl = Cons QName Int Visibility [TypeExpr]
   deriving (Eq, Ord, Read, Show)
+
+--- A constructor declaration for a newtype consists
+--- of the name of the constructor
+--- and the argument type of the constructor.
+data NewConsDecl = NewCons QName Visibility TypeExpr
+    deriving (Eq, Ord, Read, Show)
 
 --- Data type for type expressions.
 --- A type expression is either a type variable, a function type,
