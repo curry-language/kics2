@@ -61,6 +61,7 @@ type TVarIName = (Int, String)
 data TypeDecl
   = Type     QName Visibility [TVarIName] [ConsDecl]
   | TypeSyn  QName Visibility [TVarIName] TypeExpr
+  | TypeNew  QName Visibility [TVarIName] NewConsDecl
   | Instance QName TypeExpr [Context] [(QName, Rule)]
   deriving Show
 
@@ -73,6 +74,11 @@ data Context = Context [TVarIName] [Context] QName [TypeExpr]
 data ConsDecl = Cons QName Int Visibility [TypeExpr]
   deriving Show
 
+--- A constructor declaration for a newtype consists
+--- of the name of the constructor
+--- and the argument type of the constructor.
+data NewConsDecl = NewCons QName Visibility TypeExpr
+    deriving (Eq, Ord, Read, Show)
 
 --- Data type for type expressions.
 --- A type expression is either a type variable, a function type,
