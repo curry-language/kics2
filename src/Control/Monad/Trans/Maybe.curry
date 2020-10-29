@@ -3,9 +3,7 @@ module Control.Monad.Trans.Maybe where
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 
--- TODO: Should be a newtype, workaround for issue #22
--- (partially applied newtypes cause partially applied type synonyms)
-data MaybeT m a = MaybeT {
+newtype MaybeT m a = MaybeT {
     runMaybeT :: m (Maybe a)
   }
 
