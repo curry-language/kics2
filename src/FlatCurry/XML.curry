@@ -49,12 +49,14 @@ cImports      = eRep    "import" (eString "module")
 cTypes        = eRep    "types" cType
 cType         = eSeq4   "type" Type cQName cVis cTParams (rep cConsDecl)
               ! eSeq4   "typesyn" TypeSyn cQName cVis cTParams cTypeExpr
+              ! eSeq4   "typenew" TypeNew cQName cVis cTParams cNewConsDecl
 cQName        = seq2    (\a b -> (a,b)) (aString "module") (aString "name")
 cVis          = adapt   (b2v,v2b) (aBool "visibility" "public" "private")
 b2v b         = if b then Public else Private
 v2b v         = v==Public
 cTParams      = eRep    "params" (eInt "tvar")
 cConsDecl     = eSeq4   "cons" Cons cQName cArity cVis (rep cTypeExpr)
+cNewConsDecl  = eSeq4   "newcons" NewCons cQName cVis cTypeExpr
 cArity        = aInt    "arity"
 cTypeExpr     = eSeq2   "functype" FuncType cTypeExpr cTypeExpr
               ! eSeq2   "tcons" TCons cQName (rep cTypeExpr)

@@ -268,11 +268,16 @@ extractKnownTypes ps = Map.fromList $ concatMap extractProg ps
 
   extractTypeDecl :: TypeDecl -> [(QName, TypeExpr)]
   extractTypeDecl (TypeSyn  n _ _ ty) = [(n, ty)]
+  extractTypeDecl (TypeNew  n _ vs c) = extractNewConsDecl ty c
+    where ty = TCons n (map TVar vs)
   extractTypeDecl (Type    n _ vs cs) = map (extractConsDecl ty) cs
     where ty = TCons n (map TVar vs)
 
   extractConsDecl :: TypeExpr -> ConsDecl -> (QName, TypeExpr)
   extractConsDecl ty (Cons n _ _ tys) = (n, foldr FuncType ty tys)
+
+  extractNewConsDecl :: TypeExpr -> NewConsDecl -> (QName, TypeExpr)
+  extractNewConsDecl ty (NewCons n _ ty') = (n, FuncType ty' ty)
 
   typeArity :: TypeExpr -> Int
   typeArity ty = case ty of

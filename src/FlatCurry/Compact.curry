@@ -222,6 +222,10 @@ newTypeConsOfTDecl tcnames (TypeSyn tcons _ _ texp) =
   if tcons `RBS.member` tcnames
   then filter (\tc -> not (tc `RBS.member` tcnames)) (allTypesOfTExpr texp)
   else []
+newTypeConsOfTDecl tcnames (TypeNew tcons _ _ (NewCons _ _ texp)) =
+  if tcons `RBS.member` tcnames
+  then filter (\tc -> not (tc `RBS.member` tcnames)) (allTypesOfTExpr texp)
+  else []
 newTypeConsOfTDecl tcnames (Type tcons _ _ cdecls) =
   if tcons `RBS.member` tcnames
   then filter (\tc -> not (tc `RBS.member` tcnames))
@@ -236,6 +240,10 @@ extendTConsWithConsType :: RBS.SetRBT QName -> RBS.SetRBT QName -> [TypeDecl]
 extendTConsWithConsType _ tcons [] = tcons
 extendTConsWithConsType cnames tcons (TypeSyn tname _ _ _ : tds) =
   extendTConsWithConsType cnames (RBS.insert tname tcons) tds
+extendTConsWithConsType cnames tcons (TypeNew tname _ _ cdecl : tds) =
+  if any (\cdecl->consName cdecl `RBS.member` cnames) cdecls
+  then extendTConsWithConsType cnames (RBS.insert tname tcons) tds
+  else extendTConsWithConsType cnames tcons tds
 extendTConsWithConsType cnames tcons (Type tname _ _ cdecls : tds) =
   if tname `elem` defaultRequiredTypes ||
      any (\cdecl->consName cdecl `RBS.member` cnames) cdecls
@@ -452,6 +460,7 @@ consName (Cons name _ _ _) = name
 tconsName :: TypeDecl -> QName
 tconsName (Type name _ _ _) = name
 tconsName (TypeSyn name _ _ _) = name
+tconsName (TypeNew name _ _ _) = name
 
 --- Extracts the names of imported modules of a FlatCurry program.
 moduleImports :: Prog -> [String]

@@ -54,11 +54,20 @@ showFlatType (TypeSyn name vis tpars texp) =
   "\n  (TypeSyn " ++ show name ++ showFlatVisibility vis
                   ++ showFlatList show tpars
                   ++ showFlatTypeExpr texp ++ ")"
+showFlatType (TypeNew name vis tpars consdecl) =
+  "\n  (TypeNew " ++ show name ++ showFlatVisibility vis
+                  ++ showFlatList show tpars
+                  ++ showFlatNewCons consdecl ++ ")"
 
 showFlatCons (Cons cname arity vis types) =
   "(Cons " ++ show cname ++ " " ++ show arity
            ++ showFlatVisibility vis
            ++ showFlatList showFlatTypeExpr types ++ ")"
+
+showFlatNewCons (NewCons cname vis texp) =
+  "(NewCons " ++ show cname
+              ++ showFlatVisibility vis
+              ++ showFlatTypeExpr texp ++ ")"
 
 showFlatFunc :: FuncDecl -> String
 showFlatFunc (Func name arity vis ftype rl) =

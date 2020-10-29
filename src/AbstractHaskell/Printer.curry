@@ -95,6 +95,9 @@ ppExports opts ts fs = tupledSpaced $ filter (not . isEmpty)
   ppTypeExport (TypeSyn  qn vis _ _)
     | vis == Public = ppQName opts qn
     | otherwise     = Text.Pretty.empty
+  ppTypeExport (TypeNew  qn vis _ _)
+    | vis == Public = ppQName opts qn <+> text "(..)"
+    | otherwise     = Text.Pretty.empty
   ppTypeExport (Instance _  _   _ _) = Text.Pretty.empty
 
   ppFuncExport :: FuncDecl -> Doc
@@ -141,6 +144,9 @@ ppTypeDecl :: Options -> TypeDecl -> Doc
 ppTypeDecl opts (TypeSyn qname _ vs ty) = indent $
    text "type" <+> ppName qname <+> fillSep (map ppTypeVar vs)
                </> equals <+> ppTypeExp opts ty
+ppTypeDecl opts (TypeNew qname _ vs c)  = indent $
+   text "newtype" <+> ppName qname <+> fillSep (map ppTypeVar vs)
+                  $$ ppNewConsDecl c
 ppTypeDecl opts (Type    qname _ vs cs)
   | null cs   = Text.Pretty.empty
   | otherwise = indent $
@@ -161,6 +167,11 @@ ppConsDecls o cs = vsep $ zipWith (<+>) (equals : repeat bar)
 ppConsDecl :: Options -> ConsDecl -> Doc
 ppConsDecl o (Cons (_, qn) _ _ tys) = indent $ fillSep
                                     $ ppPrefixOp qn : map (ppTypeExpr o 2) tys
+
+--- pretty print a single newtype constructor declaration
+ppNewConsDecl :: Options -> ConsDecl -> Doc
+ppNewConsDecl o (NewCons (_, qn) _ _ ty) = indent $ fillSep
+                                         [ppPrefixOp qn, ppTypeExpr o 2 ty]
 
 ppContexts :: Options -> [Context] -> Doc
 ppContexts opts cs

@@ -205,7 +205,7 @@ classifyHOTypeDecl (Type   qn _ _ cs)
                  $ map classifyHOType
                  $ concatMap consArgs cs
 classifyHOTypeDecl (TypeSyn _ _ _ ty) = classifyHOType ty
-classifyHOTypeDecl (TypeNew _ _ _ c) = classifyHOType $ newConsArg c
+classifyHOTypeDecl (TypeNew _ _ _ c)  = classifyHOType $ newConsArg c
 
 classifyHOType :: TypeExpr -> TypeHOClass
 classifyHOType (TVar       _) = TypeFO

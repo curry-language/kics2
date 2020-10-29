@@ -172,10 +172,12 @@ renameSymbolInProg ren (Prog name imports typedecls fundecls opdecls) =
 
 renameSymbolInTypeDecl :: (QName -> QName) -> TypeDecl -> TypeDecl
 renameSymbolInTypeDecl ren tdecl = case tdecl of
-  Type qf vis tvars cdecls  -> Type (ren qf) vis tvars
+  Type qf vis tvars cdecls    -> Type (ren qf) vis tvars
                                       (map (renameSymbolInConsDecl ren) cdecls)
-  TypeSyn qf vis tvars texp -> TypeSyn (ren qf) vis tvars
+  TypeSyn qf vis tvars texp   -> TypeSyn (ren qf) vis tvars
                                          (renameSymbolInTypeExpr ren texp)
+  TypeNew qf vis tvars cdecl  -> TypeNew (ren qf) vis tvars
+                                         (renameSymbolInNewConsDecl ren cdecl)
   Instance qf texp ctxt rules ->
     Instance (ren qf) (renameSymbolInTypeExpr ren texp)
               (map (renameSymbolInContext ren) ctxt)
@@ -187,6 +189,10 @@ renameSymbolInTypeDecl ren tdecl = case tdecl of
 renameSymbolInConsDecl :: (QName -> QName) -> ConsDecl -> ConsDecl
 renameSymbolInConsDecl ren (Cons qf ar vis texps) =
   Cons (ren qf) ar vis  (map (renameSymbolInTypeExpr ren) texps)
+
+renameSymbolInNewConsDecl :: (QName -> QName) -> NewConsDecl -> NewConsDecl
+renameSymbolInNewConsDecl ren (NewCons qf vis texp) =
+  NewCons (ren qf) vis $ renameSymbolInTypeExpr ren texp
 
 renameSymbolInTypeExpr :: (QName -> QName) -> TypeExpr -> TypeExpr
 renameSymbolInTypeExpr ren texp = case texp of
