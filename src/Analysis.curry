@@ -205,6 +205,7 @@ classifyHOTypeDecl (Type   qn _ _ cs)
                  $ map classifyHOType
                  $ concatMap consArgs cs
 classifyHOTypeDecl (TypeSyn _ _ _ ty) = classifyHOType ty
+classifyHOTypeDecl (TypeNew _ _ _ c) = classifyHOType $ newConsArg c
 
 classifyHOType :: TypeExpr -> TypeHOClass
 classifyHOType (TVar       _) = TypeFO
@@ -215,9 +216,10 @@ classifyHOType (TCons qn tys)
 classifyHOType (ForallType _ t) = classifyHOType t
 
 usedTypes :: TypeDecl -> [QName]
-usedTypes (Type    _ _ _ cs) = Set.toList $ unionMap  typeCons
-                                          $ concatMap consArgs cs
-usedTypes (TypeSyn _ _ _ ty) = Set.toList $ typeCons  ty
+usedTypes (Type    _ _ _ cs) = Set.toList $ unionMap   typeCons
+                                          $ concatMap  consArgs cs
+usedTypes (TypeSyn _ _ _ ty) = Set.toList $ typeCons   ty
+usedTypes (TypeNew _ _ _ c)  = Set.toList $ typeCons $ newConsArg c
 
 typeCons :: TypeExpr -> Set.Set QName
 typeCons (TVar       _) = Set.empty

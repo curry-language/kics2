@@ -208,6 +208,10 @@ consVisibility = trCons (\_ _ vis _ -> vis)
 consArgs :: ConsDecl -> [TypeExpr]
 consArgs = trCons (\_ _ _ args -> args)
 
+-- get the argument of a newtype constructor declaration.
+newConsArg :: NewConsDecl -> TypeExpr
+newConsArg (NewCons _ _ arg) = arg
+
 -- Update Operations
 
 --- update constructor declaration
