@@ -208,9 +208,19 @@ consVisibility = trCons (\_ _ vis _ -> vis)
 consArgs :: ConsDecl -> [TypeExpr]
 consArgs = trCons (\_ _ _ args -> args)
 
--- get the argument of a newtype constructor declaration.
+-- NewConsDecl ------------------------------------------------------------------
+
+--- transform newtype constructor declaration
+trNewCons :: (QName -> Visibility -> TypeExpr -> a) -> NewConsDecl -> a
+trNewCons cons (NewCons name arity vis arg) = cons name arity vis arg
+
+-- get argument of newtype constructor declaration
 newConsArg :: NewConsDecl -> TypeExpr
-newConsArg (NewCons _ _ arg) = arg
+newConsArg = trNewCons (\_ _ arg -> arg)
+
+-- get name of newtype constructor declaration
+newConsName :: NewCons -> QName
+newConsName = trNewCons (\name _ _ -> name)
 
 -- Update Operations
 
