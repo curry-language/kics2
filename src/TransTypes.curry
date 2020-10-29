@@ -102,7 +102,7 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
     vis' = fcy2absVis vis
 
 fcy2absNewCDecl :: [TVarIName] -> ConsHOResult -> FC.NewConsDecl -> NewConsDecl
-fcy2absNewCDecl targs hoResult (FC.NewConsDecl qf vis texp) = 
+fcy2absNewCDecl targs hoResult (FC.NewConsDecl qf vis texp) = undefined -- TODO
   where
     isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
     foCons = NewCons (mkFoConsName qf) vis' $ fcy2absTExp   targs texp

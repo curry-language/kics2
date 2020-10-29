@@ -177,20 +177,20 @@ updTypeParams f = updType id id f id id id
 updTypeConsDecls :: Update TypeDecl [ConsDecl]
 updTypeConsDecls f = updType id id id f id id
 
---- update synonym of type declaration
-updTypeSynonym :: Update TypeDecl TypeExpr
-updTypeSynonym f = updType id id id id f id
-
 --- update newtype constructor declaration of type declaration
 updTypeNewConsDecl :: Update TypeDecl NewConsDecl
-updTypeNewConsDecl = updType id id id id id
+updTypeNewConsDecl f = updType id id id id f id
+
+--- update synonym of type declaration
+updTypeSynonym :: Update TypeDecl TypeExpr
+updTypeSynonym = updType id id id id id
 
 -- Auxiliary Functions
 
 --- update all qualified names in type declaration
 updQNamesInType :: Update TypeDecl QName
 updQNamesInType f
-  = updType f id id (map (updQNamesInConsDecl f)) (updQNamesInTypeExpr f)
+  = updType f id id (map (updQNamesInConsDecl f)) (updQNamesInNewConsDecl f) (updQNamesInTypeExpr f)
 
 -- ConsDecl ------------------------------------------------------------------
 
@@ -215,20 +215,6 @@ consVisibility = trCons (\_ _ vis _ -> vis)
 --- get arguments of constructor declaration
 consArgs :: ConsDecl -> [TypeExpr]
 consArgs = trCons (\_ _ _ args -> args)
-
--- NewConsDecl ------------------------------------------------------------------
-
---- transform newtype constructor declaration
-trNewCons :: (QName -> Visibility -> TypeExpr -> a) -> NewConsDecl -> a
-trNewCons cons (NewCons name arity vis arg) = cons name arity vis arg
-
--- get argument of newtype constructor declaration
-newConsArg :: NewConsDecl -> TypeExpr
-newConsArg = trNewCons (\_ _ arg -> arg)
-
--- get name of newtype constructor declaration
-newConsName :: NewCons -> QName
-newConsName = trNewCons (\name _ _ -> name)
 
 -- Update Operations
 
@@ -262,6 +248,47 @@ updConsArgs = updCons id id id
 --- update all qualified names in constructor declaration
 updQNamesInConsDecl :: Update ConsDecl QName
 updQNamesInConsDecl f = updCons f id id (map (updQNamesInTypeExpr f))
+
+-- NewConsDecl ------------------------------------------------------------------
+
+--- transform newtype constructor declaration
+trNewCons :: (QName -> Visibility -> TypeExpr -> a) -> NewConsDecl -> a
+trNewCons cons (NewCons name vis arg) = cons name vis arg
+
+-- get argument of newtype constructor declaration
+newConsArg :: NewConsDecl -> TypeExpr
+newConsArg = trNewCons (\_ _ arg -> arg)
+
+-- get name of newtype constructor declaration
+newConsName :: NewConsDecl -> QName
+newConsName = trNewCons (\name _ _ -> name)
+
+-- Update Operations
+
+--- update newtype constructor declaration
+updNewCons :: (QName -> QName) ->
+              (Visibility -> Visibility) ->
+              (TypeExpr -> TypeExpr) -> NewConsDecl -> NewConsDecl
+updNewCons fn fv fas = trNewCons newcons
+ where
+  newcons name vis args = NewCons (fn name) (fv vis) (fas args)
+
+--- update name of newtype constructor declaration
+updNewConsName :: Update NewConsDecl QName
+updNewConsName f = updNewCons f id id
+
+--- update visibility of newtype constructor declaration
+updNewConsVisibility :: Update NewConsDecl Visibility
+updNewConsVisibility f = updNewCons id f id
+
+--- update argument of newtype constructor declaration
+updNewConsArg :: Update NewConsDecl TypeExpr
+updNewConsArg = updNewCons id id
+
+-- Auxiliary Functions
+
+updQNamesInNewConsDecl :: Update NewConsDecl QName
+updQNamesInNewConsDecl f = updNewCons f id (updQNamesInTypeExpr f)
 
 -- TypeExpr ------------------------------------------------------------------
 

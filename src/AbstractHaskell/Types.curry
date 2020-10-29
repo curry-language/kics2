@@ -78,7 +78,7 @@ data ConsDecl = Cons QName Int Visibility [TypeExpr]
 --- of the name of the constructor
 --- and the argument type of the constructor.
 data NewConsDecl = NewCons QName Visibility TypeExpr
-    deriving (Eq, Ord, Read, Show)
+    deriving Show
 
 --- Data type for type expressions.
 --- A type expression is either a type variable, a function type,

@@ -20,7 +20,7 @@ module FlatCurry.Annotated.Types
 
 import FlatCurry.Types ( QName, VarIndex, Visibility (..), TVarIndex, TVarWithKind
                        , TypeDecl (..), Kind(..), OpDecl (..), Fixity (..)
-                       , TypeExpr (..), ConsDecl (..)
+                       , TypeExpr (..), ConsDecl (..), NewConsDecl (..)
                        , Literal (..), CombType (..), CaseType (..)
                        )
 

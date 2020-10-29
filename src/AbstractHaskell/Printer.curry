@@ -146,7 +146,7 @@ ppTypeDecl opts (TypeSyn qname _ vs ty) = indent $
                </> equals <+> ppTypeExp opts ty
 ppTypeDecl opts (TypeNew qname _ vs c)  = indent $
    text "newtype" <+> ppName qname <+> fillSep (map ppTypeVar vs)
-                  $$ ppNewConsDecl c
+                  $$ ppNewConsDecl opts c
 ppTypeDecl opts (Type    qname _ vs cs)
   | null cs   = Text.Pretty.empty
   | otherwise = indent $
@@ -169,8 +169,8 @@ ppConsDecl o (Cons (_, qn) _ _ tys) = indent $ fillSep
                                     $ ppPrefixOp qn : map (ppTypeExpr o 2) tys
 
 --- pretty print a single newtype constructor declaration
-ppNewConsDecl :: Options -> ConsDecl -> Doc
-ppNewConsDecl o (NewCons (_, qn) _ _ ty) = indent $ fillSep
+ppNewConsDecl :: Options -> NewConsDecl -> Doc
+ppNewConsDecl o (NewCons (_, qn) _ ty) = indent $ fillSep
                                          [ppPrefixOp qn, ppTypeExpr o 2 ty]
 
 ppContexts :: Options -> [Context] -> Doc
