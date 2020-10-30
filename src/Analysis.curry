@@ -70,7 +70,7 @@ primTypes = map (\ (x, y) -> ( renameQName (prelude, x)
 getTypeMap :: [TypeDecl] -> TypeMap
 getTypeMap ts = Map.fromList
               $ concatMap (\(Type qn _ _ cs) -> map (\c -> (consName c, qn)) cs)
-              $ filter (not . isTypeSyn) ts
+              $ filter isTypeData ts
 
 -- -----------------------------------------------------------------------------
 -- Analysis using fix-point iteration
@@ -241,7 +241,7 @@ analyseHOCons p = Map.fromList $ externals ++ internals
   where
   externals = filter ((== progName p) . fst . fst) externalCons
   internals = map consOrder $ concatMap typeConsDecls
-            $ filter (not . isTypeSyn) -- filter isDataDecl
+            $ filter isTypeData
             $ progTypes p
 
 externalCons :: [(QName, ConsHOClass)]
@@ -322,7 +322,7 @@ analyzeVisibility p =
   Vis (splitVisibleFuncs (progFuncs p))
       (splitVisibleTypes types)
       (splitVisibleCons  (concatMap typeConsDecls
-                                    (filter (not . isTypeSyn) types)))
+                                    (filter isTypeData types)))
  where
   types = progTypes p
 
