@@ -142,9 +142,17 @@ typeConsDecls = trType (\_ _ _ cs -> cs) failed failed
 typeSyn :: TypeDecl -> TypeExpr
 typeSyn = trType failed (\_ _ _ syn -> syn) failed
 
+--- is type declaration a basic data type?
+isTypeData :: TypeDecl -> Bool
+isTypeData = trType (\_ _ _ _ -> True) (\_ _ _ _ -> False) (\_ _ _ _ -> False)
+
 --- is type declaration a type synonym?
 isTypeSyn :: TypeDecl -> Bool
 isTypeSyn = trType (\_ _ _ _ -> False) (\_ _ _ _ -> True) (\_ _ _ _ -> False)
+
+--- is type declaration a newtype?
+isTypeNew :: TypeDecl -> Bool
+isTypeNew = trType (\_ _ _ _ -> False) (\_ _ _ _ -> False) (\_ _ _ _ -> True)
 
 -- Update Operations
 
