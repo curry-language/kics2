@@ -69,8 +69,14 @@ primTypes = map (\ (x, y) -> ( renameQName (prelude, x)
 --- May be needless now because the case lifting now also creates correct types.
 getTypeMap :: [TypeDecl] -> TypeMap
 getTypeMap ts = Map.fromList
-              $ concatMap (\(Type qn _ _ cs) -> map (\c -> (consName c, qn)) cs)
-              $ filter isTypeData ts
+              $ concatMap extractConsNames
+              $ ts
+  where
+    extractConsNames :: TypeDecl -> [(QName, QName)]
+    extractConsNames t = case t of
+      Type    qn _ _ cs -> map (\c -> (consName c, qn)) cs
+      TypeNew qn _ _ c  -> [(newConsName c, qn)]
+      _                 -> []
 
 -- -----------------------------------------------------------------------------
 -- Analysis using fix-point iteration
