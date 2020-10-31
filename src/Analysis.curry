@@ -246,16 +246,24 @@ analyseHOCons :: Prog -> ConsHOResult
 analyseHOCons p = Map.fromList $ externals ++ internals
   where
   externals = filter ((== progName p) . fst . fst) externalCons
-  internals = map consOrder $ concatMap typeConsDecls
-            $ filter isTypeData
-            $ progTypes p
-
+  internals = concatMap extractConsOrders $ progTypes p
+  
 externalCons :: [(QName, ConsHOClass)]
 externalCons = [(successType, ConsFO)]
+
+extractConsOrders :: TypeDecl -> [(QName, ConsHOClass)]
+extractConsOrders t = case t of
+  Type    _ _ _ cs -> map consOrder cs
+  TypeNew _ _ _ c  -> [newConsOrder c]
+  _                -> []
 
 consOrder :: ConsDecl -> (QName, ConsHOClass)
 consOrder (Cons qn _ _ tys) = (qn, cls)
   where cls = typeToConsHOClass $ maximumTypeHOClass (map classifyHOType tys)
+
+newConsOrder :: NewConsDecl -> (QName, ConsHOClass)
+newConsOrder (NewCons qn _ ty) = (qn, cls)
+  where cls = typeToConsHOClass $ classifyHOType ty
 
 -- -----------------------------------------------------------------------------
 -- (first/higher)-order analysis of functions
@@ -327,8 +335,7 @@ analyzeVisibility :: Prog -> Visibilities
 analyzeVisibility p =
   Vis (splitVisibleFuncs (progFuncs p))
       (splitVisibleTypes types)
-      (splitVisibleCons  (concatMap typeConsDecls
-                                    (filter isTypeData types)))
+      (splitVisibleCons types)
  where
   types = progTypes p
 
@@ -342,10 +349,17 @@ splitVisibleTypes types =
   let (pubs, privs) = partition (\t -> typeVisibility t == Public) types
   in  (map typeName pubs, map typeName privs)
 
-splitVisibleCons  :: [ConsDecl] -> ([QName],[QName])
-splitVisibleCons cons =
-  let (pubs, privs) = partition (\c -> consVisibility c == Public) cons
-  in  (map consName pubs, map consName privs)
+splitVisibleCons  :: [TypeDecl] -> ([QName],[QName])
+splitVisibleCons = splitVisibleCons' . concatMap extractCons
+  where
+    extractCons :: TypeDecl -> [(Visibility, QName)]
+    extractCons t = case t of
+      Type    _ _ _ cs -> map (\c -> (consVisibility c, consName c)) cs
+      TypeNew _ _ _ c  -> [(newConsVisibility c, newConsName c)]
+      _                -> []
+    splitVisibleCons' :: [(Visibility, QName)] -> ([QName], [QName])
+    splitVisibleCons' cs = let (pubs, privs) = partition (\(v, _) -> v == Public) cs
+                           in  (map snd pubs, map snd privs)
 
 -- -----------------------------------------------------------------------------
 -- Special Identifiers

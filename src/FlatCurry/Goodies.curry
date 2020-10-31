@@ -271,6 +271,10 @@ newConsArg = trNewCons (\_ _ arg -> arg)
 newConsName :: NewConsDecl -> QName
 newConsName = trNewCons (\name _ _ -> name)
 
+-- get visibility of newtype constructor declaration
+newConsVisibility :: NewConsDecl -> Visibility
+newConsVisibility = trNewCons (\_ vis _ -> vis)
+
 -- Update Operations
 
 --- update newtype constructor declaration
