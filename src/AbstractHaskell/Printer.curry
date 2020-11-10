@@ -146,7 +146,7 @@ ppTypeDecl opts (TypeSyn qname _ vs ty) = indent $
                </> equals <+> ppTypeExp opts ty
 ppTypeDecl opts (TypeNew qname _ vs c)  = indent $
    text "newtype" <+> ppName qname <+> fillSep (map ppTypeVar vs)
-                  $$ ppNewConsDecl opts c
+                  </> equals <+> ppNewConsDecl opts c
 ppTypeDecl opts (Type    qname _ vs cs)
   | null cs   = Text.Pretty.empty
   | otherwise = indent $
