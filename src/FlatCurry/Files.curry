@@ -18,7 +18,7 @@ import System.CurryPath    ( inCurrySubdir, stripCurrySuffix
 import System.FrontendExec ( FrontendParams, FrontendTarget (..), defaultParams
                            , setQuiet, callFrontendWithParams
                            )
-import KiCS2.ReadShowTerm        (readUnqualifiedTerm, showTerm)
+import ReadShowTerm        (readUnqualifiedTerm, showTerm)
 
 
 import FlatCurry.Types

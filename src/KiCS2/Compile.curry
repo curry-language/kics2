@@ -11,6 +11,7 @@ import Data.Maybe                  ( fromJust )
 import Data.List                   ( intercalate, isPrefixOf )
 import Data.Map                    ( union )
 import Control.Monad               ( when, foldM )
+import ReadShowTerm                ( readQTermFile )
 import System.Directory            ( doesFileExist )
 import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
 import System.IOExts               ( readCompleteFile )
@@ -34,7 +35,6 @@ import KiCS2.Analysis              ( AnalysisResult, showAnalysisResult
                                    )
 import KiCS2.CompilerOpts
 import KiCS2.RCFile
-import KiCS2.ReadShowTerm          ( readQTermFile )
 import KiCS2.Files                 ( withBaseName, withDirectory, withExtension
                                    , writeFileInDir, writeQTermFileInDir
                                    , lookupFileInPath

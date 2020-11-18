@@ -15,7 +15,7 @@ import List (isPrefixOf, isInfixOf, init, intercalate, intersperse, last, scanl)
 import Maybe
 import System
 import Time
-import KiCS2.ReadShowTerm
+import ReadShowTerm
 import Float
 
 -- ---------------------------------------------------------------------------

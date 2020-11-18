@@ -25,11 +25,11 @@ import Data.Char          ( isAlpha, isAlphaNum, isDigit, isSpace, toLower )
 import Data.List          ( intercalate, intersperse, isPrefixOf, nub, sort )
 import Data.Time
 import Numeric            ( readNat )
-import KiCS2.ReadShowTerm ( readsTerm )
+import ReadShowTerm       ( readsTerm )
 
 import KiCS2.Files        ( removeFileIfExists )
 import KiCS2.GhciComm     ( stopGhciComm )
-import qualified Installation as Inst
+import qualified KiCS2.Installation as Inst
 import KiCS2.Names        ( funcInfoFile, moduleNameToPath )
 import KiCS2.RCFile
 import KiCS2.Utils        ( showMonoTypeExpr, showMonoQualTypeExpr

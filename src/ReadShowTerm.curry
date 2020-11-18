@@ -6,7 +6,7 @@
 --- @category general 
 ------------------------------------------------------------------------------ 
  
-module KiCS2.ReadShowTerm(showTerm,showQTerm,readQTerm,readsQTerm, 
+module ReadShowTerm(showTerm,showQTerm,readQTerm,readsQTerm, 
                     readsUnqualifiedTerm,readUnqualifiedTerm,readsTerm,readTerm, 
                     readQTermFile,readQTermListFile, 
                     writeQTermFile,writeQTermListFile) where 

@@ -23,7 +23,7 @@ import System.FilePath
   )
 import Control.Monad       (when)
 import Data.List           (intersperse, isPrefixOf, last, scanl1)
-import KiCS2.ReadShowTerm  (writeQTermFile)
+import ReadShowTerm        (writeQTermFile)
 
 --- Apply functions to all parts of a file name
 withComponents :: (String -> String) -- change path
