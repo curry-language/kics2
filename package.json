@@ -6,5 +6,9 @@
     "category": [ "Compilers", "Metaprogramming" ],
     "license": "BSD-3-Clause",
     "licenseFile": "LICENSE",
-    "dependencies": {}
+    "dependencies": {},
+    "executable": {
+        "name": "kics2c",
+        "main": "Compile"
+    }
 }
