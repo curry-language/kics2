@@ -9,6 +9,6 @@
     "dependencies": {},
     "executable": {
         "name": "kics2c",
-        "main": "Compile"
+        "main": "KiCS2.Compile"
     }
 }

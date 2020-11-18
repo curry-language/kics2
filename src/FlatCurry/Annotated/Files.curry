@@ -19,7 +19,7 @@ import System.CurryPath ( lookupModuleSourceInLoadPath, getLoadPathForModule
                         , inCurrySubdir, stripCurrySuffix
                         )
 import Data.Maybe       (isNothing)
-import ReadShowTerm     (readUnqualifiedTerm, showTerm)
+import KiCS2.ReadShowTerm     (readUnqualifiedTerm, showTerm)
 import FlatCurry.Annotated.Types
 
 readTypedFlatCurry :: String -> IO (AProg TypeExpr)

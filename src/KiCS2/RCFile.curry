@@ -6,7 +6,7 @@
 --- @version April 2015
 ----------------------------------------------------------------------
 
-module RCFile (readRC, rcValue, setRCProperty, extractRCArgs, updateRCDefs)
+module KiCS2.RCFile (readRC, rcValue, setRCProperty, extractRCArgs, updateRCDefs)
   where
 
 import Data.PropertyFile
@@ -16,8 +16,8 @@ import Control.Monad    (when, unless)
 import System.Directory (getHomeDirectory, doesFileExist, copyFile, renameFile)
 import System.FilePath  (FilePath, (</>), (<.>))
 
-import Utils        (strip)
-import Installation     (installDir)
+import KiCS2.Utils        (strip)
+import KiCS2.Installation (installDir)
 
 defaultRC :: FilePath
 defaultRC = installDir </> "kics2rc.default"

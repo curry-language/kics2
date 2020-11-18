@@ -4,50 +4,52 @@
 --- @author  Bernd Brassel, Michael Hanus, Bjoern Peemoeller, Fabian Reck
 --- @version December 2018
 --- --------------------------------------------------------------------------
-module Compile where
+module KiCS2.Compile where
 
-import ReadShowTerm                (readQTermFile)
-import Data.Char                   (isSpace)
-import Data.Maybe                  (fromJust)
-import Data.List                   (intercalate, isPrefixOf)
-import Data.Map                    (union)
-import Control.Monad               (when, foldM)
-import System.Directory            (doesFileExist)
-import System.FilePath             (FilePath, (</>), dropExtension, normalise)
-import System.IOExts               (readCompleteFile)
-import System.Environment          (getArgs)
+import Data.Char                   ( isSpace )
+import Data.Maybe                  ( fromJust )
+import Data.List                   ( intercalate, isPrefixOf )
+import Data.Map                    ( union )
+import Control.Monad               ( when, foldM )
+import System.Directory            ( doesFileExist )
+import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
+import System.IOExts               ( readCompleteFile )
+import System.Environment          ( getArgs )
 
 import System.CurryPath            ( getLoadPathForModule, stripCurrySuffix
                                    , lookupModuleSourceInLoadPath
                                    )
 import FlatCurry.Types
-import FlatCurry.Goodies           (updQNamesInProg)
+import FlatCurry.Goodies           ( updQNamesInProg )
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   (typedFlatCurryFileName)
-import FlatCurry.Annotated.Goodies (unAnnProg)
+import FlatCurry.Annotated.Files   ( typedFlatCurryFileName )
+import FlatCurry.Annotated.Goodies ( unAnnProg )
 
 import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)
 import qualified AbstractHaskell.Printer as AHP
-import Analysis                  ( AnalysisResult, showAnalysisResult
-                                 , readAnalysisResult)
-import CompilerOpts
-import RCFile
-import Files                     ( withBaseName, withDirectory, withExtension
-                                 , writeFileInDir, writeQTermFileInDir
-                                 , lookupFileInPath
-                                 )
-import LiftCase                  (liftCases)
-import EliminateCond             (eliminateCond)
-import DefaultPolymorphic        (defaultPolymorphic)
-import MissingImports            (fixMissingImports)
-import Message                   (putErrLn, showStatus, showDetail)
-import ModuleDeps                (ModuleIdent, Source, deps, updatePreludeImport)
-import Names
-import SimpleMake
-import TransFunctions
-import TransTypes
-import Utils                     (notNull, lpad, rpad)
+
+import KiCS2.Analysis              ( AnalysisResult, showAnalysisResult
+                                   , readAnalysisResult
+                                   )
+import KiCS2.CompilerOpts
+import KiCS2.RCFile
+import KiCS2.ReadShowTerm          ( readQTermFile )
+import KiCS2.Files                 ( withBaseName, withDirectory, withExtension
+                                   , writeFileInDir, writeQTermFileInDir
+                                   , lookupFileInPath
+                                   )
+import KiCS2.LiftCase              ( liftCases )
+import KiCS2.EliminateCond         ( eliminateCond )
+import KiCS2.DefaultPolymorphic    ( defaultPolymorphic )
+import KiCS2.MissingImports        ( fixMissingImports )
+import KiCS2.Message               ( putErrLn, showStatus, showDetail )
+import KiCS2.ModuleDeps            ( ModuleIdent, Source, deps, updatePreludeImport )
+import KiCS2.Names
+import KiCS2.SimpleMake
+import KiCS2.TransFunctions
+import KiCS2.TransTypes
+import KiCS2.Utils                 ( notNull, lpad, rpad )
 
 --- Parse the command-line arguments and build the specified modules.
 main :: IO ()

@@ -7,7 +7,7 @@
 --- @author  Björn Peemöller, Fabian Skrlac, Finn Teegen, Jan Tikovsky
 --- @version December 2018
 --- --------------------------------------------------------------------------
-module ModuleDeps (ModuleIdent, Source, Errors, deps, updatePreludeImport) where
+module KiCS2.ModuleDeps (ModuleIdent, Source, Errors, deps, updatePreludeImport) where
 
 import Data.Char                   ( isSpace, toUpper )
 import Data.Map                    ( Map, empty, insert, toList, lookup )
@@ -34,15 +34,15 @@ import System.FrontendExec         ( defaultParams, setDefinitions
 import Language.Curry.Distribution ( installDir )
 
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files ( readTypedFlatCurryFileRaw
-                                 , typedFlatCurryFileName
-                                 )
+import FlatCurry.Annotated.Files   ( readTypedFlatCurryFileRaw
+                                   , typedFlatCurryFileName
+                                   )
 
-import CompilerOpts
-import Installation (compilerName, majorVersion, minorVersion)
-import Message      (showStatus,showAnalysis)
-import Names        (moduleNameToPath, prelude)
-import RCFile       (rcValue)
+import KiCS2.CompilerOpts
+import KiCS2.Installation          ( compilerName, majorVersion, minorVersion )
+import KiCS2.Message               ( showStatus,showAnalysis )
+import KiCS2.Names                 ( moduleNameToPath, prelude )
+import KiCS2.RCFile                ( rcValue )
 
 type ModuleIdent = String
 type Errors      = [String]

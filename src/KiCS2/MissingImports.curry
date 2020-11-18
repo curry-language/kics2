@@ -11,7 +11,7 @@
 --- @version December 2018
 --- ----------------------------------------------------------------------------
 
-module MissingImports (fixMissingImports) where
+module KiCS2.MissingImports (fixMissingImports) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies

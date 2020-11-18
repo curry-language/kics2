@@ -1,4 +1,4 @@
-module SimpleMake (smake) where
+module KiCS2.SimpleMake (smake) where
 
 import System.Directory
 import Data.Time

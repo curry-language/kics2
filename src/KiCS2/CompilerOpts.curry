@@ -4,7 +4,7 @@
 --- @author Fabian Reck, Bjoern Peemoeller
 --- @version April 2015
 ------------------------------------------------------------------------------
-module CompilerOpts
+module KiCS2.CompilerOpts
   ( Options (..), Verbosity (..), OptimLevel (..), DumpFormat (..)
   , Extension (..), defaultOptions, getCompilerOpts
   ) where
@@ -16,7 +16,7 @@ import System.IO             (hPutStrLn, stderr)
 import System.Process        (exitWith)
 import System.Environment    (getArgs, getProgName)
 
-import Installation (compilerName, majorVersion, minorVersion, compilerDate)
+import KiCS2.Installation (compilerName, majorVersion, minorVersion, compilerDate)
 
 --- Version string
 version :: String

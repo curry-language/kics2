@@ -18,7 +18,7 @@
 --- @version July 2013
 --------------------------------------------------------------------------------
 
-module LiftCase (isCaseAuxFuncName, liftCases) where
+module KiCS2.LiftCase (isCaseAuxFuncName, liftCases) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies

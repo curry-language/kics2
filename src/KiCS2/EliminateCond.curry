@@ -27,7 +27,7 @@
 ---------------------------------------------------------------------
 
 
-module EliminateCond (eliminateCond) where
+module KiCS2.EliminateCond (eliminateCond) where
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies

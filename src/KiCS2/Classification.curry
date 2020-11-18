@@ -5,7 +5,7 @@
 --- @author  Björn Peemöller, Fabian Skrlac
 --- @version May 2014
 --- ----------------------------------------------------------------------------
-module Classification where
+module KiCS2.Classification where
 
 --- Classification of a function to be either deterministic
 --- or *potentially* non-deterministic.

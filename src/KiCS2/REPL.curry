@@ -5,41 +5,41 @@
 --- @author Michael Hanus, Bjoern Peemoeller, Finn Teegen
 --- @version August 2019
 --- --------------------------------------------------------------------------
-module REPL where
+module KiCS2.REPL where
 
 import AbstractCurry.Types hiding (preludeName)
 import AbstractCurry.Files
 import AbstractCurry.Select
-import Control.Applicative (when)
-import Control.Monad      (foldM)
+import Control.Applicative ( when )
+import Control.Monad      ( foldM)
 import Language.Curry.Distribution ( baseVersion, installDir )
 import System.Directory
 import System.FilePath    ( (</>), (<.>)
                           , splitSearchPath, splitFileName, splitExtension
                           , searchPathSeparator)
-import System.Environment (getArgs, getEnv)
-import System.Process     (system, exitWith, getPID)
+import System.Environment ( getArgs, getEnv )
+import System.Process     ( system, exitWith, getPID )
 import System.IO
 import System.IOExts
-import Data.Char          (isAlpha, isAlphaNum, isDigit, isSpace, toLower)
-import Data.List          (intercalate, intersperse, isPrefixOf, nub, sort)
+import Data.Char          ( isAlpha, isAlphaNum, isDigit, isSpace, toLower )
+import Data.List          ( intercalate, intersperse, isPrefixOf, nub, sort )
 import Data.Time
-import Numeric            (readNat)
-import ReadShowTerm       (readsTerm)
+import Numeric            ( readNat )
+import KiCS2.ReadShowTerm ( readsTerm )
 
-import Files                (removeFileIfExists)
-import GhciComm             (stopGhciComm)
+import KiCS2.Files        ( removeFileIfExists )
+import KiCS2.GhciComm     ( stopGhciComm )
 import qualified Installation as Inst
-import Names                (funcInfoFile, moduleNameToPath)
-import RCFile
-import Utils                ( showMonoTypeExpr, showMonoQualTypeExpr
-                            , notNull, strip )
+import KiCS2.Names        ( funcInfoFile, moduleNameToPath )
+import KiCS2.RCFile
+import KiCS2.Utils        ( showMonoTypeExpr, showMonoQualTypeExpr
+                          , notNull, strip )
 
-import System.CurryPath     ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
-                            , sysLibPath )
+import System.CurryPath   ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
+                          , sysLibPath )
 import System.FrontendExec
 
-import Linker
+import KiCS2.Linker
 
 --- Result of compiling main goal
 data GoalCompile

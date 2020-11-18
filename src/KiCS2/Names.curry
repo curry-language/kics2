@@ -5,7 +5,7 @@
 --- @author Michael Hanus, Bjoern Peemoeller, Fabian Reck
 --- @version November 2012
 --- --------------------------------------------------------------------------
-module Names where
+module KiCS2.Names where
 
 import Data.Char       (isAlphaNum)
 import Data.List       (intercalate, isPrefixOf, last)
@@ -16,8 +16,8 @@ import System.FilePath ( FilePath
                        )
 
 import AbstractHaskell.Types (QName)
-import Classification        (NDClass (..), ConsHOClass (..), FuncHOClass (..))
-import Files                 (withComponents, (</?>))
+import KiCS2.Classification        (NDClass (..), ConsHOClass (..), FuncHOClass (..))
+import KiCS2.Files     (withComponents, (</?>))
 
 -- ---------------------------------------------------------------------------
 -- Renaming file names

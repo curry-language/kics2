@@ -6,12 +6,12 @@
 --- @author Kai-Oliver Prott, Fredrik Wieczerkowski
 --- @version October 2020
 --- --------------------------------------------------------------------------
-module GenContext (genContext, mkContext) where
+module KiCS2.GenContext (genContext, mkContext) where
 
 import Data.List (nub, partition)
 
 import qualified AbstractHaskell.Types as AH
-import Names
+import KiCS2.Names
 
 -- Note: all types are fully quantified and in weak prenex form.
 -- To generate Curry contexts, we pass down the kind of bound type

@@ -4,7 +4,7 @@
 --- @author  Bjoern Peemoeller
 --- @version July 2012
 --- --------------------------------------------------------------------------
-module Files
+module KiCS2.Files
   ( -- File name modification
     withComponents, withDirectory, withBaseName, withExtension
     -- file creation
@@ -21,9 +21,9 @@ import System.FilePath
   ( FilePath, joinPath, (</>), (<.>), isAbsolute, searchPathSeparator
   , splitFileName, splitExtension, splitDirectories, takeDirectory
   )
-import Control.Monad (when)
-import Data.List     (intersperse, isPrefixOf, last, scanl1)
-import ReadShowTerm  (writeQTermFile)
+import Control.Monad       (when)
+import Data.List           (intersperse, isPrefixOf, last, scanl1)
+import KiCS2.ReadShowTerm  (writeQTermFile)
 
 --- Apply functions to all parts of a file name
 withComponents :: (String -> String) -- change path

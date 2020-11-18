@@ -4,7 +4,7 @@
 --- @author  Michael Hanus, Bjoern Peemoeller
 --- @version June 2012
 --- --------------------------------------------------------------------------
-module GhciComm
+module KiCS2.GhciComm
   ( GhciComm, initGhciComm, stopGhciComm, restartGhciComm
   , evalMainCmd, evalCustomCmd
   ) where

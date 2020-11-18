@@ -7,20 +7,20 @@
 --- @author Michael Hanus, Bjoern Peemoeller, Fabian Reck
 --- @version January 2011
 -- ---------------------------------------------------------------------------
-module TransTypes (transTypes) where
+module KiCS2.TransTypes (transTypes) where
 
 import qualified FlatCurry.Types as FC
 import FlatCurry.Goodies
 import AbstractHaskell.Types
 import AbstractHaskell.Goodies
-import GenContext
 import Data.List
 import Data.Map
-import Names
+import KiCS2.Analysis
+import KiCS2.GenContext
+import KiCS2.Names
   ( mkChoiceName, mkChoicesName, mkFailName, mkGuardName, mkFoConsName
   , mkHoConsName, renameModule, unGenRename, unRenameModule, renameQName
   , unRenameQName, curryPrelude, funcPrefix, genRename)
-import Analysis
 
 -- ---------------------------------------------------------------------------
 -- Generate code for user-defined types

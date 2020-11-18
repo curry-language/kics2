@@ -6,7 +6,7 @@
 --- @author Michael Hanus, Bjoern Peemoeller
 --- @version February 2017
 --- --------------------------------------------------------------------------
-module Linker
+module KiCS2.Linker
   ( ReplState (..), NonDetMode (..), MainCompile (..), loadPaths
   , setExitStatus
   , writeVerboseInfo, mainGoalFile, mainModuleIdent, initReplState
@@ -23,13 +23,13 @@ import System.IO            (Handle, hFlush, hGetContents, hClose, stdout)
 import System.IOExts        (execCmd)
 import Data.List            (intercalate, isInfixOf)
 import Data.Maybe           (isNothing)
-import ReadShowTerm  (readQTermFile)
 
-import qualified Installation as Inst
-import GhciComm
-import Names         (funcInfoFile, moduleToFileName, renameModule)
-import RCFile
-import Utils         (notNull, strip)
+import qualified KiCS2.Installation as Inst
+import KiCS2.GhciComm
+import KiCS2.Names         (funcInfoFile, moduleToFileName, renameModule)
+import KiCS2.ReadShowTerm  (readQTermFile)
+import KiCS2.RCFile
+import KiCS2.Utils         (notNull, strip)
 
 data ReplState = ReplState
   { kics2Home    :: String     -- installation directory of the system

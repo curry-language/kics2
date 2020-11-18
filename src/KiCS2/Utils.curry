@@ -7,7 +7,7 @@
 --- @author  Bjoern Peemoeller, Finn Teegen
 --- @version October 2017
 --- --------------------------------------------------------------------------
-module Utils
+module KiCS2.Utils
   ( showMonoTypeExpr, showMonoQualTypeExpr
   , notNull, strip, lpad, rpad
   ) where

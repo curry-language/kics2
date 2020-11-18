@@ -4,12 +4,12 @@
 --- @author  Björn Peemöller
 --- @version April 2014
 --- --------------------------------------------------------------------------
-module Message where
+module KiCS2.Message where
 
 import Control.Monad (unless)
 import System.IO     (hFlush, hPutStrLn, stderr, stdout)
 
-import CompilerOpts
+import KiCS2.CompilerOpts
 
 putErrLn :: String -> IO ()
 putErrLn msg = hPutStrLn stderr ("Compilation Error: " ++ msg) >> hFlush stderr

@@ -19,7 +19,7 @@ import System.FilePath      ( takeFileName, (</>), (<.>) )
 import System.CurryPath     ( getLoadPathForModule, inCurrySubdir
                             , lookupModuleSourceInLoadPath, stripCurrySuffix )
 import System.FrontendExec
-import ReadShowTerm
+import KiCS2.ReadShowTerm
 
 import AbstractCurry.Select ( imports )
 import AbstractCurry.Types

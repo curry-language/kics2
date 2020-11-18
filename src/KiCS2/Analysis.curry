@@ -5,7 +5,7 @@
 --- @author  Michael Hanus, Björn Peemöller, Fabian Skrlac
 --- @version December 2018
 --- ----------------------------------------------------------------------------
-module Analysis
+module KiCS2.Analysis
   ( AnalysisResult, showAnalysisResult, readAnalysisResult
   , TypeMap, initTypeMap, getTypeMap
   , NDResult, NDClass (..), initNDResult, analyseND
@@ -25,8 +25,8 @@ import Data.Map as Map
 import Data.Set as Set (Set, empty, union, insert, toList)
 import Prelude  as P
 
-import Classification
-import Names
+import KiCS2.Classification
+import KiCS2.Names
 
 type AnalysisResult = (TypeMap, NDResult, TypeHOResult, ConsHOResult, FuncHOResult)
 

@@ -25,7 +25,7 @@
 --- @version July 2013
 --- ----------------------------------------------------------------------------
 
-module DefaultPolymorphic (defaultPolymorphic) where
+module KiCS2.DefaultPolymorphic (defaultPolymorphic) where
 
 import Data.List ((\\), nub)
 

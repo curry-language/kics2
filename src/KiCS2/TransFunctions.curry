@@ -5,24 +5,24 @@
 --- @author Bjoern Peemoeller, Fabian Skrlac
 --- @version May 2014
 --- --------------------------------------------------------------------------
-module TransFunctions ( State (..), defaultState, trProg, runIOES ) where
+module KiCS2.TransFunctions ( State (..), defaultState, trProg, runIOES ) where
 
-import Control.Monad
-import Control.Monad.Trans.State
-import Control.Monad.Trans.Except
-import Control.Monad.Trans.Class
-import Control.Monad.IO.Class
+import           Control.Monad
+import           Control.Monad.Trans.State
+import           Control.Monad.Trans.Except
+import           Control.Monad.Trans.Class
+import           Control.Monad.IO.Class
+import           Data.Map            (lookup, union, deleteAll)
 
 import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG
-import           Analysis
-import           CompilerOpts  (Options (..), defaultOptions, OptimLevel (..))
-import           Data.Map      (lookup, union, deleteAll)
 import           FlatCurry.Types
-import           GenContext    (genContext)
-import           LiftCase      (isCaseAuxFuncName)
-import           Message       (showAnalysis)
-import           Names
+import           KiCS2.Analysis
+import           KiCS2.CompilerOpts  (Options (..), defaultOptions, OptimLevel (..))
+import           KiCS2.GenContext    (genContext)
+import           KiCS2.LiftCase      (isCaseAuxFuncName)
+import           KiCS2.Message       (showAnalysis)
+import           KiCS2.Names
 
 -- ---------------------------------------------------------------------------
 -- IO error state monad, like `EitherT (StateT IO)`
