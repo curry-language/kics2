@@ -44,6 +44,7 @@ pkg/
 .stack-work
 stack.yaml.lock
 TMPLIBOUT
+*.state
 
 # binaries
 benchmarks/Benchmarks
