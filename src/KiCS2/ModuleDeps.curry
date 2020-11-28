@@ -34,8 +34,7 @@ import System.FrontendExec         ( defaultParams, setDefinitions
 import Language.Curry.Distribution ( installDir )
 
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   ( readTypedFlatCurryFileRaw
-                                   , typedFlatCurryFileName
+import FlatCurry.Annotated.Files   ( typedFlatCurryFileName
                                    )
 
 import KiCS2.CompilerOpts
