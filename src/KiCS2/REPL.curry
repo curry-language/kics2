@@ -27,9 +27,9 @@ import Data.Time
 import Numeric            ( readNat )
 import ReadShowTerm       ( readsTerm )
 
+import qualified Installation as Inst
 import KiCS2.Files        ( removeFileIfExists )
 import KiCS2.GhciComm     ( stopGhciComm )
-import qualified KiCS2.Installation as Inst
 import KiCS2.Names        ( funcInfoFile, moduleNameToPath )
 import KiCS2.RCFile
 import KiCS2.Utils        ( showMonoTypeExpr, showMonoQualTypeExpr

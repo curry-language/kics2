@@ -4,6 +4,8 @@
 
 # The kics2 subdirectory for compiled files
 SUBDIR     = .curry/kics2
+# TODO: Remove these GHC options, they should be used
+#       by the KiCS2 linker and not here.
 # ghc options
 # see https://ghc.haskell.org/trac/ghc/ticket/7068
 GHC_OPTS2  = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
@@ -22,7 +24,7 @@ CURRY_OPTS =
 KICS2_SOURCES = $(shell find KiCS2 -name "*.curry")
 
 .PHONY: all
-all: CompileBoot updateInstallInfo REPLBoot
+all: $(COMP) $(REPL)
 
 .PHONY: bootstrap-stage1
 bootstrap-stage1: clean
@@ -76,45 +78,21 @@ $(INSTALLCURRY): $(INSTALLHS)
 	  sed "s|^import System.Directory|import System.Directory|" | \
 	  sed "s|^import System.IO.Unsafe|import System.IO.Unsafe|" > $@
 
-# generate executable for Curry->Haskell compiler via PAKCS or other KiCS2
-.PHONY: CompileInitial
-CompileInitial: KiCS2/Compile.curry $(INSTALLCURRY)
+# generate executable for Curry->Haskell compiler kics2c
+# via the compiler specified by KICS2 (which may be PAKCS)
+$(COMP): $(KICS2_SOURCES) $(INSTALLCURRY)
 	mkdir -p $(LOCALBIN)
-ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
 	$(KICS2) $(CURRY_OPTS) :load KiCS2.Compile :save :quit
-else
-	pakcs    $(CURRY_OPTS) :load KiCS2.Compile :save :quit || (exit 1)
-endif
 	mv KiCS2.Compile $(COMP)
-
-# generate executable for Curry -> Haskell compiler kics2c
-.PHONY: CompileBoot
-CompileBoot: CompileBoot.hs | $(INSTALLCURRY) $(SUBDIR)/KiCS2/Curry_Compile.hs
-	mkdir -p $(LOCALBIN)
-	$(GHC_CALL) -o $(COMP) $<
-
-# Although $(INSTALLCURRY) is used by the compiler it must not be included
-# in the dependencies because for the distribution installation it would
-# require a working KICS2 binary *during* installation.
-$(SUBDIR)/KiCS2/Curry_Compile.hs: $(KICS2_SOURCES)
-
-# recompile installation information and the compiler
-.PHONY: updateInstallInfo
-updateInstallInfo: $(SUBDIR)/Curry_Installation.hs
-	$(MAKE) CompileBoot
 
 ########################################################################
 # REPL
 ########################################################################
 
 # generate executable for Curry -> Haskell REPL kics2i
-.PHONY: REPLBoot
-REPLBoot: REPLBoot.hs $(SUBDIR)/KiCS2/Curry_REPL.hs
+# via the compiler specified by KICS2 (which may be PAKCS)
+$(REPL): $(KICS2_SOURCES) $(INSTALLCURRY)
 	@echo "Compiling REPL"
 	mkdir -p $(LOCALBIN)
-	$(GHC_CALL) -o $(REPL) $<
-
-$(SUBDIR)/KiCS2/Curry_REPL.hs: $(KICS2_SOURCES) $(INSTALLCURRY)
-
-$(SUBDIR)/KiCS2/Curry_%.hs: KiCS2/%.curry
-	$(KICS2C) $<
+	$(KICS2) $(CURRY_OPTS) :load KiCS2.REPL :save :quit
+	mv KiCS2.REPL $(REPL)
