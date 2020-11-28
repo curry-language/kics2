@@ -18,13 +18,8 @@ KICS2C     = $(COMP) -v2 --parse-options=-Wall -i$(LIBDIR)
 # options for the bootstrapping compiler
 CURRY_OPTS =
 
-# Source modules of the compiler (without standard libraries)
-COMPILE_DEPS = Analysis Classification CompilerOpts EliminateCond Files      \
-               LiftCase Message ModuleDeps                                   \
-               Names SimpleMake GenContext TransFunctions TransTypes Utils
-
-# Source modules of the REPL (without standard libraries)
-REPL_DEPS = Files GhciComm Linker Names RCFile Utils
+# Compile and REPL sources
+KICS2_SOURCES = $(shell find KiCS2 -name "*.curry")
 
 .PHONY: all
 all: CompileBoot updateInstallInfo REPLBoot
@@ -86,14 +81,14 @@ $(INSTALLCURRY): $(INSTALLHS)
 
 # generate executable for Curry->Haskell compiler via PAKCS or other KiCS2
 .PHONY: CompileInitial
-CompileInitial: Compile.curry $(INSTALLCURRY)
+CompileInitial: KiCS2/Compile.curry $(INSTALLCURRY)
 	mkdir -p $(LOCALBIN)
 ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
-	$(KICS2) $(CURRY_OPTS) --nocypm :load Compile :save :quit
+	$(KICS2) $(CURRY_OPTS) :load KiCS2.Compile :save :quit
 else
-	pakcs $(CURRY_OPTS)    --nocypm :load Compile :save :quit || (exit 1)
+	pakcs $(CURRY_OPTS)    :load KiCS2.Compile :save :quit || (exit 1)
 endif
-	mv Compile $(COMP)
+	mv KiCS2.Compile $(COMP)
 
 # generate executable for Curry -> Haskell compiler kics2c
 .PHONY: CompileBoot
@@ -104,7 +99,7 @@ CompileBoot: CompileBoot.hs | $(INSTALLCURRY) $(SUBDIR)/Curry_Compile.hs
 # Although $(INSTALLCURRY) is used by the compiler it must not be included
 # in the dependencies because for the distribution installation it would
 # require a working KICS2 binary *during* installation.
-$(SUBDIR)/Curry_Compile.hs: $(COMPILE_DEPS:=.curry)
+$(SUBDIR)/Curry_Compile.hs: $(KICS2_SOURCES)
 
 # recompile installation information and the compiler
 .PHONY: updateInstallInfo
@@ -122,7 +117,7 @@ REPLBoot: REPLBoot.hs $(SUBDIR)/Curry_REPL.hs
 	mkdir -p $(LOCALBIN)
 	$(GHC_CALL) -o $(REPL) $<
 
-$(SUBDIR)/Curry_REPL.hs: $(REPL_DEPS:=.curry) $(INSTALLCURRY)
+$(SUBDIR)/Curry_REPL.hs: $(KICS2_SOURCES) $(INSTALLCURRY)
 
 $(SUBDIR)/Curry_%.hs: %.curry
 	$(KICS2C) $<
