@@ -86,7 +86,7 @@ CompileInitial: KiCS2/Compile.curry $(INSTALLCURRY)
 ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
 	$(KICS2) $(CURRY_OPTS) :load KiCS2.Compile :save :quit
 else
-	pakcs $(CURRY_OPTS)    :load KiCS2.Compile :save :quit || (exit 1)
+	pakcs    $(CURRY_OPTS) :load KiCS2.Compile :save :quit || (exit 1)
 endif
 	mv KiCS2.Compile $(COMP)
 
