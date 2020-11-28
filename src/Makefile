@@ -36,10 +36,10 @@ bootstrap-start: clean
 ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
 	$(MAKE) CompileBoot
 else
-	$(MAKE) $(SUBDIR)/Curry_Names.hs
-	$(MAKE) $(SUBDIR)/Curry_ModuleDeps.hs
-	$(MAKE) $(SUBDIR)/Curry_TransTypes.hs
-	$(MAKE) $(SUBDIR)/Curry_TransFunctions.hs
+	$(MAKE) $(SUBDIR)/KiCS2/Curry_Names.hs
+	$(MAKE) $(SUBDIR)/KiCS2/Curry_ModuleDeps.hs
+	$(MAKE) $(SUBDIR)/KiCS2/Curry_TransTypes.hs
+	$(MAKE) $(SUBDIR)/KiCS2/Curry_TransFunctions.hs
 	$(MAKE) CompileBoot
 endif
 	cp $(COMP) $(LOCALBIN)/stage2
@@ -64,7 +64,8 @@ cleancurry:
 .PHONY: clean
 clean:
 	rm -f $(LOCALBIN)/stage[1,2,3] Compile
-	rm -f *.hi *.o $(SUBDIR)/*.hi $(SUBDIR)/*.o
+	find . -name "*.o" -type f -delete
+	find . -name "*.hi" -type f -delete
 
 .PHONY: cleanall
 cleanall: clean
@@ -92,14 +93,14 @@ endif
 
 # generate executable for Curry -> Haskell compiler kics2c
 .PHONY: CompileBoot
-CompileBoot: CompileBoot.hs | $(INSTALLCURRY) $(SUBDIR)/Curry_Compile.hs
+CompileBoot: CompileBoot.hs | $(INSTALLCURRY) $(SUBDIR)/KiCS2/Curry_Compile.hs
 	mkdir -p $(LOCALBIN)
 	$(GHC_CALL) -o $(COMP) $<
 
 # Although $(INSTALLCURRY) is used by the compiler it must not be included
 # in the dependencies because for the distribution installation it would
 # require a working KICS2 binary *during* installation.
-$(SUBDIR)/Curry_Compile.hs: $(KICS2_SOURCES)
+$(SUBDIR)/KiCS2/Curry_Compile.hs: $(KICS2_SOURCES)
 
 # recompile installation information and the compiler
 .PHONY: updateInstallInfo
@@ -112,12 +113,12 @@ updateInstallInfo: $(SUBDIR)/Curry_Installation.hs
 
 # generate executable for Curry -> Haskell REPL kics2i
 .PHONY: REPLBoot
-REPLBoot: REPLBoot.hs $(SUBDIR)/Curry_REPL.hs
+REPLBoot: REPLBoot.hs $(SUBDIR)/KiCS2/Curry_REPL.hs
 	@echo "Compiling REPL"
 	mkdir -p $(LOCALBIN)
 	$(GHC_CALL) -o $(REPL) $<
 
-$(SUBDIR)/Curry_REPL.hs: $(KICS2_SOURCES) $(INSTALLCURRY)
+$(SUBDIR)/KiCS2/Curry_REPL.hs: $(KICS2_SOURCES) $(INSTALLCURRY)
 
-$(SUBDIR)/Curry_%.hs: %.curry
+$(SUBDIR)/KiCS2/Curry_%.hs: KiCS2/%.curry
 	$(KICS2C) $<
