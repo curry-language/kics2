@@ -26,7 +26,7 @@
         "redblacktree"        : ">= 3.0.0, < 4.0.0",
         "time"                : ">= 3.0.0, < 4.0.0",
         "transformers"        : ">= 3.0.0, < 4.0.0",
-        "wlpprint"            : ">= 3.0.0, < 4.0.0"
+        "wl-pprint"           : ">= 3.0.0, < 4.0.0"
     },
     "executable": {
         "name": "kics2c",
