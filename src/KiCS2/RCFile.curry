@@ -17,7 +17,7 @@ import System.Directory (getHomeDirectory, doesFileExist, copyFile, renameFile)
 import System.FilePath  (FilePath, (</>), (<.>))
 
 import KiCS2.Utils        (strip)
-import KiCS2.Installation (installDir)
+import Installation       (installDir)
 
 defaultRC :: FilePath
 defaultRC = installDir </> "kics2rc.default"

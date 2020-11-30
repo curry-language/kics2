@@ -16,7 +16,7 @@ import System.IO             (hPutStrLn, stderr)
 import System.Process        (exitWith)
 import System.Environment    (getArgs, getProgName)
 
-import KiCS2.Installation (compilerName, majorVersion, minorVersion, compilerDate)
+import Installation (compilerName, majorVersion, minorVersion, compilerDate)
 
 --- Version string
 version :: String

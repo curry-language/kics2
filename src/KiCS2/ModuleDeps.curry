@@ -38,10 +38,10 @@ import FlatCurry.Annotated.Files   ( typedFlatCurryFileName
                                    )
 
 import KiCS2.CompilerOpts
-import KiCS2.Installation          ( compilerName, majorVersion, minorVersion )
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
 import KiCS2.RCFile                ( rcValue )
+import Installation                ( compilerName, majorVersion, minorVersion )
 
 type ModuleIdent = String
 type Errors      = [String]

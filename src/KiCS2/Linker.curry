@@ -25,7 +25,7 @@ import System.IOExts        (execCmd)
 import Data.List            (intercalate, isInfixOf)
 import Data.Maybe           (isNothing)
 
-import qualified KiCS2.Installation as Inst
+import qualified Installation as Inst
 import KiCS2.GhciComm
 import KiCS2.Names         (funcInfoFile, moduleToFileName, renameModule)
 import KiCS2.RCFile
