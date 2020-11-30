@@ -26,34 +26,6 @@ KICS2_SOURCES = $(shell find KiCS2 -name "*.curry")
 .PHONY: all
 all: $(COMP) $(REPL)
 
-.PHONY: bootstrap-stage1
-bootstrap-stage1: clean
-	# Create kics2 via PAKCS or other KiCS2 (stage 1)
-	@echo "Compiling stage 1"
-	$(MAKE) CompileInitial
-	cp $(COMP) $(LOCALBIN)/stage1
-	$(CLEANCURRY) -r
-
-.PHONY: bootstrap-stage2
-bootstrap-stage2: bootstrap-stage1
-	# Create kics2 via kics2 (stage 2)
-	@echo "Compiling stage 2"
-	$(MAKE) CompileBoot
-	cp $(COMP) $(LOCALBIN)/stage2
-
-.PHONY: bootstrap-stage3
-bootstrap-stage3: bootstrap-stage2
-	# Create kics2 via kics2 (stage 3)
-	@echo "Compiling stage 3"
-	$(MAKE) CompileBoot
-	cp $(COMP) $(LOCALBIN)/stage3
-
-bootstrap: | bootstrap-stage3 cleancurry REPLBoot
-
-# faster bootstrap where stage 3 is omitted
-.PHONY: fastbootstrap
-fastbootstrap: | bootstrap-stage2 cleancurry REPLBoot
-
 .PHONY: cleancurry
 cleancurry:
 	$(CLEANCURRY) -r
