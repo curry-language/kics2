@@ -14,7 +14,7 @@ import System.FilePath       ((</>), splitSearchPath)
 import System.Console.GetOpt
 import System.IO             (hPutStrLn, stderr)
 import System.Process        (exitWith)
-import System.Environment    (getArgs, getProgName)
+import System.Environment    (getProgName)
 
 import Installation (compilerName, majorVersion, minorVersion, compilerDate)
 

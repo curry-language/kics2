@@ -73,7 +73,7 @@ export VERSION = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 all: $(REPL)
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): | frontend runtime scripts $(BINDIR) $(LIBDIR)
+$(REPL): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
