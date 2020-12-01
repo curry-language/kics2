@@ -36,6 +36,8 @@ export BINDIR = $(CURDIR)/bin
 FRONTENDDIR = $(CURDIR)/frontend
 # The directory containing the start scripts (including 'kics2')
 SCRIPTSDIR = $(CURDIR)/scripts
+# The directory containing the runtime
+RUNTIMEDIR = $(CURDIR)/runtime
 # The directories for Cabal packages used at runtime by KiCS2
 PKGDIR = $(CURDIR)/pkg
 PKGDB = $(PKGDIR)/kics2.conf.d
@@ -52,10 +54,10 @@ REPL = $(BINDIR)/kics2i
 .PHONY: all
 all: $(REPL)
 
-# Generates start scripts for the compiler, e.g. kics2 which in turn invokes kics2i
-.PHONY: scripts
-scripts: | $(BINDIR)
-	cd $(SCRIPTSDIR) && $(MAKE)
+# Builds the REPL executable (with CURRYC and its cpm)
+$(REPL): frontend runtime scripts $(PKGDB) | $(BINDIR)
+	$(CURRYC) :load KiCS2.REPL :save :quit
+	mv KiCS2.REPL $(REPL)
 
 # Builds the frontend
 .PHONY: frontend
@@ -63,18 +65,15 @@ frontend: | $(BINDIR)
 	cd $(FRONTENDDIR) && $(MAKE)
 	cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $(FRONTEND)
 
-# Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): frontend $(PKGDB) | $(BINDIR)
-	$(CURRYC) :load KiCS2.REPL :save :quit
-	mv KiCS2.REPL $(REPL)
+# Generates start scripts for the compiler, e.g. kics2 which in turn invokes kics2i
+.PHONY: scripts
+scripts: | $(BINDIR)
+	cd $(SCRIPTSDIR) && $(MAKE)
 
-# Creates a directory for the target binaries
-$(BINDIR):
-	mkdir -p $(BINDIR)
-
-# Creates a directory for the package database
-$(PKGDIR):
-	mkdir -p $(PKGDIR)
+# Compiles the runtime packages and places them in the package db
+.PHONY: runtime
+runtime: $(PKGDB)
+	cd $(RUNTIMEDIR) && $(MAKE)
 
 # Creates the package database (for KiCS2's runtime packages)
 $(PKGDB): | $(PKGDIR)
@@ -85,3 +84,11 @@ $(PKGDB): | $(PKGDIR)
 	                    --package-db="$(PKGDB)" \
 						--prefix="$(PKGDIR)" \
 	                    $(ALLDEPS)
+
+# Creates a directory for the package database
+$(PKGDIR):
+	mkdir -p $(PKGDIR)
+
+# Creates a directory for the target binaries
+$(BINDIR):
+	mkdir -p $(BINDIR)
