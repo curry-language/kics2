@@ -11,10 +11,10 @@
 export CURRYC = pakcs
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
-GHC     := $(shell which ghc)
-GHC_PKG := $(shell dirname "$(GHC)")/ghc-pkg
-CABAL   := $(shell which cabal)
-CYPM    := $(CURRYC) cypm
+export GHC     := $(shell which ghc)
+export GHC_PKG := $(shell dirname "$(GHC)")/ghc-pkg
+export CABAL   := $(shell which cabal)
+export CYPM    := $(CURRYC) cypm
 
 # KiCS2 runtime dependencies (Cabal packages)
 export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
@@ -30,21 +30,33 @@ GHC_LIBS := $(shell "$(GHC_PKG)" list --global --simple-output --names-only)
 # Packages used by the compiler
 GHC_PKGS  = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 
+# The Cabal install command that installs into the local package db
+export CABAL_INSTALL = $(CABAL) v1-install --with-compiler="$(GHC)" \
+                                           --with-hc-pkg="$(GHC_PKG)" \
+                                           --package-db="$(PKGDB)" \
+                                           --prefix="$(PKGDIR)" \
+                                           $(ALLDEPS)
+
+# The KiCS2 directory (the current one)
+export ROOT = $(CURDIR)
 # The directory containing the built binaries
-export BINDIR = $(CURDIR)/bin
+export BINDIR = $(ROOT)/bin
 # The directory containing the frontend sources
-FRONTENDDIR = $(CURDIR)/frontend
+FRONTENDDIR = $(ROOT)/frontend
 # The directory containing the start scripts (including 'kics2')
-SCRIPTSDIR = $(CURDIR)/scripts
+SCRIPTSDIR = $(ROOT)/scripts
 # The directory containing the runtime
-RUNTIMEDIR = $(CURDIR)/runtime
+RUNTIMEDIR = $(ROOT)/runtime
 # The directories for Cabal packages used at runtime by KiCS2
-PKGDIR = $(CURDIR)/pkg
+PKGDIR = $(ROOT)/pkg
 PKGDB = $(PKGDIR)/kics2.conf.d
 # The frontend binary ('kics2-frontend')
 FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
 REPL = $(BINDIR)/kics2i
+
+# The KiCS2 version, as defined in CPM's package.json
+export VERSION = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 
 ########################################################################
 # The targets
@@ -79,11 +91,7 @@ runtime: $(PKGDB)
 $(PKGDB): | $(PKGDIR)
 	rm -rf $(PKGDB)
 	$(GHC_PKG) init $@
-	$(CABAL) v1-install --with-compiler="$(GHC)" \
-	                    --with-hc-pkg="$(GHC_PKG)" \
-	                    --package-db="$(PKGDB)" \
-						--prefix="$(PKGDIR)" \
-	                    $(ALLDEPS)
+	$(CABAL_INSTALL) $(ALLDEPS)
 
 # Creates a directory for the package database
 $(PKGDIR):
