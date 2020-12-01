@@ -113,6 +113,11 @@ if [ $USECPM = yes ] ; then
   export CURRYPATH
 fi
 
+# provide fallback curry path if no tools were installed
+if [ -z "$CURRYPATH" ]; then
+  export CURRYPATH=$KICS2HOME/lib
+fi
+
 REPL="$KICS2HOME/bin/kics2i"
 if [ ! -x "$REPL" ] ; then
   echo "ERROR: executable '$REPL' not found!" >&2

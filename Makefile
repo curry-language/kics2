@@ -47,6 +47,10 @@ FRONTENDDIR = $(ROOT)/frontend
 SCRIPTSDIR = $(ROOT)/scripts
 # The directory containing the runtime
 RUNTIMEDIR = $(ROOT)/runtime
+# The directory containing the built libraries
+export LIBDIR = $(ROOT)/lib
+# The directory containing the library sources
+LIBSRCDIR = $(ROOT)/lib-trunk
 # The directories for Cabal packages used at runtime by KiCS2
 PKGDIR = $(ROOT)/pkg
 PKGDB = $(PKGDIR)/kics2.conf.d
@@ -55,6 +59,8 @@ FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
 REPL = $(BINDIR)/kics2i
 
+# The Curry system name
+export CURRYSYSTEM = kics2
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 
@@ -67,7 +73,7 @@ export VERSION = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 all: $(REPL)
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): frontend runtime scripts $(PKGDB) | $(BINDIR)
+$(REPL): | frontend runtime scripts $(BINDIR) $(LIBDIR)
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
@@ -93,10 +99,15 @@ $(PKGDB): | $(PKGDIR)
 	$(GHC_PKG) init $@
 	$(CABAL_INSTALL) $(ALLDEPS)
 
-# Creates a directory for the package database
+# Creates a directory for the package database ('pkg')
 $(PKGDIR):
 	mkdir -p $(PKGDIR)
 
-# Creates a directory for the target binaries
+# Copies the libraries from the source folder ('lib-trunk') to a new one ('lib')
+$(LIBDIR):
+	rm -rf $(LIBDIR)
+	cd $(LIBSRCDIR) && $(MAKE) -f Makefile_$(CURRYSYSTEM)_install
+
+# Creates a directory for the target binaries ('bin')
 $(BINDIR):
 	mkdir -p $(BINDIR)
