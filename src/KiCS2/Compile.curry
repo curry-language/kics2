@@ -4,7 +4,7 @@
 --- @author  Bernd Brassel, Michael Hanus, Bjoern Peemoeller, Fabian Reck
 --- @version December 2018
 --- --------------------------------------------------------------------------
-module KiCS2.Compile where
+module KiCS2.Compile ( main, buildWithArgs ) where
 
 import Data.Char                   ( isSpace )
 import Data.Maybe                  ( fromJust )
@@ -53,10 +53,13 @@ import KiCS2.Utils                 ( notNull, lpad, rpad )
 
 --- Parse the command-line arguments and build the specified modules.
 main :: IO ()
-main = do
+main = getArgs >>= buildWithArgs
+
+--- Build the modules with the given command line arguments.
+buildWithArgs :: [String] -> IO ()
+buildWithArgs args = do
   rcFileDefs      <- readRC
-  args            <- getArgs
-  (opts, modules) <- getCompilerOpts
+  (opts, modules) <- extractCompilerOpts args
   mapM_ (build opts { rcVars = updateRCDefs rcFileDefs
                                              (snd (extractRCArgs args))
                     , optMainVerbosity = optVerbosity opts

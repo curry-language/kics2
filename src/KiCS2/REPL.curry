@@ -28,6 +28,7 @@ import Numeric            ( readNat )
 import ReadShowTerm       ( readsTerm )
 
 import qualified Installation as Inst
+import KiCS2.Compile      ( buildWithArgs )
 import KiCS2.Files        ( removeFileIfExists )
 import KiCS2.GhciComm     ( stopGhciComm )
 import KiCS2.Names        ( funcInfoFile, moduleNameToPath )
@@ -524,12 +525,14 @@ substTypeVar tv def (CTApply   te1 te2) =
 -- Compile a Curry program with kics2 compiler:
 compileCurryProgram :: ReplState -> String -> IO Int
 compileCurryProgram rst curryprog = do
-  timekics2Cmd <- getTimeCmd rst "KiCS2 compilation" kics2Cmd
-  writeVerboseInfo rst 2 $ "Executing: " ++ timekics2Cmd
-  system timekics2Cmd
+  writeVerboseInfo rst 2 $ "Starting KiCS2 compilation with args " ++ intercalate ", " kics2Args
+  -- TODO: Pass compiler options directly to KiCS2.Compile.build rather
+  --       than using stringified args.
+  buildWithArgs kics2Args
+  -- TODO: Catch exceptions from the build and return a proper 'exit code'
+  return 0
  where
-  kics2Bin  = kics2Home rst </> "bin" </> ".local" </> "kics2c"
-  kics2Opts = unwords $
+  kics2Opts =
     -- pass current value of "bindingoptimization" property to compiler:
     [ "-Dbindingoptimization=" ++ rcValue (rcvars rst) "bindingoptimization"
     , "-v" ++ show (transVerbose (verbose rst))
@@ -539,7 +542,7 @@ compileCurryProgram rst curryprog = do
     then []
     else ["--parse-options=\"" ++ parseOpts rst ++ "\""])
       ++ (if traceFailure rst then ["--trace-failure"] else [])
-  kics2Cmd  = unwords [kics2Bin, kics2Opts, cmpOpts rst, curryprog]
+  kics2Args = kics2Opts ++ [cmpOpts rst, curryprog]
   transVerbose n | n == 3    = 2
                  | n >= 4    = 3
                  | otherwise = n
