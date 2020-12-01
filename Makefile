@@ -17,13 +17,13 @@ CABAL   := $(shell which cabal)
 CYPM    := $(CURRYC) cypm
 
 # KiCS2 runtime dependencies (Cabal packages)
-RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
+export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
 # KiCS2 library dependencies (Cabal packages)
-LIBDEPS     = base directory network old-time parallel-tree-search process time
+LIBDEPS            = base directory network old-time parallel-tree-search process time
 # System dependencies (TODO: Windows)
-SYSTEMDEPS  = unix
+SYSTEMDEPS         = unix
 # All dependencies, with duplicates removed (see 'sort')
-ALLDEPS     = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS))
+ALLDEPS            = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS))
 
 # Libraries installed with GHC
 GHC_LIBS := $(shell "$(GHC_PKG)" list --global --simple-output --names-only)
@@ -50,8 +50,7 @@ REPL = $(BINDIR)/kics2i
 
 # Builds the KiCS2 compiler using CURRYC (PAKCS by default)
 .PHONY: all
-# all: $(REPL)
-all: $(PKGDB)
+all: $(REPL)
 
 # Generates start scripts for the compiler, e.g. kics2 which in turn invokes kics2i
 .PHONY: scripts
@@ -65,7 +64,7 @@ frontend: | $(BINDIR)
 	cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $(FRONTEND)
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): frontend $(PKGDIR) | $(BINDIR)
+$(REPL): frontend $(PKGDB) | $(BINDIR)
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
@@ -81,9 +80,8 @@ $(PKGDIR):
 $(PKGDB): | $(PKGDIR)
 	rm -rf $(PKGDB)
 	$(GHC_PKG) init $@
-	$(CABAL) v2-install --dry-run \
-	                    --with-compiler="$(GHC)" \
+	$(CABAL) v1-install --with-compiler="$(GHC)" \
 	                    --with-hc-pkg="$(GHC_PKG)" \
-	                    --package-db=clear \
-	                    --package-db="$(PKGDIR)" \
-	                    $(filter-out $(GHC_LIBS),$(ALLDEPS))
+	                    --package-db="$(PKGDB)" \
+						--prefix="$(PKGDIR)" \
+	                    $(ALLDEPS)
