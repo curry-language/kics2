@@ -58,6 +58,8 @@ PKGDB = $(PKGDIR)/kics2.conf.d
 FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
 REPL = $(BINDIR)/kics2i
+# The compiler binary ('kics2c')
+COMP = $(BINDIR)/kics2c
 
 # The Curry system name
 export CURRYSYSTEM = kics2
@@ -84,10 +86,16 @@ all: $(REPL)
 	@echo "$(SUCCESS) >> The executables are located in $(BINDIR) $(NORMAL)"
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
-	@echo "$(HIGHLIGHT) >> Building KiCS2 $(NORMAL)"
+$(REPL): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(COMP) $(BINDIR) $(LIBDIR)
+	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
+
+# Builds the compiler executable (with CURRYC and its cpm)
+$(COMP): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
+	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
+	$(CURRYC) :load KiCS2.Compile :save :quit
+	mv KiCS2.Compile $(COMP)
 
 # Builds the frontend
 .PHONY: frontend
