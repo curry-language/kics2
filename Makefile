@@ -65,9 +65,12 @@ export CURRYSYSTEM = kics2
 export VERSION = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 
 # Text formatting (e.g. for info/warning messages)
+# See https://linux.101hacks.com/ps1-examples/prompt-color-using-tput/.
+GREEN = 2
 CYAN = 6
 WHITE = 7
 HIGHLIGHT = $(shell tput bold)$(shell tput setaf $(CYAN))
+SUCCESS = $(shell tput bold)$(shell tput setaf $(GREEN))
 NORMAL = $(shell tput sgr0)
 
 ########################################################################
@@ -77,6 +80,8 @@ NORMAL = $(shell tput sgr0)
 # Builds the KiCS2 compiler using CURRYC (PAKCS by default)
 .PHONY: all
 all: $(REPL)
+	@echo "$(SUCCESS) >> Successfully built KiCS2! $(NORMAL)"
+	@echo "$(SUCCESS) >> The executables are located in $(BINDIR) $(NORMAL)"
 
 # Builds the REPL executable (with CURRYC and its cpm)
 $(REPL): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
