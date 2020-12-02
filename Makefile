@@ -34,8 +34,7 @@ GHC_PKGS  = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 export CABAL_INSTALL = $(CABAL) v1-install --with-compiler="$(GHC)" \
                                            --with-hc-pkg="$(GHC_PKG)" \
                                            --package-db="$(PKGDB)" \
-                                           --prefix="$(PKGDIR)" \
-                                           --reinstall
+                                           --prefix="$(PKGDIR)"
 
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
@@ -90,6 +89,8 @@ all: $(REPL)
 # Cleans up build files (not from the frontend, however!)
 .PHONY: clean
 clean:
+	cd $(RUNTIMEDIR) && $(MAKE) clean
+	cd $(SCRIPTSDIR) && $(MAKE) cleanall
 	rm -rf $(BINDIR) \
 	       $(LIBDIR) \
 	       $(PKGDIR) \
@@ -133,7 +134,7 @@ $(PKGDB): | $(PKGDIR)
 	@echo "$(HIGHLIGHT) >> Creating package database for KiCS2 runtime $(NORMAL)"
 	rm -rf $(PKGDB)
 	$(GHC_PKG) init $@
-	$(CABAL_INSTALL) $(filter-out $(GHC_LIBS),$(ALLDEPS))
+	$(CABAL_INSTALL) --reinstall $(filter-out $(GHC_LIBS),$(ALLDEPS))
 
 # Creates a directory for the package database ('pkg')
 $(PKGDIR):
