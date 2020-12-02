@@ -41,23 +41,23 @@ $(CABAL_FILE): ../Makefile Makefile
 ifndef VERSION
 	$(error VERSION is not defined. Please use 'make' on top-level)
 endif
-	echo "Name:           $(PACKAGE)"                        >  $@
-	echo "Version:        $(VERSION)"                        >> $@
-	echo "Description:    The runtime environment for KiCS2" >> $@
-	echo "License:        OtherLicense"                      >> $@
-	echo "Author:         The KiCS2 Team"                    >> $@
-	echo "Maintainer:     kics2@curry-lang.org"              >> $@
-	echo "Build-Type:     Simple"                            >> $@
-	echo "Cabal-Version:  >= 1.9.2"                          >> $@
-	echo ""                                                  >> $@
-	echo "Library"                                           >> $@
-	echo "  Build-Depends: $(CABAL_RUNTIMEDEPS)"             >> $@
-	echo "  Exposed-modules:"                                >> $@
-	echo "      Basics, CurryException, KiCS2Debug, FailInfo">> $@
-	echo "    , FailTrace, IDSupply, Installation"           >> $@
-	echo "    , MonadList, MonadSearch, PrimTypes, SafeExec" >> $@
-	echo "  Other-modules:"                                  >> $@
-	echo "      ConstStore, ID, Search, Solver"              >> $@
-	echo "    , Strategies, Types"                           >> $@
-	echo "  hs-source-dirs: ., $(IDSUPPLYDIR)"               >> $@
-	echo "  ghc-options: $(CABAL_GHC_OPTS)"                  >> $@
+	@echo "Name:           $(PACKAGE)"                        >  $@
+	@echo "Version:        $(VERSION)"                        >> $@
+	@echo "Description:    The runtime environment for KiCS2" >> $@
+	@echo "License:        OtherLicense"                      >> $@
+	@echo "Author:         The KiCS2 Team"                    >> $@
+	@echo "Maintainer:     kics2@curry-lang.org"              >> $@
+	@echo "Build-Type:     Simple"                            >> $@
+	@echo "Cabal-Version:  >= 1.9.2"                          >> $@
+	@echo ""                                                  >> $@
+	@echo "Library"                                           >> $@
+	@echo "  Build-Depends: $(CABAL_RUNTIMEDEPS)"             >> $@
+	@echo "  Exposed-modules:"                                >> $@
+	@echo "      Basics, CurryException, KiCS2Debug, FailInfo">> $@
+	@echo "    , FailTrace, IDSupply, Installation"           >> $@
+	@echo "    , MonadList, MonadSearch, PrimTypes, SafeExec" >> $@
+	@echo "  Other-modules:"                                  >> $@
+	@echo "      ConstStore, ID, Search, Solver"              >> $@
+	@echo "    , Strategies, Types"                           >> $@
+	@echo "  hs-source-dirs: ., $(IDSUPPLYDIR)"               >> $@
+	@echo "  ghc-options: $(CABAL_GHC_OPTS)"                  >> $@
