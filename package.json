@@ -29,7 +29,7 @@
         "wl-pprint"           : ">= 3.0.0, < 4.0.0"
     },
     "executable": {
-        "name": "kics2i",
-        "main": "KiCS2.REPL"
+        "name": "kics2c",
+        "main": "KiCS2.Compile"
     }
 }

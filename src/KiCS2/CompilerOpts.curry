@@ -6,7 +6,7 @@
 ------------------------------------------------------------------------------
 module KiCS2.CompilerOpts
   ( Options (..), Verbosity (..), OptimLevel (..), DumpFormat (..)
-  , Extension (..), defaultOptions, extractCompilerOpts
+  , Extension (..), defaultOptions, getCompilerOpts
   ) where
 
 import Data.List             (intercalate, maximum, nub)
@@ -267,10 +267,10 @@ removeFlag o opts = filter (/= o) opts
 ---  * The version should be printed (0)
 ---  * There were errors in the specified options (1)
 ---  * no files for compilation are given (1)
-extractCompilerOpts :: [String] -> IO (Options, [String])
-extractCompilerOpts rawArgs = do
+getCompilerOpts :: IO (Options, [String])
+getCompilerOpts = do
   -- Ignore "-Dprop=val" parameters since they are processed in main
-  let args = filter (\a -> take 2 a /= "-D") rawArgs
+  args <- getArgs >>= return . filter (\a -> take 2 a /= "-D")
   prog <- getProgName
   processOpts prog $ parseOpts args
 
