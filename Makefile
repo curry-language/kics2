@@ -19,7 +19,7 @@ export CYPM    := $(CURRYC) cypm
 # KiCS2 runtime dependencies (Cabal packages)
 export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
 # KiCS2 library dependencies (Cabal packages)
-LIBDEPS            = base directory network old-time parallel-tree-search process time
+LIBDEPS            = base directory network network-bsd old-time parallel-tree-search process time
 # System dependencies (TODO: Windows)
 SYSTEMDEPS         = unix
 # All dependencies, with duplicates removed (see 'sort')
@@ -35,7 +35,7 @@ export CABAL_INSTALL = $(CABAL) v1-install --with-compiler="$(GHC)" \
                                            --with-hc-pkg="$(GHC_PKG)" \
                                            --package-db="$(PKGDB)" \
                                            --prefix="$(PKGDIR)" \
-                                           $(ALLDEPS)
+                                           --reinstall
 
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
@@ -133,7 +133,7 @@ $(PKGDB): | $(PKGDIR)
 	@echo "$(HIGHLIGHT) >> Creating package database for KiCS2 runtime $(NORMAL)"
 	rm -rf $(PKGDB)
 	$(GHC_PKG) init $@
-	$(CABAL_INSTALL) $(ALLDEPS)
+	$(CABAL_INSTALL) $(filter-out $(GHC_LIBS),$(ALLDEPS))
 
 # Creates a directory for the package database ('pkg')
 $(PKGDIR):
