@@ -47,6 +47,8 @@ FRONTENDDIR = $(ROOT)/frontend
 SCRIPTSDIR = $(ROOT)/scripts
 # The directory containing the runtime
 RUNTIMEDIR = $(ROOT)/runtime
+# The directory containing the KiCS2 sources
+SRCDIR = $(ROOT)/src
 # The directory containing the built libraries
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
@@ -85,14 +87,24 @@ all: $(REPL)
 	@echo "$(SUCCESS) >> Successfully built KiCS2! $(NORMAL)"
 	@echo "$(SUCCESS) >> The executables are located in $(BINDIR) $(NORMAL)"
 
+# Cleans up build files (not from the frontend, however!)
+.PHONY: clean
+clean:
+	rm -rf $(BINDIR) \
+	       $(LIBDIR) \
+	       $(PKGDIR) \
+	       $(ROOT)/.cpm \
+	       $(ROOT)/.curry \
+	       $(SRCDIR)/.curry
+
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(COMP) $(BINDIR) $(LIBDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") | frontend runtime scripts $(COMP) $(BINDIR) $(LIBDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find src/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
