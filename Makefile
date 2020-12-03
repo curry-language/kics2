@@ -34,18 +34,10 @@ GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
 GHC_OPTIMIZATIONS = -O2 -fno-strictness 
-# Options for compiling target programs using our own package db
-GHC_OPTS          = -package-db $(PKGDB) \
-                    -hide-all-packages $(GHC_PKGS)
+GHC_OPTS          =
 # GHC version
 GHC_MAJOR := $(shell "$(GHC)" --numeric-version | cut -d. -f1)
 GHC_MINOR := $(shell "$(GHC)" --numeric-version | cut -d. -f2)
-
-# The Cabal install command that installs into the local package db
-export CABAL_INSTALL = $(CABAL) v1-install --with-compiler="$(GHC)" \
-                                           --with-hc-pkg="$(GHC_PKG)" \
-                                           --package-db="$(PKGDB)" \
-                                           --prefix="$(PKGDIR)"
 
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
@@ -65,9 +57,6 @@ INSTALLCURRY = $(SRCDIR)/Installation.curry
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
 LIBSRCDIR = $(ROOT)/lib-trunk
-# The directories for Cabal packages used at runtime by KiCS2
-PKGDIR = $(ROOT)/pkg
-PKGDB = $(PKGDIR)/kics2.conf.d
 # The frontend binary ('kics2-frontend')
 FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
@@ -118,7 +107,6 @@ clean:
 	rm $(INSTALLCURRY)
 	rm -rf $(BINDIR) \
 	       $(LIBDIR) \
-	       $(PKGDIR) \
 	       $(ROOT)/.cpm \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry
@@ -150,24 +138,13 @@ scripts: | $(BINDIR)
 
 # Compiles the runtime packages and places them in the package db
 .PHONY: runtime
-runtime: $(PKGDB)
+runtime:
 	@echo "$(HIGHLIGHT) >> Building runtime $(NORMAL)"
 	@cd $(RUNTIMEDIR) && $(MAKE)
 
 # Configures the library package for inclusion at runtime
 .PHONY: libraries
 libraries: $(LIBDIR) $(LIBDIR)/kics2-libraries.cabal
-
-# Creates the package database (for KiCS2's runtime packages)
-$(PKGDB): | $(PKGDIR)
-	@echo "$(HIGHLIGHT) >> Creating package database for KiCS2 runtime $(NORMAL)"
-	rm -rf $(PKGDB)
-	$(GHC_PKG) init $@
-	$(CABAL_INSTALL) $(filter-out $(GHC_LIBS),$(ALLDEPS))
-
-# Creates a directory for the package database ('pkg')
-$(PKGDIR):
-	mkdir -p $(PKGDIR)
 
 # Copies the libraries from the source folder ('lib-trunk') to a new one ('lib')
 $(LIBDIR):
