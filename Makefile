@@ -121,13 +121,13 @@ clean:
 	       $(SRCDIR)/.curry
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) | frontend runtime scripts $(COMP) $(BINDIR) $(LIBDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) | frontend runtime scripts libraries $(COMP) $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") | frontend runtime scripts $(BINDIR) $(LIBDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") | frontend runtime scripts libraries $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
@@ -150,6 +150,10 @@ scripts: | $(BINDIR)
 runtime: $(PKGDB)
 	@echo "$(HIGHLIGHT) >> Building runtime $(NORMAL)"
 	@cd $(RUNTIMEDIR) && $(MAKE)
+
+# Configures the library package for inclusion at runtime
+.PHONY: libraries
+libraries: $(LIBDIR) $(LIBDIR)/kics2-libraries.cabal
 
 # Creates the package database (for KiCS2's runtime packages)
 $(PKGDB): | $(PKGDIR)
@@ -239,3 +243,25 @@ $(INSTALLCURRY):
 	@echo 'withProfiling :: Bool' >> $@
 	@echo 'withProfiling = False' >> $@
 
+# Generates the Cabal file for the libraries
+# Temporarily moved here to only build the Prelude
+# TODO: Move this back to the lib-trunk subrepo
+$(LIBDIR)/kics2-libraries.cabal: $(LIBDIR)
+	@echo "$(HIGHLIGHT) >> Generating Cabal file for libraries $(NORMAL)"
+	@echo "Name:           kics2-libraries"                        > $@
+	@echo "Version:        $(VERSION)"                            >> $@
+	@echo "Description:    The standard libraries for KiCS2"      >> $@
+	@echo "License:        OtherLicense"                          >> $@
+	@echo "Author:         The KiCS2 Team"                        >> $@
+	@echo "Maintainer:     kics2@curry-lang.org"                  >> $@
+	@echo "Build-Type:     Simple"                                >> $@
+	@echo "Cabal-Version:  >= 1.9.2"                              >> $@
+	@echo ""                                                      >> $@
+	@echo "Library"                                               >> $@
+	@echo "  Build-Depends: kics2-runtime $(LIBDEPS)"             >> $@
+	@echo "  if os(windows)"                                      >> $@
+	@echo "    Build-Depends: Win32"                              >> $@
+	@echo "  else"                                                >> $@
+	@echo "    Build-Depends: unix"                               >> $@
+	@echo "  Exposed-modules: Curry_Prelude"                      >> $@
+	@echo "  hs-source-dirs: ./.curry/kics2"                      >> $@
