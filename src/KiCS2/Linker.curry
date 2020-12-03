@@ -162,6 +162,31 @@ updateGhcOptions rst =
    oldOpts = rcValue (rcvars rst) key
    newOpts = ghcOpts rst
 
+--- Generates a Cabal file for the compiled main module
+generateDotCabal :: ReplState -> String -> String -> String
+generateDotCabal rst name mainModuleName = unlines
+  [ "name:        " ++ name
+  , "version:     0.0.1"
+  , "description: Compiled Curry modules"
+  , "build-type:  simple"
+  , ""
+  , "executable"
+  , "  build-depends:  " ++ intercalate ", " dependencies
+  , "  main-is:        " ++ mainModuleName
+  , "  hs-source-dirs: ."
+  ]
+  where dependencies = [ "base", "containers", "ghc", "mtl", "parallel-tree-search"
+                       , "tree-monad", "directory", "network", "network-bsd"
+                       , "old-time", "process", "time", "kics2-runtime", "kics2-libraries"
+                       ] -- TODO: Use dynamically a provided list of packages from the REPL state
+        
+
+--- Generates a Cabal project file for the compiled main module
+generateCabalProject :: ReplState -> String
+generateCabalProject rst = "packages: " ++ intercalate ", " packages
+  where runtimePath = kics2Home rst </> "runtime"
+        packages = [".", runtimePath]
+
 --- Result of compiling main program
 data MainCompile = MainError | MainDet | MainNonDet
  deriving Eq
@@ -173,6 +198,9 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   (isdet, isio) <- getGoalInfo rst
   (rst',wasUpdated) <- updateGhcOptions rst
   writeFile mainFile $ mainModule rst' isdet isio (traceFailure rst) bindings
+
+  writeFile dotCabalFile $ generateDotCabal rst cabalName "Main"
+  writeFile cabalProjectFile $ generateCabalProject rst
 
   let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
   tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
@@ -186,6 +214,9 @@ createAndCompileMain rst createExecutable mainExp bindings = do
                 if isdet || isio then MainDet else MainNonDet))
  where
   mainFile = "." </> outputSubdir rst </> "Main.hs"
+  cabalName = "kics2-main-goal"
+  dotCabalFile = "." </> outputSubdir rst </> (cabalName ++ ".cabal")
+  cabalProjectFile = "." </> outputSubdir rst </> "cabal.project"
   -- option parsing
   useGhci' = useGhci rst && not createExecutable && not (interactive rst)
 
