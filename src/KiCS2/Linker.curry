@@ -164,24 +164,26 @@ updateGhcOptions rst =
 
 --- Generates a Cabal file for the compiled main module
 generateDotCabal :: ReplState -> String -> String -> String
-generateDotCabal rst name mainModuleName = unlines
+generateDotCabal rst name mainName = unlines
   [ "name:        " ++ name
   , "version:     0.0.1"
   , "description: Compiled Curry modules"
-  , "build-type:  simple"
+  , "build-type:  Simple"
   , ""
-  , "executable"
+  , "executable " ++ mainName
   , "  build-depends:  " ++ intercalate ", " dependencies
-  , "  main-is:        " ++ mainModuleName
+  , "  main-is:        " ++ mainName ++ ".hs"
   , "  hs-source-dirs: ."
   ]
   where dependencies = [ "base", "containers", "ghc", "mtl", "parallel-tree-search"
                        , "tree-monad", "directory", "network", "network-bsd"
-                       , "old-time", "process", "time", "kics2-runtime", "kics2-libraries"
+                       , "old-time", "process", "time", "kics2-runtime"
                        ] -- TODO: Use dynamically a provided list of packages from the REPL state
+                         -- TODO: Re-add kics2-libraries
         
 
 --- Generates a Cabal project file for the compiled main module
+--- TODO: Specify used GHC version here
 generateCabalProject :: ReplState -> String
 generateCabalProject rst = "packages: " ++ intercalate ", " packages
   where runtimePath = kics2Home rst </> "runtime"
@@ -199,21 +201,23 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   (rst',wasUpdated) <- updateGhcOptions rst
   writeFile mainFile $ mainModule rst' isdet isio (traceFailure rst) bindings
 
-  writeFile dotCabalFile $ generateDotCabal rst cabalName "Main"
+  writeFile dotCabalFile $ generateDotCabal rst cabalName mainName
   writeFile cabalProjectFile $ generateCabalProject rst
 
   let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
+      cabalCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-install --install-method=copy --installdir=."
   tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
   writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
   (rst'', status) <- if useGhci'
                       then compileWithGhci rst' ghcCompile mainExp
-                      else system tghcCompile >>= \stat -> return (rst', stat)
+                      else system cabalCompile >>= \stat -> return (rst', stat)
   return (if status > 0
           then (setExitStatus 1 rst'', MainError)
           else (setExitStatus 0 rst'',
                 if isdet || isio then MainDet else MainNonDet))
  where
-  mainFile = "." </> outputSubdir rst </> "Main.hs"
+  mainName = "Main"
+  mainFile = "." </> outputSubdir rst </> (mainName ++ ".hs")
   cabalName = "kics2-main-goal"
   dotCabalFile = "." </> outputSubdir rst </> (cabalName ++ ".cabal")
   cabalProjectFile = "." </> outputSubdir rst </> "cabal.project"
