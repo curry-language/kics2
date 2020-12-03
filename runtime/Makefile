@@ -54,7 +54,7 @@ endif
 	@echo "  Build-Depends: $(CABAL_RUNTIMEDEPS)"             >> $@
 	@echo "  Exposed-modules:"                                >> $@
 	@echo "      Basics, CurryException, KiCS2Debug, FailInfo">> $@
-	@echo "    , FailTrace, IDSupply, Installation"           >> $@
+	@echo "    , FailTrace, IDSupply"                         >> $@
 	@echo "    , MonadList, MonadSearch, PrimTypes, SafeExec" >> $@
 	@echo "  Other-modules:"                                  >> $@
 	@echo "      ConstStore, ID, Search, Solver"              >> $@
