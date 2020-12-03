@@ -96,6 +96,9 @@ WHITE = 7
 HIGHLIGHT = $(shell tput bold)$(shell tput setaf $(CYAN))
 SUCCESS = $(shell tput bold)$(shell tput setaf $(GREEN))
 NORMAL = $(shell tput sgr0)
+NULL  =
+SPACE = $(NULL) #
+COMMA = ,
 
 ########################################################################
 # The targets
@@ -248,20 +251,20 @@ $(INSTALLCURRY):
 # TODO: Move this back to the lib-trunk subrepo
 $(LIBDIR)/kics2-libraries.cabal: $(LIBDIR)
 	@echo "$(HIGHLIGHT) >> Generating Cabal file for libraries $(NORMAL)"
-	@echo "Name:           kics2-libraries"                        > $@
-	@echo "Version:        $(VERSION)"                            >> $@
-	@echo "Description:    The standard libraries for KiCS2"      >> $@
-	@echo "License:        OtherLicense"                          >> $@
-	@echo "Author:         The KiCS2 Team"                        >> $@
-	@echo "Maintainer:     kics2@curry-lang.org"                  >> $@
-	@echo "Build-Type:     Simple"                                >> $@
-	@echo "Cabal-Version:  >= 1.9.2"                              >> $@
-	@echo ""                                                      >> $@
-	@echo "Library"                                               >> $@
-	@echo "  Build-Depends: kics2-runtime $(LIBDEPS)"             >> $@
-	@echo "  if os(windows)"                                      >> $@
-	@echo "    Build-Depends: Win32"                              >> $@
-	@echo "  else"                                                >> $@
-	@echo "    Build-Depends: unix"                               >> $@
-	@echo "  Exposed-modules: Curry_Prelude"                      >> $@
-	@echo "  hs-source-dirs: ./.curry/kics2"                      >> $@
+	@echo "Name:           kics2-libraries"                                        > $@
+	@echo "Version:        $(VERSION)"                                            >> $@
+	@echo "Description:    The standard libraries for KiCS2"                      >> $@
+	@echo "License:        OtherLicense"                                          >> $@
+	@echo "Author:         The KiCS2 Team"                                        >> $@
+	@echo "Maintainer:     kics2@curry-lang.org"                                  >> $@
+	@echo "Build-Type:     Simple"                                                >> $@
+	@echo "Cabal-Version:  >= 1.9.2"                                              >> $@
+	@echo ""                                                                      >> $@
+	@echo "Library"                                                               >> $@
+	@echo "  Build-Depends: kics2-runtime,$(subst $(SPACE),$(COMMA),$(LIBDEPS))"  >> $@
+	@echo "  if os(windows)"                                                      >> $@
+	@echo "    Build-Depends: Win32"                                              >> $@
+	@echo "  else"                                                                >> $@
+	@echo "    Build-Depends: unix"                                               >> $@
+	@echo "  Exposed-modules: Curry_Prelude"                                      >> $@
+	@echo "  hs-source-dirs: ./.curry/kics2"                                      >> $@
