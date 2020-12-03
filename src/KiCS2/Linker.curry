@@ -165,10 +165,11 @@ updateGhcOptions rst =
 --- Generates a Cabal file for the compiled main module
 generateDotCabal :: ReplState -> String -> String -> String
 generateDotCabal rst name mainName = unlines
-  [ "name:        " ++ name
-  , "version:     0.0.1"
-  , "description: Compiled Curry modules"
-  , "build-type:  Simple"
+  [ "name:          " ++ name
+  , "version:       0.0.1"
+  , "description:   Compiled Curry modules"
+  , "build-type:    Simple"
+  , "cabal-version: >= 1.9.2"
   , ""
   , "executable " ++ mainName
   , "  build-depends:  " ++ intercalate ", " dependencies
@@ -206,7 +207,7 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   writeFile cabalProjectFile $ generateCabalProject rst
 
   let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
-      cabalCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-install --install-method=copy --installdir=."
+      cabalCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-install --overwrite-policy=always --install-method=copy --installdir=."
   tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
   writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
   (rst'', status) <- if useGhci'
