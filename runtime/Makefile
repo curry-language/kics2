@@ -25,7 +25,7 @@ CABAL_GHC_OPTS = $(RUNTIMEFLAGS:%=-D%)
 
 .PHONY: install
 install: $(CABAL_FILE)
-	$(CABAL_INSTALL) $(CABAL_PROFILE)
+	$(CABAL_INSTALL)
 
 .PHONY: unregister
 unregister:
@@ -34,6 +34,7 @@ unregister:
 .PHONY: clean
 clean:
 	rm -rf dist/
+	rm -rf dist-newstyle/
 	rm -f *.hi *.hi-boot */*.hi *.o *.o-boot */*.o
 	rm -f $(CABAL_FILE)
 

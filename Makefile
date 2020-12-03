@@ -35,7 +35,7 @@ GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
 GHC_OPTIMIZATIONS = -O2 -fno-strictness 
 # Options for compiling target programs using our own package db
-GHC_OPTS          = -no-user-package-db -package-db $(PKGDB) \
+GHC_OPTS          = -package-db $(PKGDB) \
                     -hide-all-packages $(GHC_PKGS)
 # GHC version
 GHC_MAJOR := $(shell "$(GHC)" --numeric-version | cut -d. -f1)
@@ -156,6 +156,7 @@ $(PKGDB): | $(PKGDIR)
 	@echo "$(HIGHLIGHT) >> Creating package database for KiCS2 runtime $(NORMAL)"
 	rm -rf $(PKGDB)
 	$(GHC_PKG) init $@
+	$(CABAL_INSTALL) $(filter-out $(GHC_LIBS),$(ALLDEPS))
 
 # Creates a directory for the package database ('pkg')
 $(PKGDIR):
