@@ -172,14 +172,14 @@ generateDotCabal rst name mainName = unlines
   , ""
   , "executable " ++ mainName
   , "  build-depends:  " ++ intercalate ", " dependencies
+  , "  other-modules:  Curry_" ++ mainModuleIdent
   , "  main-is:        " ++ mainName ++ ".hs"
   , "  hs-source-dirs: ."
   ]
   where dependencies = [ "base", "containers", "ghc", "mtl", "parallel-tree-search"
                        , "tree-monad", "directory", "network", "network-bsd"
-                       , "old-time", "process", "time", "kics2-runtime"
+                       , "old-time", "process", "time", "kics2-runtime", "kics2-libraries"
                        ] -- TODO: Use dynamically a provided list of packages from the REPL state
-                         -- TODO: Re-add kics2-libraries
         
 
 --- Generates a Cabal project file for the compiled main module
@@ -187,7 +187,8 @@ generateDotCabal rst name mainName = unlines
 generateCabalProject :: ReplState -> String
 generateCabalProject rst = "packages: " ++ intercalate ", " packages
   where runtimePath = kics2Home rst </> "runtime"
-        packages = [".", runtimePath]
+        librariesPath = kics2Home rst </> "lib"
+        packages = [".", runtimePath, librariesPath]
 
 --- Result of compiling main program
 data MainCompile = MainError | MainDet | MainNonDet
