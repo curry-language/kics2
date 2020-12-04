@@ -112,22 +112,23 @@ clean:
 	       $(SRCDIR)/.curry
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) cpmupdate | frontend runtime scripts libraries $(COMP) $(BINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) dependencies | frontend runtime scripts libraries $(COMP) $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") cpmupdate | frontend runtime scripts libraries $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") dependencies | frontend runtime scripts libraries $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
 
-# Updates the CPM index
-.PHONY: cpmupdate
-cpmupdate:
-	@echo "$(HIGHLIGHT) >> Updating CPM index $(NORMAL)"
+# Updates the CPM index and installs dependencies
+.PHONY: dependencies
+dependencies:
+	@echo "$(HIGHLIGHT) >> Updating CPM index and installing dependencies $(NORMAL)"
 	$(CYPM) update
+	$(CYPM) install --noexec
 
 # Builds the frontend
 .PHONY: frontend
