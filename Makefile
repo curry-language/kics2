@@ -67,7 +67,7 @@ COMP = $(BINDIR)/kics2c
 # The Curry system name
 export CURRYSYSTEM = kics2
 # The KiCS2 version, as defined in CPM's package.json
-export VERSION  = $(shell cypm info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
+export VERSION  = $(shell $(CYPM) info | grep -oP "^\S*Version\S*\s+\K([\d\.]+)\s*")
 MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
@@ -112,16 +112,22 @@ clean:
 	       $(SRCDIR)/.curry
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) | frontend runtime scripts libraries $(COMP) $(BINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) cpmupdate | frontend runtime scripts libraries $(COMP) $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") | frontend runtime scripts libraries $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") cpmupdate | frontend runtime scripts libraries $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
+
+# Updates the CPM index
+.PHONY: cpmupdate
+cpmupdate:
+	@echo "$(HIGHLIGHT) >> Updating CPM index $(NORMAL)"
+	$(CYPM) update
 
 # Builds the frontend
 .PHONY: frontend
