@@ -34,7 +34,7 @@ import System.FrontendExec         ( defaultParams, setDefinitions
 import Language.Curry.Distribution ( installDir )
 
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   ( typedFlatCurryFileName
+import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName
                                    )
 
 import KiCS2.CompilerOpts
@@ -46,7 +46,7 @@ import Installation                ( compilerName, majorVersion, minorVersion )
 type ModuleIdent = String
 type Errors      = [String]
 
- -- file name, imports, TFCY file name
+ -- file name, imports, TAFCY file name
 type Source      = (FilePath, [ModuleIdent], FilePath)
 type SourceEnv   = Map ModuleIdent (Maybe Source)
 
@@ -64,27 +64,27 @@ deps opts mn fn = do
   let (mods1, errs1) = filterMissing mEnv -- handle missing modules
       (mods2, errs2) = flattenDeps mods1  -- check for cyclic imports
                                           -- and sort topologically
-  errs3 <- checkTypedFlatCurry mn fn
+  errs3 <- checkAnnotatedFlatCurry mn fn
   return (mods2, concat [errs1, errs2, errs3])
 
--- Has the given program name a valid typed FlatCurry file?
+-- Has the given program name a valid type-annotated FlatCurry file?
 -- Used to check the result of the front end compilation process.
-checkTypedFlatCurry :: ModuleIdent -> String -> IO Errors
-checkTypedFlatCurry mname fname
-  | isTypedFlatCurryFile fname = return []
+checkAnnotatedFlatCurry :: ModuleIdent -> String -> IO Errors
+checkAnnotatedFlatCurry mname fname
+  | isAnnotatedFlatCurryFile fname = return []
   | otherwise             = do
-    let tfcyname = stripCurrySuffix (inCurrySubdirModule mname fname) <.> "tfcy"
+    let afcyname = stripCurrySuffix (inCurrySubdirModule mname fname) <.> "tafcy"
     existcy  <- doesFileExist fname
-    existtfcy <- doesFileExist tfcyname
-    if existcy && existtfcy
+    existafcy <- doesFileExist afcyname
+    if existcy && existafcy
       then do cymtime  <- getModificationTime fname
-              tfcymtime <- getModificationTime tfcyname
-              return [ "Typed FlatCurry file " ++ tfcyname ++
+              afcymtime <- getModificationTime afcyname
+              return [ "type-annotated FlatCurry file " ++ afcyname ++
                        " is older than Curry file " ++ fname
-                     | tfcymtime < cymtime ]
+                     | afcymtime < cymtime ]
       else return $    [ "Missing Curry file " ++ fname | not existcy ]
-                    ++ [ "Missing typed FlatCurry file " ++ tfcyname
-                       | not existtfcy ]
+                    ++ [ "Missing type-annotated FlatCurry file " ++ afcyname
+                       | not existafcy ]
 
 moduleDeps :: Options -> SourceEnv -> ModuleIdent -> IO SourceEnv
 moduleDeps opts mEnv m = case Data.Map.lookup m mEnv of
@@ -97,17 +97,17 @@ moduleDeps opts mEnv m = case Data.Map.lookup m mEnv of
 
 lookupModule :: Options -> String -> IO (Maybe FilePath)
 lookupModule opts m = findFileWithSuffix (moduleNameToPath m)
-                      [".curry", ".lcurry", ".tfcy"]
+                      [".curry", ".lcurry", ".tafcy"]
                       (map dropTrailingPathSeparator importPaths)
   where importPaths = "." : optImportPaths opts
 
 sourceDeps :: Options -> ModuleIdent -> String -> SourceEnv -> IO SourceEnv
 sourceDeps opts mn fn mEnv = do
-  tfcyName <- getTfcyFileName opts mn fn
-  rawTfcyHeader <- readTfcyModuleHeader tfcyName
-  let (m, is) = readModuleNameAndImports rawTfcyHeader
+  afcyName <- getAfcyFileName opts mn fn
+  rawAfcyHeader <- readAfcyModuleHeader afcyName
+  let (m, is) = readModuleNameAndImports rawAfcyHeader
       is'     = updatePreludeImport opts is
-  foldM (moduleDeps opts) (insert m (Just (fn, is', tfcyName)) mEnv) is'
+  foldM (moduleDeps opts) (insert m (Just (fn, is', afcyName)) mEnv) is'
 
 -- Remove Prelude import if NoImplicitPrelude is set, otherwise
 -- ensure that it is present.
@@ -118,7 +118,7 @@ updatePreludeImport opts imps
   where noPrelude = NoImplicitPrelude `elem` optExtensions opts
         hasPrelude = prelude `elem` imps
 
--- Reads only module name and imports from a typed FlatCurry representation.
+-- Reads only module name and imports from a type-annotated FlatCurry representation.
 readModuleNameAndImports :: String -> (ModuleIdent, [ModuleIdent])
 readModuleNameAndImports s = (m, is)
   where ((m , s'):_) = reads s
@@ -137,10 +137,10 @@ hReadUntil h isBreakChar = do
                                   else do cs <- hReadUntil h isBreakChar
                                           return (c:cs)
 
--- Get module name and imports from the given typed FlatCurry file.
-readTfcyModuleHeader :: FilePath -> IO String
-readTfcyModuleHeader tfcyFile = do
-  h <- openFile tfcyFile ReadMode
+-- Get module name and imports from the given type-annotated FlatCurry file.
+readAfcyModuleHeader :: FilePath -> IO String
+readAfcyModuleHeader afcyFile = do
+  h <- openFile afcyFile ReadMode
   hReadUntil h $ not . isSpace -- leading spaces
   hReadUntil h isSpace          -- AProg
   hReadUntil h $ not . isSpace -- spaces
@@ -150,41 +150,41 @@ readTfcyModuleHeader tfcyFile = do
   hClose h
   return $ '"' : modId ++ "[" ++ modIds
 
--- Get a typed FlatCurry file name. Parses a Curry module and creates the
--- typed FlatCurry file if it does not exist.
+-- Get a type-annotated FlatCurry file name. Parses a Curry module and creates the
+-- type-annotated FlatCurry file if it does not exist.
 -- TODO: This should better return `Either Errors Prog` so that compilation
 -- errors can be recognized.
-getTfcyFileName :: Options -> ModuleIdent -> FilePath -> IO FilePath
-getTfcyFileName opts mn fn
-  | isTypedFlatCurryFile fn
-  = do showStatus opts $ "Reading directly from typed FlatCurry file '"++fn++"'"
+getAfcyFileName :: Options -> ModuleIdent -> FilePath -> IO FilePath
+getAfcyFileName opts mn fn
+  | isAnnotatedFlatCurryFile fn
+  = do showStatus opts $ "Reading directly from type-annotated FlatCurry file '"++fn++"'"
        return fn
   | otherwise
-  = do tfcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
+  = do afcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
                    $ setDefinitions [(compiler, version)]
                    $ setFullPath    importPaths
                    $ setQuiet       (optVerbosity opts == VerbQuiet)
                    $ setSpecials    (optParser opts)
                    defaultParams
-       return tfcyname
+       return afcyname
   where importPaths = "." : optImportPaths opts
         compiler    = "__" ++ map toUpper compilerName ++ "__"
         version     = majorVersion * 100 + minorVersion
 
--- Parse a Curry program with the front end and return the typed FlatCurry
+-- Parse a Curry program with the front end and return the type-annotated FlatCurry
 -- file name.
 parseCurryWithOptions :: Options -> ModuleIdent -> FrontendParams -> IO String
 parseCurryWithOptions opts modname options = do
   mbCurryFile  <- lookupModule opts modname
   unless (isNothing mbCurryFile) $
-    callFrontendWithParams TFCY options modname
-  normalise <$> getFileWithSuffix (typedFlatCurryFileName modname)
+    callFrontendWithParams TAFCY options modname
+  normalise <$> getFileWithSuffix (annotatedFlatCurryFileName modname)
                   [""]
                   (map dropTrailingPathSeparator importPaths)
     where importPaths = "." : optImportPaths opts
 
-isTypedFlatCurryFile :: FilePath -> Bool
-isTypedFlatCurryFile fn = takeExtension fn == ".tfcy"
+isAnnotatedFlatCurryFile :: FilePath -> Bool
+isAnnotatedFlatCurryFile fn = takeExtension fn == ".tafcy"
 
 filterMissing :: SourceEnv -> ([(ModuleIdent, Source)], Errors)
 filterMissing env = (map (\(a, b) -> (a, fromJust b)) present, errs) where

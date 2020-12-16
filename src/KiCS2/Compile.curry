@@ -23,7 +23,7 @@ import System.CurryPath            ( getLoadPathForModule, stripCurrySuffix
 import FlatCurry.Types
 import FlatCurry.Goodies           ( updQNamesInProg )
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   ( typedFlatCurryFileName )
+import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName )
 import FlatCurry.Annotated.Goodies ( unAnnProg )
 
 import qualified AbstractHaskell.Types   as AH
@@ -88,11 +88,11 @@ locateCurryFile mn = do
   if exists
     then return (Just mn)
     else let modname = stripCurrySuffix mn
-             tfcyname = typedFlatCurryFileName modname
+             afcyname = annotatedFlatCurryFileName modname
           in lookupModuleSourceInLoadPath modname >>=
              maybe (-- try to find a FlatCurry file without source
                     getLoadPathForModule modname >>=
-                    lookupFileInPath tfcyname [""] )
+                    lookupFileInPath afcyname [""] )
                    (\ (_,fn) -> return (Just fn))
 
 makeModule :: [(ModuleIdent, Source)] -> State -> ((ModuleIdent, Source), Int)
