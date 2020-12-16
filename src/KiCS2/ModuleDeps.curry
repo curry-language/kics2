@@ -28,7 +28,7 @@ import System.Directory            ( doesFileExist, getModificationTime
                                    )
 import System.CurryPath            ( inCurrySubdirModule, stripCurrySuffix )
 import System.FrontendExec         ( defaultParams, setDefinitions
-                                   , setFullPath, setQuiet
+                                   , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )
 import Language.Curry.Distribution ( installDir )
@@ -161,10 +161,11 @@ getAfcyFileName opts mn fn
        return fn
   | otherwise
   = do afcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
-                   $ setDefinitions [(compiler, version)]
-                   $ setFullPath    importPaths
-                   $ setQuiet       (optVerbosity opts == VerbQuiet)
-                   $ setSpecials    (optParser opts)
+                   $ setDefinitions  [(compiler, version)]
+                   $ setFullPath     importPaths
+                   $ setQuiet        (optVerbosity opts == VerbQuiet)
+                   $ setSpecials     (optParser opts)
+                   $ setFrontendPath (installDir </> "bin" </> "kics2-frontend")
                    defaultParams
        return afcyname
   where importPaths = "." : optImportPaths opts
