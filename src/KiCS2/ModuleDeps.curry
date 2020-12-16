@@ -31,7 +31,6 @@ import System.FrontendExec         ( defaultParams, setDefinitions
                                    , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )
-import Language.Curry.Distribution ( installDir )
 
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName
@@ -41,7 +40,7 @@ import KiCS2.CompilerOpts
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
 import KiCS2.RCFile                ( rcValue )
-import Installation                ( compilerName, majorVersion, minorVersion )
+import Installation                ( compilerName, majorVersion, minorVersion, installDir )
 
 type ModuleIdent = String
 type Errors      = [String]
