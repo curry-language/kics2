@@ -143,10 +143,10 @@ scripts: | $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Setting up startup scripts $(NORMAL)"
 	@cd $(SCRIPTSDIR) && $(MAKE)
 
-# Compiles the runtime packages and places them in the package db
+# Prepares the runtime package for inclusion at runtime
 .PHONY: runtime
 runtime:
-	@echo "$(HIGHLIGHT) >> Building runtime $(NORMAL)"
+	@echo "$(HIGHLIGHT) >> Preparing runtime $(NORMAL)"
 	@cd $(RUNTIMEDIR) && $(MAKE)
 
 # Configures the library package for inclusion at runtime
@@ -154,7 +154,7 @@ runtime:
 libraries: $(LIBDIR) $(LIBDIR)/kics2-libraries.cabal
 
 # Copies the libraries from the source folder ('lib-trunk') to a new one ('lib')
-$(LIBDIR):
+$(LIBDIR): $(LIBSRCDIR)
 	@echo "$(HIGHLIGHT) >> Copying KiCS2 standard libraries $(NORMAL)"
 	rm -rf $(LIBDIR)
 	cd $(LIBSRCDIR) && $(MAKE) -f Makefile_$(CURRYSYSTEM)_install
