@@ -56,13 +56,13 @@ INSTALLCURRY = $(SRCDIR)/Installation.curry
 # The directory containing the built libraries
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
-LIBSRCDIR = $(ROOT)/lib-trunk
+export LIBSRCDIR = $(ROOT)/lib-trunk
 # The frontend binary ('kics2-frontend')
-FRONTEND = $(BINDIR)/kics2-frontend
+export FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
-REPL = $(BINDIR)/kics2i
+export REPL = $(BINDIR)/kics2i
 # The compiler binary ('kics2c')
-COMP = $(BINDIR)/kics2c
+export COMP = $(BINDIR)/kics2c
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION  = $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")

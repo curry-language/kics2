@@ -2,7 +2,7 @@
 # in particular, to generate the documentation
 
 # Set the __KICS2__ flag for the Prelude (to some dummy value)
-CYMAKEPARAMS = --extended -Wnone -i. -D "__KICS2__=0"
+FRONTENDPARAMS = --extended -Wnone -i. -D "__KICS2__=0"
 
 KICS2=$(ROOT)/bin/kics2
 
@@ -169,7 +169,7 @@ tfcy: $(LIB_TFCY)
 
 # generate FlatCurry file in subdirectory .curry:
 .curry/%.tfcy: %.curry
-	"$(CYMAKE)" --typed-flat $(CYMAKEPARAMS) $(subst /,.,$*)
+	"$(FRONTEND)" --typed-flat $(FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate the AbstractCurry files of all libraries:
 .PHONY: acy
@@ -177,7 +177,7 @@ acy: $(LIB_ACY)
 
 # generate AbstractCurry file in subdirectory .curry:
 .curry/%.acy: %.curry
-	"$(CYMAKE)" --acy $(CYMAKEPARAMS) $(subst /,.,$*)
+	"$(FRONTEND)" --acy $(FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
 # create HTML documentation files for system libraries
