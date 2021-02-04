@@ -74,7 +74,7 @@ checkAnnotatedFlatCurry :: ModuleIdent -> String -> IO Errors
 checkAnnotatedFlatCurry mname fname
   | isAnnotatedFlatCurryFile fname = return []
   | otherwise             = do
-    let afcyname = stripCurrySuffix (inCurrySubdirModule mname fname) <.> "tafcy"
+    let afcyname = stripCurrySuffix (inCurrySubdirModule mname fname) <.> "afcy"
     existcy  <- doesFileExist fname
     existafcy <- doesFileExist afcyname
     if existcy && existafcy
@@ -98,7 +98,7 @@ moduleDeps opts mEnv m = case Data.Map.lookup m mEnv of
 
 lookupModule :: Options -> String -> IO (Maybe FilePath)
 lookupModule opts m = findFileWithSuffix (moduleNameToPath m)
-                      [".curry", ".lcurry", ".tafcy"]
+                      [".curry", ".lcurry", ".afcy"]
                       (map dropTrailingPathSeparator importPaths)
   where importPaths = "." : optImportPaths opts
 
@@ -187,7 +187,7 @@ parseCurryWithOptions opts modname options = do
     where importPaths = "." : optImportPaths opts
 
 isAnnotatedFlatCurryFile :: FilePath -> Bool
-isAnnotatedFlatCurryFile fn = takeExtension fn == ".tafcy"
+isAnnotatedFlatCurryFile fn = takeExtension fn == ".afcy"
 
 filterMissing :: SourceEnv -> ([(ModuleIdent, Source)], Errors)
 filterMissing env = (map (\(a, b) -> (a, fromJust b)) present, errs) where
