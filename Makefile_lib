@@ -64,11 +64,12 @@ CURRYDOC := $(shell which curry-doc)
 .PHONY: install
 install: tfcy acy hs hstrace $(ALLLIBS).curry
 	$(MAKE) $(CABAL_FILE)
-	$(CABAL_INSTALL) $(CABAL_PROFILE)
-	rm -f $(CABAL_FILE)
-	$(MAKE) $(CABAL_TRACE_FILE)
-	$(CABAL_INSTALL) $(CABAL_PROFILE)
-	rm -f $(CABAL_TRACE_FILE)
+	# TODO: Readd
+	# $(CABAL_INSTALL) $(CABAL_PROFILE)
+	# rm -f $(CABAL_FILE)
+	# $(MAKE) $(CABAL_TRACE_FILE)
+	# $(CABAL_INSTALL) $(CABAL_PROFILE)
+	# rm -f $(CABAL_TRACE_FILE)
 
 # create a program importing all libraries in order to re-compile them
 # so that all auxiliary files (.nda, .hs, ...) are up-to-date
