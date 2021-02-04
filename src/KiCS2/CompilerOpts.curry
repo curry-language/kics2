@@ -16,7 +16,7 @@ import System.IO             (hPutStrLn, stderr)
 import System.Process        (exitWith)
 import System.Environment    (getArgs, getProgName)
 
-import Installation (compilerName, majorVersion, minorVersion, compilerDate)
+import Installation (compilerName, majorVersion, minorVersion, fullVersion, compilerDate)
 
 --- Version string
 version :: String
@@ -52,7 +52,7 @@ defaultOptions = Opts
   , optMainVerbosity = VerbStatus
   , optForce         = False
   , optImportPaths   = []
-  , optOutputSubdir  = ".curry" </> "kics2"
+  , optOutputSubdir  = ".curry" </> ("kics2-" ++ fullVersion)
   , optOptimization  = OptimStrictSupply
   , optExtensions    = []
   , optDump          = []

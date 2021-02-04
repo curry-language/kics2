@@ -22,7 +22,7 @@ prefix     = $(patsubst ./%,%,$(dir $(2))$(1)$(notdir $(2)))
 comma_sep  = $(subst $(space),$(comma)$(space),$(1))
 
 MODULE_FOLDERS:=$(shell find * -type d)
-TRACE_FOLDERS  =$(addprefix .curry/kics2/,$(MODULE_FOLDERS))
+TRACE_FOLDERS  =$(addprefix .curry/kics2-$(VERSION)/,$(MODULE_FOLDERS))
 CURRY_FILES   :=$(shell find * -name "*.curry")
 
 # Curry library files
@@ -34,8 +34,8 @@ LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
 LIB_TAFCY    = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.tafcy), $(lib))
 LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.acy), $(lib))
-LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2/$(call prefix,Curry_,$(lib)))
-LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2/$(call prefix,Curry_Trace_,$(lib)))
+LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_,$(lib)))
+LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_Trace_,$(lib)))
 LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIBDOCDIR)/$(subst /,.,$(lib)))
 LIB_TEX      = $(foreach lib, $(LIB_CURRY:.curry=.tex),  $(TEXDOCDIR)/$(subst /,.,$(lib)))
 HS_LIB_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
@@ -89,7 +89,7 @@ unregister:
 # clean Haskell intermediate files
 .PHONY:
 clean:
-	-cd .curry/kics2      && rm -f *.hi *.o
+	-cd .curry/kics2-$(VERSION) && rm -f *.hi *.o
 
 # clean all generated files
 .PHONY: cleanall
@@ -123,7 +123,7 @@ $(CABAL_FILE): ../Makefile Makefile
 	echo "    Build-Depends: unix"                               >> $@
 	# echo "  Exposed-modules: $(HS_LIB_NAMES)"                    >> $@
 	echo "  Exposed-modules: Curry_Prelude"                      >> $@
-	echo "  hs-source-dirs: ./.curry/kics2"                      >> $@
+	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
 $(CABAL_TRACE_FILE): ../Makefile Makefile
 	echo "Name:           $(PACKAGE_TRACE)"                          > $@
@@ -144,14 +144,14 @@ $(CABAL_TRACE_FILE): ../Makefile Makefile
 	echo "  else"                                                   >> $@
 	echo "    Build-Depends: unix"                                  >> $@
 	echo "  Exposed-modules: $(HS_LIB_TRACE_NAMES)"                 >> $@
-	echo "  hs-source-dirs: ./.curry/kics2"                         >> $@
+	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 # generate the compiled Haskell target files of all libraries:
 .NOTPARALLEL: hs
 .PHONY: hs
 # TODO: Build all modules again
-# hs: $(LIB_HS) # .curry/kics2/Curry_$(ALLLIBS).hs
-hs: .curry/kics2/Curry_Prelude.hs
+# hs: $(LIB_HS) # .curry/kics2-$(VERSION)/Curry_$(ALLLIBS).hs
+hs: .curry/kics2-$(VERSION)/Curry_Prelude.hs
 
 # generate the compiled Haskell target files with tracing of all libraries:
 .NOTPARALLEL: hstrace
@@ -159,9 +159,9 @@ hs: .curry/kics2/Curry_Prelude.hs
 hstrace: $(LIB_HS_TRACE)
 
 define TRACERULE
-$(dir .curry/kics2/$1)Curry_$(notdir $1).hs: $1.curry
+$(dir .curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $1.curry
 	$$(COMP) -v0 -i. $$(subst /,.,$$<)
-$(dir .curry/kics2/$1)Curry_Trace_$(notdir $1).hs: $1.curry
+$(dir .curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $1.curry
 	$$(COMP) -v0 -i. --trace-failure $$(subst /,.,$$<)
 endef
 

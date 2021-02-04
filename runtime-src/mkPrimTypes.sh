@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SRC=PrimTypes.curry
-DEST=./.curry/kics2/Curry_PrimTypes.hs
+DEST=./.curry/kics2/Curry_PrimTypes.hs # FIXME: Use versioned kics2 folder
 
 function replace ()
 {

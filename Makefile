@@ -194,6 +194,9 @@ $(INSTALLCURRY):
 	@echo 'revisionVersion :: Int' >> $@
 	@echo 'revisionVersion = $(REVISIONVERSION)' >> $@
 	@echo "" >> $@
+	@echo 'fullVersion :: String' >> $@
+	@echo 'fullVersion = "$(VERSION)"' >> $@
+	@echo "" >> $@
 	@echo 'buildVersion :: Int' >> $@
 	@echo 'buildVersion = $(BUILDVERSION)' >> $@
 	@echo "" >> $@
