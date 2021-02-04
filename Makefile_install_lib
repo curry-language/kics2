@@ -8,17 +8,10 @@ GHC_FILES      :=$(shell cd $(CURRYLIBSSRCDIR) && find * -name "*.kics2")
 GHC_CURRY_FILES:=$(addsuffix .curry, $(basename $(GHC_FILES)))
 CURRYONLY_FILES =$(filter-out $(GHC_CURRY_FILES), $(CURRY_FILES))
 
-# get all library files from standard makefile:
-LIB_CURRY = `cd $(CURRYLIBSSRCDIR) && $(MAKE) --no-print-directory --quiet -f Makefile_lib allsources`
-# name of this makefile:
-CURRENT_MAKEFILE = $(firstword $(MAKEFILE_LIST))
-
 ##########################################################################
 # Install the library sources into the Curry system library directory:
 .PHONY: install
-install:
-	mkdir -p $(LIBDIR)
-	cd $(LIBDIR) && $(MAKE) -f $(CURRENT_MAKEFILE) $(MODULE_FOLDERS) $(CURRYONLY_FILES) $(GHC_CURRY_FILES) $(LIBDIR)/Makefile $(LIBDIR)/VERSION
+install: $(MODULE_FOLDERS) $(CURRYONLY_FILES) $(GHC_CURRY_FILES) $(LIBDIR)/Makefile $(LIBDIR)/VERSION $(LIBDIR)/kics2-libraries.cabal
 
 $(MODULE_FOLDERS): %: $(CURRYLIBSSRCDIR)/%
 	mkdir -p $@
@@ -37,3 +30,24 @@ $(LIBDIR)/Makefile: $(ROOT)/Makefile_lib
 
 $(LIBDIR)/VERSION: $(CURRYLIBSDIR)/VERSION
 	cp $< $@
+
+# Generates the Cabal file for the libraries
+# TODO: Update to build the entiry lib, instead of just the Prelude
+$(LIBDIR)/kics2-libraries.cabal:
+	@echo "Name:           kics2-libraries"                                        > $@
+	@echo "Version:        $(VERSION)"                                            >> $@
+	@echo "Description:    The standard libraries for KiCS2"                      >> $@
+	@echo "License:        OtherLicense"                                          >> $@
+	@echo "Author:         The KiCS2 Team"                                        >> $@
+	@echo "Maintainer:     kics2@curry-lang.org"                                  >> $@
+	@echo "Build-Type:     Simple"                                                >> $@
+	@echo "Cabal-Version:  >= 1.9.2"                                              >> $@
+	@echo ""                                                                      >> $@
+	@echo "Library"                                                               >> $@
+	@echo "  Build-Depends: kics2-runtime,$(subst $(SPACE),$(COMMA),$(LIBDEPS))"  >> $@
+	@echo "  if os(windows)"                                                      >> $@
+	@echo "    Build-Depends: Win32"                                              >> $@
+	@echo "  else"                                                                >> $@
+	@echo "    Build-Depends: unix"                                               >> $@
+	@echo "  Exposed-modules: Curry_Prelude"                                      >> $@
+	@echo "  hs-source-dirs: ./.curry/kics2"                                      >> $@
