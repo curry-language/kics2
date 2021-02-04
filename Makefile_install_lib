@@ -1,0 +1,46 @@
+# directory containing the repository library files:
+ifndef CURRYLIBSDIR
+CURRYLIBSDIR=$(ROOT)/lib-trunk
+endif
+
+MODULE_FOLDERS :=$(shell cd $(CURRYLIBSDIR) && find * -type d)
+CURRY_FILES    :=$(shell cd $(CURRYLIBSDIR) && find * -name "*.curry")
+GHC_FILES      :=$(shell cd $(CURRYLIBSDIR) && find * -name "*.kics2")
+GHC_CURRY_FILES:=$(addsuffix .curry, $(basename $(GHC_FILES)))
+CURRYONLY_FILES =$(filter-out $(GHC_CURRY_FILES), $(CURRY_FILES))
+
+# get all library files from standard makefile:
+LIB_CURRY = `cd $(CURRYLIBSDIR) && $(MAKE) --no-print-directory --quiet -f Makefile_lib allsources`
+# name of this makefile:
+CURRENT_MAKEFILE = $(firstword $(MAKEFILE_LIST))
+
+##########################################################################
+# Install the library sources into the Curry system library directory:
+.PHONY: install
+install:
+	mkdir -p $(LIBDIR)
+	cd $(LIBDIR) && $(MAKE) -f $(CURRENT_MAKEFILE) $(MODULE_FOLDERS) $(CURRYONLY_FILES) $(GHC_CURRY_FILES) $(LIBDIR)/Makefile $(LIBDIR)/VERSION $(LIBDIR)/test.sh
+
+$(MODULE_FOLDERS): %: $(CURRYLIBSDIR)/%
+	mkdir -p $@
+
+$(CURRYONLY_FILES): %.curry: $(CURRYLIBSDIR)/%.curry
+	cp $< $@
+
+$(GHC_FILES): %.kics2: $(CURRYLIBSDIR)/%.kics2
+	cp $< $@
+
+$(GHC_CURRY_FILES): %.curry: $(CURRYLIBSDIR)/%.curry %.kics2
+	cp $< $@
+
+$(LIBDIR)/Makefile: $(ROOT)/Makefile_lib
+	cp $< $@
+
+$(LIBDIR)/VERSION: $(CURRYLIBSDIR)/VERSION
+	cp $< $@
+
+$(LIBDIR)/test.sh: $(CURRYLIBSDIR)/test.sh
+	cp $< $@
+
+index.html: $(CURRYLIBSDIR)/index.html.$(CURRYSYSTEM)
+	 cp $< $@

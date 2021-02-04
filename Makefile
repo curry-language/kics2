@@ -64,8 +64,6 @@ REPL = $(BINDIR)/kics2i
 # The compiler binary ('kics2c')
 COMP = $(BINDIR)/kics2c
 
-# The Curry system name
-export CURRYSYSTEM = kics2
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION  = $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
 MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
@@ -157,7 +155,7 @@ libraries: $(LIBDIR) $(LIBDIR)/kics2-libraries.cabal
 $(LIBDIR): $(LIBSRCDIR)
 	@echo "$(HIGHLIGHT) >> Copying KiCS2 standard libraries $(NORMAL)"
 	rm -rf $(LIBDIR)
-	cd $(LIBSRCDIR) && $(MAKE) -f Makefile_$(CURRYSYSTEM)_install
+	cd $(LIBSRCDIR) && $(MAKE) -f $(ROOT)/Makefile_install_lib
 
 # Creates a directory for the target binaries ('bin')
 $(BINDIR):
