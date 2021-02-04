@@ -32,7 +32,7 @@ LIB_NAMES     = $(subst /,., $(basename $(LIB_CURRY)))
 # lib names included in library documentation page (without directory prefix)
 LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
-LIB_TFCY     = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.tfcy), $(lib))
+LIB_TAFCY    = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.tafcy), $(lib))
 LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.acy), $(lib))
 LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2/$(call prefix,Curry_,$(lib)))
 LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2/$(call prefix,Curry_Trace_,$(lib)))
@@ -62,7 +62,7 @@ CURRYDOC := $(shell which curry-doc)
 ########################################################################
 
 .PHONY: install
-install: tfcy acy hs $(ALLLIBS).curry # hstrace
+install: tafcy acy hs $(ALLLIBS).curry # hstrace
 	$(MAKE) $(CABAL_FILE)
 	# TODO: Readd
 	# $(CABAL_INSTALL) $(CABAL_PROFILE)
@@ -168,13 +168,13 @@ endef
 $(foreach module, $(basename $(LIB_CURRY)),$(eval $(call TRACERULE,$(module))))
 
 # generate the typed FlatCurry files of all libraries:
-.NOTPARALLEL: tfcy
-.PHONY: tfcy
-tfcy: $(LIB_TFCY)
+.NOTPARALLEL: tafcy
+.PHONY: tafcy
+tafcy: $(LIB_TAFCY)
 
 # generate FlatCurry file in subdirectory .curry:
-.curry/%.tfcy: %.curry
-	"$(FRONTEND)" --typed-flat $(FRONTENDPARAMS) $(subst /,.,$*)
+.curry/%.tafcy: %.curry
+	"$(FRONTEND)" --type-annotated-flat $(FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate the AbstractCurry files of all libraries:
 .PHONY: acy
