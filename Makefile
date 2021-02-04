@@ -149,7 +149,7 @@ runtime:
 
 # Compiles the library package to Haskell for inclusion at runtime
 .PHONY: libraries
-libraries: $(LIBDIR)
+libraries: $(LIBDIR) $(COMP)
 	@echo "$(HIGHLIGHT) >> Copying KiCS2 standard libraries $(NORMAL)"
 	@cd $(LIBDIR) && $(MAKE) -f $(ROOT)/Makefile_install_lib
 
