@@ -1,16 +1,15 @@
 # directory containing the repository library files:
-ifndef CURRYLIBSDIR
 CURRYLIBSDIR=$(ROOT)/lib-trunk
-endif
+CURRYLIBSSRCDIR=$(CURRYLIBSDIR)/src
 
-MODULE_FOLDERS :=$(shell cd $(CURRYLIBSDIR) && find * -type d)
-CURRY_FILES    :=$(shell cd $(CURRYLIBSDIR) && find * -name "*.curry")
-GHC_FILES      :=$(shell cd $(CURRYLIBSDIR) && find * -name "*.kics2")
+MODULE_FOLDERS :=$(shell cd $(CURRYLIBSSRCDIR) && find * -type d)
+CURRY_FILES    :=$(shell cd $(CURRYLIBSSRCDIR) && find * -name "*.curry")
+GHC_FILES      :=$(shell cd $(CURRYLIBSSRCDIR) && find * -name "*.kics2")
 GHC_CURRY_FILES:=$(addsuffix .curry, $(basename $(GHC_FILES)))
 CURRYONLY_FILES =$(filter-out $(GHC_CURRY_FILES), $(CURRY_FILES))
 
 # get all library files from standard makefile:
-LIB_CURRY = `cd $(CURRYLIBSDIR) && $(MAKE) --no-print-directory --quiet -f Makefile_lib allsources`
+LIB_CURRY = `cd $(CURRYLIBSSRCDIR) && $(MAKE) --no-print-directory --quiet -f Makefile_lib allsources`
 # name of this makefile:
 CURRENT_MAKEFILE = $(firstword $(MAKEFILE_LIST))
 
@@ -19,18 +18,18 @@ CURRENT_MAKEFILE = $(firstword $(MAKEFILE_LIST))
 .PHONY: install
 install:
 	mkdir -p $(LIBDIR)
-	cd $(LIBDIR) && $(MAKE) -f $(CURRENT_MAKEFILE) $(MODULE_FOLDERS) $(CURRYONLY_FILES) $(GHC_CURRY_FILES) $(LIBDIR)/Makefile $(LIBDIR)/VERSION $(LIBDIR)/test.sh
+	cd $(LIBDIR) && $(MAKE) -f $(CURRENT_MAKEFILE) $(MODULE_FOLDERS) $(CURRYONLY_FILES) $(GHC_CURRY_FILES) $(LIBDIR)/Makefile $(LIBDIR)/VERSION
 
-$(MODULE_FOLDERS): %: $(CURRYLIBSDIR)/%
+$(MODULE_FOLDERS): %: $(CURRYLIBSSRCDIR)/%
 	mkdir -p $@
 
-$(CURRYONLY_FILES): %.curry: $(CURRYLIBSDIR)/%.curry
+$(CURRYONLY_FILES): %.curry: $(CURRYLIBSSRCDIR)/%.curry
 	cp $< $@
 
-$(GHC_FILES): %.kics2: $(CURRYLIBSDIR)/%.kics2
+$(GHC_FILES): %.kics2: $(CURRYLIBSSRCDIR)/%.kics2
 	cp $< $@
 
-$(GHC_CURRY_FILES): %.curry: $(CURRYLIBSDIR)/%.curry %.kics2
+$(GHC_CURRY_FILES): %.curry: $(CURRYLIBSSRCDIR)/%.curry %.kics2
 	cp $< $@
 
 $(LIBDIR)/Makefile: $(ROOT)/Makefile_lib
@@ -38,9 +37,3 @@ $(LIBDIR)/Makefile: $(ROOT)/Makefile_lib
 
 $(LIBDIR)/VERSION: $(CURRYLIBSDIR)/VERSION
 	cp $< $@
-
-$(LIBDIR)/test.sh: $(CURRYLIBSDIR)/test.sh
-	cp $< $@
-
-index.html: $(CURRYLIBSDIR)/index.html.$(CURRYSYSTEM)
-	 cp $< $@
