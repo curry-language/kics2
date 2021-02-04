@@ -28,6 +28,8 @@ import Numeric            ( readNat )
 import ReadShowTerm       ( readsTerm )
 
 import qualified Installation as Inst
+import KiCS2.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
+                          , sysLibPath )
 import KiCS2.Files        ( removeFileIfExists )
 import KiCS2.GhciComm     ( stopGhciComm )
 import KiCS2.Names        ( funcInfoFile, moduleNameToPath )
@@ -35,8 +37,6 @@ import KiCS2.RCFile
 import KiCS2.Utils        ( showMonoTypeExpr, showMonoQualTypeExpr
                           , notNull, strip )
 
-import System.CurryPath   ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
-                          , sysLibPath )
 import System.FrontendExec
 
 import KiCS2.Linker

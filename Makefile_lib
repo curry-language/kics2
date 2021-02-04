@@ -160,9 +160,9 @@ hstrace: $(LIB_HS_TRACE)
 
 define TRACERULE
 $(dir .curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $1.curry
-	$$(COMP) -v0 -i. $$(subst /,.,$$<)
+	$$(COMP) -v4 -i. $$(subst /,.,$$<)
 $(dir .curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $1.curry
-	$$(COMP) -v0 -i. --trace-failure $$(subst /,.,$$<)
+	$$(COMP) -v4 -i. --trace-failure $$(subst /,.,$$<)
 endef
 
 $(foreach module, $(basename $(LIB_CURRY)),$(eval $(call TRACERULE,$(module))))

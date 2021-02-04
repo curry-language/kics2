@@ -17,9 +17,6 @@ import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
 import System.IOExts               ( readCompleteFile )
 import System.Environment          ( getArgs )
 
-import System.CurryPath            ( getLoadPathForModule, stripCurrySuffix
-                                   , lookupModuleSourceInLoadPath
-                                   )
 import FlatCurry.Types
 import FlatCurry.Goodies           ( updQNamesInProg )
 import FlatCurry.Annotated.Types
@@ -34,6 +31,9 @@ import KiCS2.Analysis              ( AnalysisResult, showAnalysisResult
                                    , readAnalysisResult
                                    )
 import KiCS2.CompilerOpts
+import KiCS2.CurryPath             ( getLoadPathForModule, stripCurrySuffix
+                                   , lookupModuleSourceInLoadPath
+                                   )
 import KiCS2.RCFile
 import KiCS2.Files                 ( withBaseName, withDirectory, withExtension
                                    , writeFileInDir, writeQTermFileInDir

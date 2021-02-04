@@ -26,7 +26,6 @@ import System.FilePath             ( FilePath, dropExtension, takeExtension
 import System.Directory            ( doesFileExist, getModificationTime
                                    , findFileWithSuffix, getFileWithSuffix
                                    )
-import System.CurryPath            ( inCurrySubdirModule, stripCurrySuffix )
 import System.FrontendExec         ( defaultParams, setDefinitions, setOutDir
                                    , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
@@ -37,6 +36,7 @@ import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName
                                    )
 
 import KiCS2.CompilerOpts
+import KiCS2.CurryPath             ( inCurrySubdirModule, stripCurrySuffix )
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
 import KiCS2.RCFile                ( rcValue )
