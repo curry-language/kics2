@@ -2,7 +2,7 @@
 # in particular, to generate the documentation
 
 # Set the __KICS2__ flag for the Prelude (to some dummy value)
-FRONTENDPARAMS = --extended -Wnone -i. -D "__KICS2__=0"
+FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS2__=0"
 
 KICS2=$(ROOT)/bin/kics2
 
