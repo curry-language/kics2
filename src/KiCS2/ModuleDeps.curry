@@ -26,7 +26,7 @@ import System.FilePath             ( FilePath, dropExtension, takeExtension
 import System.Directory            ( doesFileExist, getModificationTime
                                    , findFileWithSuffix, getFileWithSuffix
                                    )
-import System.FrontendExec         ( defaultParams, setDefinitions, setOutDir
+import System.FrontendExec          ( defaultParams, setDefinitions, setOutDir
                                    , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )

@@ -21,6 +21,12 @@ module System.FrontendExec
   , callFrontend, callFrontendWithParams
   ) where
 
+-- This intentionally uses the runtime compiler's distribution
+-- rather than the KiCS2's Installation module, since this
+-- dependency is intended to be upstreamed again in the future
+-- and specifics are ideally to be configurable through options
+-- (e.g. the outdir):
+
 import Curry.Compiler.Distribution 
                           ( curryCompiler, curryCompilerMajorVersion
                           , curryCompilerMinorVersion, installDir
@@ -40,7 +46,7 @@ import System.CurryPath   ( curryrcFileName, currySubdir, getLoadPathForModule )
 --- by the front end of the Curry compiler.
 --- @cons FCY   - FlatCurry file ending with .fcy
 --- @cons TFCY  - Typed FlatCurry file ending with .tfcy
---- @cons TAFCY - Type Annotated FlatCurry file ending with .tafcy
+--- @cons TAFCY - Type Annotated FlatCurry file ending with .afcy
 --- @cons FINT  - FlatCurry interface file ending with .fint
 --- @cons ACY   - AbstractCurry file ending with .acy
 --- @cons UACY  - Untyped (without type checking) AbstractCurry file ending with .uacy

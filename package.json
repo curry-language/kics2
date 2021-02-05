@@ -15,7 +15,7 @@
         "distribution"        : ">= 3.0.0, < 4.0.0",
         "filepath"            : ">= 3.0.0, < 4.0.0",
         "flatcurry"           : ">= 3.0.0, < 4.0.0",
-        "flatcurry-annotated" : ">= 3.0.0, < 4.0.0",
+        "flatcurry-annotated" : ">= 3.3.0, < 4.0.0",
         "io-extra"            : ">= 3.0.0, < 4.0.0",
         "scc"                 : ">= 3.0.0, < 4.0.0",
         "process"             : ">= 3.0.0, < 4.0.0",
