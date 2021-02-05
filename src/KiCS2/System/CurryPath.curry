@@ -10,7 +10,7 @@
 --- @version December 2020
 ------------------------------------------------------------------------------
 
-module KiCS2.CurryPath
+module KiCS2.System.CurryPath
   ( ModuleIdent
   , splitProgramName, splitValidProgramName, isValidModuleName
   , runModuleAction

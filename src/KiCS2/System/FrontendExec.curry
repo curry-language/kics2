@@ -1,6 +1,3 @@
--- TODO: Use 'frontend-exec' dependency again once !3 is merged
--- See https://git.ps.informatik.uni-kiel.de/curry-packages/frontend-exec/-/merge_requests/3
-
 ------------------------------------------------------------------------------
 --- This module contains operations to execute the front end of the
 --- Curry system.
@@ -10,7 +7,7 @@
 ------------------------------------------------------------------------------
 {-# LANGUAGE CPP #-}
 
-module System.FrontendExec
+module KiCS2.System.FrontendExec
   (FrontendTarget(..)
 
   , FrontendParams(..), defaultParams, rcParams
@@ -21,22 +18,15 @@ module System.FrontendExec
   , callFrontend, callFrontendWithParams
   ) where
 
--- This intentionally uses the runtime compiler's distribution
--- rather than the KiCS2's Installation module, since this
--- dependency is intended to be upstreamed again in the future
--- and specifics are ideally to be configurable through options
--- (e.g. the outdir):
-
-import Curry.Compiler.Distribution 
-                          ( curryCompiler, curryCompilerMajorVersion
-                          , curryCompilerMinorVersion, installDir
-                          )
-import Data.Char          ( toUpper )
-import Data.List          ( intercalate, nub )
-import Data.PropertyFile  ( getPropertiesFromFile )
-import System.FilePath    ( FilePath, (</>), takeDirectory, takeFileName )
-import System.Process     ( system )
-import System.CurryPath   ( curryrcFileName, currySubdir, getLoadPathForModule )
+import Installation             ( compilerName, majorVersion
+                                , minorVersion, installDir
+                                )
+import Data.Char                ( toUpper )
+import Data.List                ( intercalate, nub )
+import Data.PropertyFile        ( getPropertiesFromFile )
+import System.FilePath          ( FilePath, (</>), takeDirectory, takeFileName )
+import System.Process           ( system )
+import KiCS2.System.CurryPath   ( curryrcFileName, currySubdir, getLoadPathForModule )
 
 -------------------------------------------------------------------
 -- calling the front end
@@ -95,11 +85,11 @@ defaultParams =
     , logfile      = Nothing
     , targets      = []
     , specials     = ""
-    , frontendPath = installDir </> "bin" </> curryCompiler ++ "-frontend"
+    , frontendPath = installDir </> "bin" </> compilerName ++ "-frontend"
     }
  where
-  defaultDefs = [("__" ++ map toUpper curryCompiler ++ "__",
-                  curryCompilerMajorVersion * 100 + curryCompilerMinorVersion)]
+  defaultDefs = [("__" ++ map toUpper compilerName ++ "__",
+                  majorVersion * 100 + minorVersion)]
 
 --- The default parameters of the front end as configured by the compiler
 --- specific resource configuration file.

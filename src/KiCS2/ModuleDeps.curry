@@ -26,7 +26,8 @@ import System.FilePath             ( FilePath, dropExtension, takeExtension
 import System.Directory            ( doesFileExist, getModificationTime
                                    , findFileWithSuffix, getFileWithSuffix
                                    )
-import System.FrontendExec          ( defaultParams, setDefinitions, setOutDir
+import KiCS2.System.CurryPath      ( currySubdir )
+import KiCS2.System.FrontendExec   ( defaultParams, setDefinitions, setOutDir
                                    , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )
@@ -36,7 +37,7 @@ import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName
                                    )
 
 import KiCS2.CompilerOpts
-import KiCS2.CurryPath             ( inCurrySubdirModule, stripCurrySuffix )
+import KiCS2.System.CurryPath      ( inCurrySubdirModule, stripCurrySuffix )
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
 import KiCS2.RCFile                ( rcValue )
@@ -166,7 +167,7 @@ getAfcyFileName opts mn fn
                    $ setFullPath     importPaths
                    $ setQuiet        (optVerbosity opts == VerbQuiet)
                    $ setSpecials     (optParser opts)
-                   $ setOutDir       (".curry" </> compilerName ++ "-" ++ fullVersion)
+                   $ setOutDir       currySubdir
                    $ setFrontendPath (installDir </> "bin" </> "kics2-frontend")
                    defaultParams
        return afcyname

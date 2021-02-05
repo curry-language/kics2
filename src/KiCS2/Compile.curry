@@ -31,7 +31,7 @@ import KiCS2.Analysis              ( AnalysisResult, showAnalysisResult
                                    , readAnalysisResult
                                    )
 import KiCS2.CompilerOpts
-import KiCS2.CurryPath             ( getLoadPathForModule, stripCurrySuffix
+import KiCS2.System.CurryPath      ( getLoadPathForModule, stripCurrySuffix
                                    , lookupModuleSourceInLoadPath
                                    )
 import KiCS2.RCFile
