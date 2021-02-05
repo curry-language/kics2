@@ -20,8 +20,8 @@ import System.Environment          ( getArgs )
 import FlatCurry.Types
 import FlatCurry.Goodies           ( updQNamesInProg )
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName )
 import FlatCurry.Annotated.Goodies ( unAnnProg )
+import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)

@@ -33,8 +33,7 @@ import KiCS2.System.FrontendExec   ( defaultParams, setDefinitions, setOutDir
                                    , FrontendTarget(..), FrontendParams )
 
 import FlatCurry.Annotated.Types
-import FlatCurry.Annotated.Files   ( annotatedFlatCurryFileName
-                                   )
+import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import KiCS2.CompilerOpts
 import KiCS2.System.CurryPath      ( inCurrySubdirModule, stripCurrySuffix )
