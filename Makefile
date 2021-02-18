@@ -53,6 +53,8 @@ RUNTIMEDIR = $(ROOT)/runtime
 SRCDIR = $(ROOT)/src
 # The (generated) Installation.curry module
 INSTALLCURRY = $(SRCDIR)/Installation.curry
+# The directory containing utility programs
+UTILSDIR = $(ROOT)/utils
 # The directory containing the built libraries
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
@@ -63,6 +65,8 @@ export FRONTEND = $(BINDIR)/kics2-frontend
 export REPL = $(BINDIR)/kics2i
 # The compiler binary ('kics2c')
 export COMP = $(BINDIR)/kics2c
+# The cleancurry binary
+export CLEANCURRY = $(BINDIR)/cleancurry
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION  = $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -102,6 +106,7 @@ all: $(REPL)
 clean:
 	cd $(RUNTIMEDIR) && $(MAKE) clean
 	cd $(SCRIPTSDIR) && $(MAKE) cleanall
+	cd $(UTILSDIR) && $(MAKE) cleanall
 	rm $(INSTALLCURRY)
 	rm -rf $(BINDIR) \
 	       $(LIBDIR) \
@@ -110,7 +115,7 @@ clean:
 	       $(SRCDIR)/.curry
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) dependencies | frontend runtime scripts libraries $(COMP) $(BINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) dependencies | frontend runtime scripts libraries $(CLEANCURRY) $(COMP) $(BINDIR)
 	@echo "$(HIGHLIGHT) >> Building KiCS2 REPL $(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
@@ -120,6 +125,10 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") dependencies | frontend r
 	@echo "$(HIGHLIGHT) >> Building KiCS2 compiler $(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
+
+# Builds and copies the 'cleancurry' executable
+$(CLEANCURRY): utils
+	@cp $(ROOT)/utils/cleancurry $(CLEANCURRY)
 
 # Updates the CPM index and installs dependencies
 .PHONY: dependencies
@@ -155,6 +164,12 @@ libraries: $(LIBDIR) $(COMP)
 
 	@echo "$(HIGHLIGHT) >> Building KiCS2 standard libraries $(NORMAL)"
 	@cd $(LIBDIR) && $(MAKE)
+
+# Builds the utility programs
+.PHONY: utils
+utils: 
+	@echo "$(HIGHLIGHT) >> Building utilities $(NORMAL)"
+	@cd $(UTILSDIR) && $(MAKE)
 
 # Creates a directory for the compiled libraries
 $(LIBDIR):
