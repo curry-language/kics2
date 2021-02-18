@@ -27,8 +27,14 @@
         "transformers"        : ">= 3.0.0, < 4.0.0",
         "wl-pprint"           : ">= 3.0.0, < 4.0.0"
     },
-    "executable": {
-        "name": "kics2c",
-        "main": "KiCS2.Compile"
-    }
+    "executables": [
+        {
+            "name": "kics2c",
+            "main": "KiCS2.Compile"
+        },
+        {
+            "name": "kics2i",
+            "main": "KiCS2.REPL"
+        }
+    ]
 }
