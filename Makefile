@@ -53,6 +53,8 @@ RUNTIMEDIR = $(ROOT)/runtime
 SRCDIR = $(ROOT)/src
 # The (generated) Installation.curry module
 INSTALLCURRY = $(SRCDIR)/Installation.curry
+# The KiCS2 package manifest
+PACKAGEJSON = $(ROOT)/package.json
 # The directory containing utility programs
 UTILSDIR = $(ROOT)/utils
 # The directory containing the built libraries
@@ -115,13 +117,13 @@ clean:
 	       $(SRCDIR)/.curry
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) dependencies | frontend runtime scripts libraries $(CLEANCURRY) $(COMP) $(BINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | dependencies frontend runtime scripts libraries $(CLEANCURRY) $(COMP) $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") dependencies | frontend runtime scripts libraries $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | dependencies frontend runtime scripts libraries $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
