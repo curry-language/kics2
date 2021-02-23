@@ -194,8 +194,8 @@ mod2 (I _) = Pos IHi
 --- quotient and remainder
 quotRemNat :: Nat -> Nat -> (BinInt, BinInt)
 quotRemNat x y
-  | y == IHi  = (Pos x, Zero   ) -- quotRemNat x 1 = (x, 0)
-  | x == IHi  = (Zero , Pos IHi) -- quotRemNat 1 y = (0, 1)
+  | cmpNat y IHi == EQ = (Pos x, Zero   ) -- quotRemNat x 1 = (x, 0)
+  | cmpNat x IHi == EQ = (Zero , Pos IHi) -- quotRemNat 1 y = (0, 1)
   | otherwise = case cmpNat x y of
       EQ -> (Pos IHi, Zero )   -- x = y : quotRemNat x y = (1, 0)
       LT -> (Zero   , Pos x)   -- x < y : quotRemNat x y = (0, x)
