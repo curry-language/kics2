@@ -130,6 +130,14 @@ cmpNat (I x) (O y) = case cmpNat x y of
   cmpxy -> cmpxy
 cmpNat (I x) (I y) = cmpNat x y
 
+--- equality, O(min (m, n))
+eqNat :: Nat -> Nat -> Bool
+eqNat m n = case (m, n) of
+  (IHi, IHi) -> True
+  (I x, I y) -> eqNat x y
+  (O x, O y) -> eqNat x y
+  _          -> False
+
 --- successor, O(n)
 succ :: Nat -> Nat
 succ IHi    = O IHi        -- 1       + 1 = 2
@@ -194,8 +202,8 @@ mod2 (I _) = Pos IHi
 --- quotient and remainder
 quotRemNat :: Nat -> Nat -> (BinInt, BinInt)
 quotRemNat x y
-  | cmpNat y IHi == EQ = (Pos x, Zero   ) -- quotRemNat x 1 = (x, 0)
-  | cmpNat x IHi == EQ = (Zero , Pos IHi) -- quotRemNat 1 y = (0, 1)
+  | eqNat y IHi = (Pos x, Zero   ) -- quotRemNat x 1 = (x, 0)
+  | eqNat x IHi = (Zero , Pos IHi) -- quotRemNat 1 y = (0, 1)
   | otherwise = case cmpNat x y of
       EQ -> (Pos IHi, Zero )   -- x = y : quotRemNat x y = (1, 0)
       LT -> (Zero   , Pos x)   -- x < y : quotRemNat x y = (0, x)
