@@ -11,7 +11,7 @@ import AbstractCurry.Types hiding (preludeName)
 import AbstractCurry.Files
 import AbstractCurry.Select
 import Control.Applicative       ( when )
-import Control.Monad             ( foldM )
+import Control.Monad             ( foldM, void, unless )
 import Language.Curry.Distribution ( baseVersion, installDir )
 import System.Directory
 import System.FilePath           ( (</>), (<.>)
@@ -279,7 +279,7 @@ writeMainGoalFile rst imports mtype goal = writeFile mainGoalFile $
 
 -- Remove mainGoalFile and auxiliaries
 cleanMainGoalFile :: ReplState -> IO ()
-cleanMainGoalFile rst = when (not keepfiles) $ do -- TODO/STYLE: unless
+cleanMainGoalFile rst = unless keepfiles $ do
   system $ Inst.installDir </>  "bin" </> "cleancurry " ++ mainGoalFile
   removeFileIfExists mainGoalFile
  where keepfiles = rcValue (rcvars rst) "keepfiles" == "yes"
@@ -476,7 +476,7 @@ makeMainGoalMonomorphic' rst qty@(CQualType _ ty) goal
       writeErrorMsg "cannot handle arbitrary overloaded top-level expressions"
       return False
   | otherwise = do
-    when (newgoal /= goal) $ writeSimpleMainGoalFile rst newgoal -- TODO/STYLE: unless
+    unless (newgoal == goal) $ writeSimpleMainGoalFile rst newgoal
     return True
  where newgoal = if isIOReturnType ty
                  then '(' : goal ++ ") Prelude.>>= Prelude.print"
@@ -553,7 +553,7 @@ execMain rst _ mainexp = do -- _ was cmpstatus
   writeVerboseInfo rst 1 $ "Evaluating expression: " ++ strip mainexp
   writeVerboseInfo rst 3 $ "Executing: " ++ timecmd
   cmdstatus <- system timecmd
-  when (cmdstatus /= 0) $ -- TODO/STYLE: unless
+  unless (cmdstatus == 0) $
     putStrLn ("Evaluation terminated with non-zero status " ++ show cmdstatus)
   return (setExitStatus cmdstatus rst)
 
@@ -802,7 +802,7 @@ processSave rst args
   | otherwise = do
     (rst', status) <- compileProgramWithGoal rst True
                       (if null args then "main" else args)
-    when (status /= MainError) $ do -- TODO/STYLE: unless
+    unless (status == MainError) $ do
       renameFile ("." </> outputSubdir rst' </> "Main") (mainMod rst')
       writeVerboseInfo rst' 1 ("Executable saved in '" ++ mainMod rst' ++ "'")
     cleanMainGoalFile rst'
@@ -814,14 +814,13 @@ processFork rst args
   | otherwise = do
     (rst', status) <- compileProgramWithGoal rst True
                       (if null args then "main" else args)
-    when (status /= MainError) $ do -- TODO/STYLE: unless
+    unless (status == MainError) $ do
       pid <- getPID
       let execname = "." </> outputSubdir rst' </> "kics2fork" ++ show pid
       renameFile ("." </> outputSubdir rst' </> "Main") execname
       writeVerboseInfo rst' 3 ("Starting executable '" ++ execname ++ "'...")
-      -- TODO/STYLE: Add Control.Monad.void
-      system ("( "++execname++" && rm -f "++execname++ ") "++
-              "> /dev/null 2> /dev/null &") >> return ()
+      void $ system ("( "++execname++" && rm -f "++execname++ ") "++
+              "> /dev/null 2> /dev/null &")
     cleanMainGoalFile rst'
     return (Just rst')
 
@@ -914,7 +913,7 @@ setPrompt rst p
 
 setNoGhci :: ReplState -> String -> IO (Maybe ReplState)
 setNoGhci rst _ = do
-  maybe (return ()) stopGhciComm (ghcicomm rst) -- TODO/STYLE: void
+  maybe (return ()) stopGhciComm (ghcicomm rst)
   return $ Just rst { useGhci = False, ghcicomm = Nothing }
 
 setOptionPath :: ReplState -> String -> IO (Maybe ReplState)
@@ -1170,7 +1169,7 @@ checkForWish =
 readAndProcessSourceFileOptions :: ReplState -> String -> IO (Maybe ReplState)
 readAndProcessSourceFileOptions rst fname = do
   opts <- readSourceFileOptions fname
-  when (not $ null opts) $ writeVerboseInfo rst 1 $ -- TODO/STYLE: unless
+  unless (null opts) $ writeVerboseInfo rst 1 $
     "Source file options: " ++ intercalate " | " (map unwords opts)
   processSourceFileOptions rst opts
 
@@ -1220,6 +1219,6 @@ terminateSourceProgGUIs rst
   | otherwise  = do
       writeVerboseInfo rst 1 "Terminating source program GUIs..."
       catch (mapM_ (\ (_,(_,h)) -> hPutStrLn h "q" >> hFlush h >> hClose h) sguis)
-            (\_ -> return ()) -- TODO/STYLE: const void
+            (const $ return ())
       return rst { sourceguis = [] }
  where sguis = sourceguis rst

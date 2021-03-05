@@ -10,6 +10,7 @@ module KiCS2.GhciComm
   ) where
 
 import Control.Applicative (when)
+import Control.Monad (unless)
 import System.IO     (Handle, hClose, hFlush, hGetLine, hPutStrLn)
 import System.IOExts (connectToCommand)
 import Data.Time     (calendarTimeToString, getLocalTime)
@@ -56,8 +57,7 @@ evalCustomCmd comm@(GhciComm _ hdl _) cmd = do
  where
   hPrintLinesBefore stop = do
     line <- hGetLine hdl
-    -- TODO/STYLE: Use 'unless' again once re-added to 'Applicative'
-    when (line /= stop) $ putStrLn line >> hPrintLinesBefore stop
+    unless (line == stop) $ putStrLn line >> hPrintLinesBefore stop
 
 --- Send a string to the ghci handle
 hPutStrLnGhci :: GhciComm -> String -> IO ()
