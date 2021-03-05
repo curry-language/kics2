@@ -37,22 +37,22 @@ $(CABAL_FILE): ../Makefile Makefile
 ifndef VERSION
 	$(error VERSION is not defined. Please use 'make' on top-level)
 endif
-	@echo "Name:           $(PACKAGE)"                        >  $@
-	@echo "Version:        $(VERSION)"                        >> $@
-	@echo "Description:    The runtime environment for KiCS2" >> $@
-	@echo "License:        OtherLicense"                      >> $@
-	@echo "Author:         The KiCS2 Team"                    >> $@
-	@echo "Maintainer:     kics2@curry-lang.org"              >> $@
-	@echo "Build-Type:     Simple"                            >> $@
-	@echo "Cabal-Version:  >= 1.9.2"                          >> $@
+	@echo "name:           $(PACKAGE)"                        >  $@
+	@echo "version:        $(VERSION)"                        >> $@
+	@echo "description:    The runtime environment for KiCS2" >> $@
+	@echo "license:        OtherLicense"                      >> $@
+	@echo "author:         The KiCS2 Team"                    >> $@
+	@echo "maintainer:     kics2@curry-lang.org"              >> $@
+	@echo "build-type:     Simple"                            >> $@
+	@echo "cabal-version:  >= 1.9.2"                          >> $@
 	@echo ""                                                  >> $@
-	@echo "Library"                                           >> $@
-	@echo "  Build-Depends: $(CABAL_RUNTIMEDEPS)"             >> $@
-	@echo "  Exposed-modules:"                                >> $@
+	@echo "library"                                           >> $@
+	@echo "  build-depends: $(CABAL_RUNTIMEDEPS)"             >> $@
+	@echo "  exposed-modules:"                                >> $@
 	@echo "      Basics, CurryException, KiCS2Debug, FailInfo">> $@
 	@echo "    , FailTrace, IDSupply"                         >> $@
 	@echo "    , MonadList, MonadSearch, PrimTypes, SafeExec" >> $@
-	@echo "  Other-modules:"                                  >> $@
+	@echo "  other-modules:"                                  >> $@
 	@echo "      ConstStore, ID, Search, Solver"              >> $@
 	@echo "    , Strategies, Types"                           >> $@
 	@echo "  hs-source-dirs: ., $(IDSUPPLYDIR)"               >> $@
