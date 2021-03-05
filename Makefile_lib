@@ -103,47 +103,47 @@ cleanall:
 	rm -fr .curry
 
 $(CABAL_FILE): ../Makefile Makefile
-	echo "Name:           $(PACKAGE)"                             > $@
-	echo "Version:        $(VERSION)"                            >> $@
-	echo "Description:    The standard libraries for KiCS2"      >> $@
-	echo "License:        OtherLicense"                          >> $@
-	echo "Author:         The KiCS2 Team"                        >> $@
-	echo "Maintainer:     kics2@curry-lang.org"                  >> $@
-	echo "Build-Type:     Simple"                                >> $@
-	echo "Cabal-Version:  >= 1.9.2"                              >> $@
+	echo "name:           $(PACKAGE)"                             > $@
+	echo "version:        $(VERSION)"                            >> $@
+	echo "description:    The standard libraries for KiCS2"      >> $@
+	echo "license:        OtherLicense"                          >> $@
+	echo "author:         The KiCS2 Team"                        >> $@
+	echo "maintainer:     kics2@curry-lang.org"                  >> $@
+	echo "build-type:     Simple"                                >> $@
+	echo "cabal-version:  >= 1.9.2"                              >> $@
 	echo ""                                                      >> $@
-	echo "Library"                                               >> $@
-	echo "  Build-Depends:"                                      >> $@
+	echo "library"                                               >> $@
+	echo "  build-depends:"                                      >> $@
 	echo "      kics2-runtime == $(VERSION)"                     >> $@
 	echo "      , base"                                          >> $@
 	# echo "    , $(CABAL_LIBDEPS)"                                >> $@
 	echo "  if os(windows)"                                      >> $@
-	echo "    Build-Depends: Win32"                              >> $@
+	echo "    build-depends: Win32"                              >> $@
 	echo "  else"                                                >> $@
-	echo "    Build-Depends: unix"                               >> $@
-	# echo "  Exposed-modules: $(HS_LIB_NAMES)"                    >> $@
-	echo "  Exposed-modules: Curry_Prelude"                      >> $@
+	echo "    build-depends: unix"                               >> $@
+	# echo "  exposed-modules: $(HS_LIB_NAMES)"                    >> $@
+	echo "  exposed-modules: Curry_Prelude"                      >> $@
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
 $(CABAL_TRACE_FILE): ../Makefile Makefile
-	echo "Name:           $(PACKAGE_TRACE)"                          > $@
-	echo "Version:        $(VERSION)"                               >> $@
-	echo "Description:    The tracing standard libraries for KiCS2" >> $@
-	echo "License:        OtherLicense"                             >> $@
-	echo "Author:         The KiCS2 Team"                           >> $@
-	echo "Maintainer:     kics2@curry-lang.org"                     >> $@
-	echo "Build-Type:     Simple"                                   >> $@
-	echo "Cabal-Version:  >= 1.9.2"                                 >> $@
+	echo "name:           $(PACKAGE_TRACE)"                          > $@
+	echo "version:        $(VERSION)"                               >> $@
+	echo "description:    The tracing standard libraries for KiCS2" >> $@
+	echo "license:        OtherLicense"                             >> $@
+	echo "author:         The KiCS2 Team"                           >> $@
+	echo "maintainer:     kics2@curry-lang.org"                     >> $@
+	echo "build-type:     Simple"                                   >> $@
+	echo "cabal-version:  >= 1.9.2"                                 >> $@
 	echo ""                                                         >> $@
-	echo "Library"                                                  >> $@
-	echo "  Build-Depends:"                                         >> $@
+	echo "library"                                                  >> $@
+	echo "  build-depends:"                                         >> $@
 	echo "      kics2-runtime == $(VERSION)"                        >> $@
 	echo "    , $(CABAL_LIBDEPS)"                                   >> $@
 	echo "  if os(windows)"                                         >> $@
-	echo "    Build-Depends: Win32"                                 >> $@
+	echo "    build-depends: Win32"                                 >> $@
 	echo "  else"                                                   >> $@
-	echo "    Build-Depends: unix"                                  >> $@
-	echo "  Exposed-modules: $(HS_LIB_TRACE_NAMES)"                 >> $@
+	echo "    build-depends: unix"                                  >> $@
+	echo "  exposed-modules: $(HS_LIB_TRACE_NAMES)"                 >> $@
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 # generate the compiled Haskell target files of all libraries:
