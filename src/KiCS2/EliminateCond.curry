@@ -116,13 +116,23 @@ makeAuxFuncCall name ty cond newBody =
                   [ABranch (APattern condType (trueId, boolType) [])
                           (rnmAllVars renameVarFun newBody)])
 
-  funtype = foldr FuncType ty (map snd argVars)
+  funtype = quantifyTyVars $ foldr FuncType ty (map snd argVars)
   condType = annExpr cond
   typedVars = unboundVars newBody
   argVars = zip [1 ..] (map snd typedVars ++ [condType])
   numArgs = length typedVars + 1
   renameVarFun v = maybe v (+1) (elemIndex v (map fst typedVars))
   mkNewName (mod,oldName) idx = (mod, "__cond_" ++ show idx ++ "_" ++ oldName)
+
+--- Retrieve all type variables in a type expression.
+tyVars :: TypeExpr -> [TVarIndex]
+tyVars = nub . trTypeExpr (:[]) (const concat) (++) (flip const)
+
+--- Binds all type variables using the kind *.
+quantifyTyVars :: TypeExpr -> TypeExpr
+quantifyTyVars ty@(ForallType _ _) = ty
+quantifyTyVars ty                  = ForallType vs ty
+  where vs = map (\v -> (v, KStar)) $ tyVars ty
 
 boolType :: TypeExpr
 boolType = TCons ("Prelude", "Bool") []
