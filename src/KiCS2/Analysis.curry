@@ -51,15 +51,22 @@ type Map a = Map.Map QName a
 -- This could also be done by inspecting the type signature of the respective
 -- function, but it may not be accurate for various reasons.
 
-type TypeMap = Map QName
+data TypeMapEntry = TypeMapEntry
+  { tmeQName     :: QName
+  , tmeIsNewtype :: Bool
+  }
+  deriving (Eq, Show, Read)
+
+type TypeMap = Map TypeMapEntry
 
 initTypeMap :: TypeMap
 initTypeMap = Map.fromList primTypes
 
 --- List of constructors of known primitive types.
-primTypes :: [(QName, QName)]
-primTypes = map (\ (x, y) -> ( renameQName (prelude, x)
-                             , renameQName (prelude, y))) $
+primTypes :: [(QName, TypeMapEntry)]
+primTypes = map (\(x, y) -> ( renameQName (prelude, x)
+                            , TypeMapEntry (renameQName (prelude, y)) False
+                            )) $
   [ ("True", "Bool"), ("False", "Bool"), ("Int", "Int")
   , ("Float", "Float"), ("Char", "Char")
   ]
@@ -72,10 +79,10 @@ getTypeMap ts = Map.fromList
               $ concatMap extractConsNames
               $ ts
   where
-    extractConsNames :: TypeDecl -> [(QName, QName)]
+    extractConsNames :: TypeDecl -> [(QName, TypeMapEntry)]
     extractConsNames t = case t of
-      Type    qn _ _ cs -> map (\c -> (consName c, qn)) cs
-      TypeNew qn _ _ c  -> [(newConsName c, qn)]
+      Type    qn _ _ cs -> map (\c -> (consName c, TypeMapEntry qn False)) cs
+      TypeNew qn _ _ c  -> [(newConsName c, TypeMapEntry qn True)]
       _                 -> []
 
 -- -----------------------------------------------------------------------------
