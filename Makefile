@@ -125,7 +125,7 @@ $(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGE
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | dependencies frontend runtime scripts libraries $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | dependencies frontend runtime scripts $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
