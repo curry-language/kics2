@@ -32,8 +32,8 @@ LIB_NAMES     = $(subst /,., $(basename $(LIB_CURRY)))
 # lib names included in library documentation page (without directory prefix)
 LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
-LIB_AFCY     = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.afcy), $(lib))
-LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=.curry/%.acy), $(lib))
+LIB_AFCY     = $(foreach lib, $(LIB_CURRY:%.curry=.curry/kics2-$(VERSION)/%.afcy), $(lib))
+LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=.curry/kics2-$(VERSION)/%.acy), $(lib))
 LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_,$(lib)))
 LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_Trace_,$(lib)))
 LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIBDOCDIR)/$(subst /,.,$(lib)))
@@ -169,7 +169,7 @@ $(foreach module, $(basename $(LIB_CURRY)),$(eval $(call TRACERULE,$(module))))
 afcy: $(LIB_AFCY)
 
 # generate FlatCurry file in subdirectory .curry:
-.curry/%.afcy: %.curry
+.curry/kics2-$(VERSION)/%.afcy: %.curry
 	"$(FRONTEND)" --type-annotated-flat $(FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate the AbstractCurry files of all libraries:
@@ -177,7 +177,7 @@ afcy: $(LIB_AFCY)
 acy: $(LIB_ACY)
 
 # generate AbstractCurry file in subdirectory .curry:
-.curry/%.acy: %.curry
+.curry/kics2-$(VERSION)/%.acy: %.curry
 	"$(FRONTEND)" --acy $(FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
