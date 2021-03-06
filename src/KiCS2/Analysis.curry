@@ -7,7 +7,7 @@
 --- ----------------------------------------------------------------------------
 module KiCS2.Analysis
   ( AnalysisResult, showAnalysisResult, readAnalysisResult
-  , TypeMap, initTypeMap, getTypeMap
+  , TypeMap, TypeMapEntry (..), initTypeMap, getTypeMap
   , NDResult, NDClass (..), initNDResult, analyseND
   , initHOResult
   , TypeHOResult, TypeHOClass (..), initTypeHOResult, analyseHOType
@@ -54,8 +54,7 @@ type Map a = Map.Map QName a
 data TypeMapEntry = TypeMapEntry
   { tmeQName     :: QName
   , tmeIsNewtype :: Bool
-  }
-  deriving (Eq, Show, Read)
+  } deriving (Eq, Show, Read)
 
 type TypeMap = Map TypeMapEntry
 

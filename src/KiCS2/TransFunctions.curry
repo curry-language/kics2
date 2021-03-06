@@ -81,7 +81,7 @@ addTypeMap newTypes =
  updState (\st -> st { typeMap = typeMap st `union` newTypes })
 
 
-getType :: QName -> M QName
+getType :: QName -> M TypeMapEntry
 getType qn = getState >>= \st ->
   maybe (failM $ show qn ++ " not in type map") return
   $ Data.Map.lookup qn (typeMap st)
@@ -457,16 +457,17 @@ trRule qn a (External _) =
 trBody :: QName -> [Int] -> Expr -> M AH.Expr
 trBody qn vs e = case e of
   Case _ (Var i) bs ->
-    getMatchedType (head bs)  >>= \ty  ->
-    mapM (trBranch qn) bs          >>= \bs' ->
+    getMatchedType (head bs) >>= \(ty, isNew) ->
+    mapM (trBranch qn) bs    >>= \bs' ->
     let lbs = litBranches bs' in
-    consBranches qn vs i ty   >>= \cbs ->
-    return $ AH.Case (cvVar i) (bs' ++ lbs ++ cbs)
+    consBranches qn vs i ty  >>= \cbs ->
+    return $ AH.Case (cvVar i) (bs' ++ lbs ++ if isNew then [] else cbs)
   _ -> trCompleteExpr qn e
 
-getMatchedType :: BranchExpr -> M QName
-getMatchedType (Branch (Pattern p _) _) = getType p
-getMatchedType (Branch (LPattern  l) _) = return $ case l of
+--- Fetch the matched type name and whether it's a newtype.
+getMatchedType :: BranchExpr -> M (QName, Bool)
+getMatchedType (Branch (Pattern p _) _) = (\e -> (tmeQName e, tmeIsNewtype e)) <$> getType p
+getMatchedType (Branch (LPattern  l) _) = return $ (\qn -> (qn, False)) $ case l of
   Intc _   -> curryInt
   Floatc _ -> curryFloat
   Charc _  -> curryChar
