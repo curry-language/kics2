@@ -19,7 +19,7 @@ export CYPM    := $(CURRYC) cypm
 # KiCS2 runtime dependencies (Cabal packages)
 export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
 # KiCS2 library dependencies (Cabal packages)
-LIBDEPS            = base directory network network-bsd old-time parallel-tree-search process time
+export LIBDEPS     = base directory network network-bsd old-time parallel-tree-search process time
 # Custom runtime dependencies (Cabal packages)
 CUSTOMDEPS         = kics2-runtime kics2-libraries
 # System dependencies (TODO: Windows)

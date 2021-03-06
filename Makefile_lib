@@ -115,14 +115,12 @@ $(CABAL_FILE): ../Makefile Makefile
 	echo "library"                                               >> $@
 	echo "  build-depends:"                                      >> $@
 	echo "      kics2-runtime == $(VERSION)"                     >> $@
-	echo "      , base"                                          >> $@
-	# echo "    , $(CABAL_LIBDEPS)"                                >> $@
+	echo "    , $(CABAL_LIBDEPS)"                                >> $@
 	echo "  if os(windows)"                                      >> $@
 	echo "    build-depends: Win32"                              >> $@
 	echo "  else"                                                >> $@
 	echo "    build-depends: unix"                               >> $@
-	# echo "  exposed-modules: $(HS_LIB_NAMES)"                    >> $@
-	echo "  exposed-modules: Curry_Prelude"                      >> $@
+	echo "  exposed-modules: $(HS_LIB_NAMES)"                    >> $@
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
 $(CABAL_TRACE_FILE): ../Makefile Makefile
@@ -149,9 +147,7 @@ $(CABAL_TRACE_FILE): ../Makefile Makefile
 # generate the compiled Haskell target files of all libraries:
 .NOTPARALLEL: hs
 .PHONY: hs
-# TODO: Build all modules again
-# hs: $(LIB_HS) # .curry/kics2-$(VERSION)/Curry_$(ALLLIBS).hs
-hs: .curry/kics2-$(VERSION)/Curry_Prelude.hs
+hs: $(LIB_HS) # .curry/kics2-$(VERSION)/Curry_$(ALLLIBS).hs
 
 # generate the compiled Haskell target files with tracing of all libraries:
 .NOTPARALLEL: hstrace
