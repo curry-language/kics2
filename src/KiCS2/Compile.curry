@@ -273,7 +273,7 @@ integrateExternals opts (AH.Prog m is td fd od) fn = do
   defaultPragmas = [ "{-# LANGUAGE MagicHash #-}"
                    , "{-# LANGUAGE ScopedTypeVariables #-}"
                    , "{-# LANGUAGE QuantifiedConstraints #-}"
-                   , "{-# LANGUAGE Rank2Types #-}"
+                   , "{-# LANGUAGE RankNTypes #-}"
                    , "{-# LANGUAGE CPP #-}"
                    , "{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}"
                    , "{-# OPTIONS_GHC -fno-warn-missing-methods #-}"
