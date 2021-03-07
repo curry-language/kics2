@@ -2,44 +2,33 @@
 # in particular, to generate the documentation
 
 # Set the __KICS2__ flag for the Prelude (to some dummy value)
-FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS2__=0"
-
-KICS2=$(ROOT)/bin/kics2
+LIB_FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS2__=0"
 
 # directory for HTML documentation files
-# LIBDOCDIR = $(DOCDIR)/html
-LIBDOCDIR := CDOC
+# LIB_DOCDIR = $(DOCDIR)/html
+LIB_DOCDIR := $(LIBDIR)/CDOC
 # directory for LaTeX documentation files
-TEXDOCDIR := $(DOCDIR)/src/lib
+LIB_TEXDOCDIR := $(LIB_DOCDIR)/src/lib
 
-# replacement stuff
-comma     := ,
-empty     :=
-space     := $(empty) $(empty)
-# prefix "pre" "dir/file.ext" = "dir/prefile.ext"
-prefix     = $(patsubst ./%,%,$(dir $(2))$(1)$(notdir $(2)))
-# comma_sep "a b c" = "a, b, c"
-comma_sep  = $(subst $(space),$(comma)$(space),$(1))
-
-MODULE_FOLDERS:=$(shell find * -type d)
-TRACE_FOLDERS  =$(addprefix .curry/kics2-$(VERSION)/,$(MODULE_FOLDERS))
-CURRY_FILES   :=$(shell find * -name "*.curry")
+LIB_MODULE_FOLDERS:=$(shell find * -type d)
+LIB_TRACE_FOLDERS  =$(addprefix .curry/kics2-$(VERSION)/,$(LIB_MODULE_FOLDERS))
+LIB_CURRY_FILES   :=$(shell find * -name "*.curry")
 
 # Curry library files
-LIB_CURRY     = $(filter-out $(EXCLUDES), $(CURRY_FILES))
+LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
 # lib names without directory prefix
 LIB_NAMES     = $(subst /,., $(basename $(LIB_CURRY)))
 # lib names included in library documentation page (without directory prefix)
 LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
-LIB_AFCY     = $(foreach lib, $(LIB_CURRY:%.curry=.curry/kics2-$(VERSION)/%.afcy), $(lib))
-LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=.curry/kics2-$(VERSION)/%.acy), $(lib))
-LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_,$(lib)))
-LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), .curry/kics2-$(VERSION)/$(call prefix,Curry_Trace_,$(lib)))
-LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIBDOCDIR)/$(subst /,.,$(lib)))
-LIB_TEX      = $(foreach lib, $(LIB_CURRY:.curry=.tex),  $(TEXDOCDIR)/$(subst /,.,$(lib)))
-HS_LIB_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
-HS_LIB_TRACE_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_Trace_$(subst .,,$(suffix $(lib))),Curry_Trace_$(lib))))
+LIB_AFCY     = $(foreach lib, $(LIB_CURRY:%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy), $(lib))
+LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy), $(lib))
+LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), $(LIBDIR)/.curry/kics2-$(VERSION)/$(call prefix,Curry_,$(lib)))
+LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), $(LIBDIR)/.curry/kics2-$(VERSION)/$(call prefix,Curry_Trace_,$(lib)))
+LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIB_DOCDIR)/$(subst /,.,$(lib)))
+LIB_TEX      = $(foreach lib, $(LIB_CURRY:.curry=.tex),  $(LIB_TEXDOCDIR)/$(subst /,.,$(lib)))
+LIB_HS_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
+LIB_TRACE_HS_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_Trace_$(subst .,,$(suffix $(lib))),Curry_Trace_$(lib))))
 
 ALLLIBS       = AllLibraries
 MAINGOAL      = Curry_Main_Goal.curry
@@ -48,61 +37,35 @@ EXCLUDES      = $(ALLLIBS).curry $(MAINGOAL)
 # Modules not included in library documentation index page:
 DOCEXCLUDES  = CPNS ValueSequence
 
-PACKAGE          = kics2-libraries
-PACKAGE_TRACE    = kics2-libraries-trace
-CABAL_FILE       = $(PACKAGE).cabal
-CABAL_TRACE_FILE = $(PACKAGE_TRACE).cabal
-CABAL_LIBDEPS    = $(call comma_sep,$(LIBDEPS))
+PACKAGE         = kics2-libraries
+PACKAGE_TRACE   = kics2-libraries-trace
+LIB_CABAL       = $(PACKAGE).cabal
+LIB_TRACE_CABAL = $(PACKAGE_TRACE).cabal
+LIB_CABAL_DEPS  = $(call comma_sep,$(LIBDEPS))
 
 # Executable of CurryDoc:
 CURRYDOC := $(shell which curry-doc)
+
+export LIB = $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) $(ALLLIBS).curry # hstrace
+export LIB_ARTIFACTS = $(LIBDIR)/.curry \
+                       $(LIBDIR)/*.hi \
+                       $(LIBDIR)/*.o \
+                       $(LIBDIR)/dist \
+                       $(LIBDIR)/dist-newstyle \
+                       $(LIB_CABAL) \
+                       $(LIB_TRACE_CABAL)
 
 ########################################################################
 # support for installation
 ########################################################################
 
-.PHONY: install
-install: afcy acy hs $(ALLLIBS).curry # hstrace
-	$(MAKE) $(CABAL_FILE)
-	# TODO: Readd
-	# $(CABAL_INSTALL) $(CABAL_PROFILE)
-	# rm -f $(CABAL_FILE)
-	# $(MAKE) $(CABAL_TRACE_FILE)
-	# $(CABAL_INSTALL) $(CABAL_PROFILE)
-	# rm -f $(CABAL_TRACE_FILE)
-
 # create a program importing all libraries in order to re-compile them
 # so that all auxiliary files (.nda, .hs, ...) are up-to-date
-$(ALLLIBS).curry: $(LIB_CURRY) Makefile
+$(LIBDIR)/$(ALLLIBS).curry: $(LIB_CURRY) Makefile
 	rm -f $@
 	for i in $(filter-out Prelude, $(LIB_NAMES)) ; do echo "import $$i" >> $@ ; done
 
-.PHONY: allsources
-allsources:
-	@echo $(LIB_CURRY)
-
-.PHONY: unregister
-unregister:
-	-$(GHC_UNREGISTER) $(PACKAGE)-$(VERSION)
-	-$(GHC_UNREGISTER) $(PACKAGE_TRACE)-$(VERSION)
-
-# clean Haskell intermediate files
-.PHONY:
-clean:
-	-cd .curry/kics2-$(VERSION) && rm -f *.hi *.o
-
-# clean all generated files
-.PHONY: cleanall
-cleanall:
-	rm -fr "$(LIBDOCDIR)"/bt3
-	rm -rf "$(LIBDOCDIR)"
-	rm -rf "$(TEXDOCDIR)"
-	rm -rf dist
-	rm -f $(CABAL_FILE)
-	rm -f $(CABAL_TRACE_FILE)
-	rm -fr .curry
-
-$(CABAL_FILE): ../Makefile Makefile
+$(LIB_CABAL):
 	echo "name:           $(PACKAGE)"                             > $@
 	echo "version:        $(VERSION)"                            >> $@
 	echo "description:    The standard libraries for KiCS2"      >> $@
@@ -115,15 +78,15 @@ $(CABAL_FILE): ../Makefile Makefile
 	echo "library"                                               >> $@
 	echo "  build-depends:"                                      >> $@
 	echo "      kics2-runtime == $(VERSION)"                     >> $@
-	echo "    , $(CABAL_LIBDEPS)"                                >> $@
+	echo "    , $(LIB_CABAL_DEPS)"                               >> $@
 	echo "  if os(windows)"                                      >> $@
 	echo "    build-depends: Win32"                              >> $@
 	echo "  else"                                                >> $@
 	echo "    build-depends: unix"                               >> $@
-	echo "  exposed-modules: $(HS_LIB_NAMES)"                    >> $@
+	echo "  exposed-modules: $(LIB_HS_NAMES)"                    >> $@
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
-$(CABAL_TRACE_FILE): ../Makefile Makefile
+$(LIB_TRACE_CABAL):
 	echo "name:           $(PACKAGE_TRACE)"                          > $@
 	echo "version:        $(VERSION)"                               >> $@
 	echo "description:    The tracing standard libraries for KiCS2" >> $@
@@ -136,49 +99,30 @@ $(CABAL_TRACE_FILE): ../Makefile Makefile
 	echo "library"                                                  >> $@
 	echo "  build-depends:"                                         >> $@
 	echo "      kics2-runtime == $(VERSION)"                        >> $@
-	echo "    , $(CABAL_LIBDEPS)"                                   >> $@
+	echo "    , $(LIB_CABAL_DEPS)"                                  >> $@
 	echo "  if os(windows)"                                         >> $@
 	echo "    build-depends: Win32"                                 >> $@
 	echo "  else"                                                   >> $@
 	echo "    build-depends: unix"                                  >> $@
-	echo "  exposed-modules: $(HS_LIB_TRACE_NAMES)"                 >> $@
+	echo "  exposed-modules: $(LIB_TRACE_HS_NAMES)"                 >> $@
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
-# generate the compiled Haskell target files of all libraries:
-.NOTPARALLEL: hs
-.PHONY: hs
-hs: $(LIB_HS) # .curry/kics2-$(VERSION)/Curry_$(ALLLIBS).hs
-
-# generate the compiled Haskell target files with tracing of all libraries:
-.NOTPARALLEL: hstrace
-.PHONY: hstrace
-hstrace: $(LIB_HS_TRACE)
-
-define TRACERULE
-$(dir .curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $1.curry
+define LIB_RULE
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIBDIR)/$1.curry $(COMP)
 	$$(COMP) -v0 -i. $$(subst /,.,$$<)
-$(dir .curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $1.curry
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIBDIR)/$1.curry $(COMP)
 	$$(COMP) -v0 -i. --trace-failure $$(subst /,.,$$<)
 endef
 
-$(foreach module, $(basename $(LIB_CURRY)),$(eval $(call TRACERULE,$(module))))
-
-# generate the type-annotated FlatCurry files of all libraries:
-.NOTPARALLEL: afcy
-.PHONY: afcy
-afcy: $(LIB_AFCY)
+$(foreach module, $(basename $(LIB_CURRY)),$(eval $(call LIB_RULE,$(module))))
 
 # generate FlatCurry file in subdirectory .curry:
-.curry/kics2-$(VERSION)/%.afcy: %.curry
-	"$(FRONTEND)" --type-annotated-flat $(FRONTENDPARAMS) $(subst /,.,$*)
-
-# generate the AbstractCurry files of all libraries:
-.PHONY: acy
-acy: $(LIB_ACY)
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: %.curry
+	"$(FRONTEND)" --type-annotated-flat $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate AbstractCurry file in subdirectory .curry:
-.curry/kics2-$(VERSION)/%.acy: %.curry
-	"$(FRONTEND)" --acy $(FRONTENDPARAMS) $(subst /,.,$*)
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: %.curry
+	"$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
 # create HTML documentation files for system libraries
@@ -191,29 +135,29 @@ checkcurrydoc:
 	  echo "ERROR: Executable 'curry-doc' is not installed!" && echo "Install it by > cpm installapp currydoc" && exit 1 ; \
 	fi
 
-INDEXHTML    = $(LIBDOCDIR)/index.html
-HTMLEXCLUDES = $(INDEXHTML) $(foreach file, findex.html cindex.html KiCS2_libs.html, $(LIBDOCDIR)/$(file))
+LIB_INDEXHTML    = $(LIB_DOCDIR)/index.html
+LIB_HTMLEXCLUDES = $(LIB_INDEXHTML) $(foreach file, findex.html cindex.html KiCS2_libs.html, $(LIB_DOCDIR)/$(file))
 
 .PHONY: htmldoc
 htmldoc: checkcurrydoc $(LIB_CURRY)
-	@mkdir -p "$(LIBDOCDIR)"
+	@mkdir -p "$(LIB_DOCDIR)"
 	@$(MAKE) $(LIB_HTML)
-	@$(MAKE) $(INDEXHTML)
+	@$(MAKE) $(LIB_INDEXHTML)
 
-$(INDEXHTML): $(filter-out $(HTMLEXCLUDES), $(wildcard $(LIBDOCDIR)/*.html))
+$(LIB_INDEXHTML): $(filter-out $(LIB_HTMLEXCLUDES), $(wildcard $(LIB_DOCDIR)/*.html))
 	@echo "Generating index pages for Curry libraries:"
 	@echo $(LIB_DOCNAMES)
-	$(CURRYDOC) --libsindexhtml "$(LIBDOCDIR)" $(LIB_DOCNAMES)
+	$(CURRYDOC) --libsindexhtml "$(LIB_DOCDIR)" $(LIB_DOCNAMES)
 
 # generate individual documentations for libraries
-define HTMLRULE
-$(LIBDOCDIR)/$1.html: $(subst .,/,$1).curry
-	$$(CURRYDOC) --noindexhtml "$(LIBDOCDIR)" $$(subst /,.,$$<)
+define LIB_HTMLRULE
+$(LIB_DOCDIR)/$1.html: $(subst .,/,$1).curry
+	$$(CURRYDOC) --noindexhtml "$(LIB_DOCDIR)" $$(subst /,.,$$<)
 endef
 
-$(foreach module, $(LIB_NAMES),$(eval $(call HTMLRULE,$(module))))
+$(foreach module, $(LIB_NAMES),$(eval $(call LIB_HTMLRULE,$(module))))
 # uncomment for rule debugging
-# $(foreach module, $(LIB_NAMES),$(info $(call HTMLRULE,$(module))))
+# $(foreach module, $(LIB_NAMES),$(info $(call LIB_HTMLRULE,$(module))))
 
 ##############################################################################
 # create LaTeX documentation files for system libraries
@@ -221,13 +165,13 @@ $(foreach module, $(LIB_NAMES),$(eval $(call HTMLRULE,$(module))))
 
 .PHONY: texdoc
 texdoc: checkcurrydoc $(LIB_CURRY)
-	@mkdir -p "$(TEXDOCDIR)"
+	@mkdir -p "$(LIB_TEXDOCDIR)"
 	$(MAKE) $(LIB_TEX)
 
 # generate individual LaTeX documentations for libraries
-define TEXRULE
-$(TEXDOCDIR)/$1.tex: $(subst .,/,$1).curry
-	$$(CURRYDOC) --tex "$(TEXDOCDIR)" $$(subst /,.,$$<)
+define LIB_TEXRULE
+$(LIB_TEXDOCDIR)/$1.tex: $(subst .,/,$1).curry
+	$$(CURRYDOC) --tex "$(LIB_TEXDOCDIR)" $$(subst /,.,$$<)
 endef
 
-$(foreach module, $(LIB_NAMES),$(eval $(call TEXRULE,$(module))))
+$(foreach module, $(LIB_NAMES),$(eval $(call LIB_TEXRULE,$(module))))

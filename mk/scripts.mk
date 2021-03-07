@@ -11,21 +11,15 @@ BINS = $(patsubst %.sh, $(BINDIR)/%, $(wildcard *.sh))
 BATS =
 endif
 
-.PHONY: all
-all: $(BINS) $(BATS)
-	@echo "Scripts generated in directory $(<D)."
+export SCRIPTS = $(BINS) $(BATS)
 
-.PHONY: cleanall
-cleanall:
-	rm -f $(BINS) $(BATS)
-
-$(BINDIR)/%: %.sh
+$(BINS): %: %.sh
 	mkdir -p $(@D)
 	cat $< | sed "s|^KICS2BUILDDIR=.*$$|KICS2BUILDDIR=$(ROOT)|" | \
 	 sed "s|^KICS2INSTALLDIR=.*$$|KICS2INSTALLDIR=$(KICS2INSTALLDIR)|" > $@
 	chmod 755 $@
 
-$(BINDIR)/%.bat: %.bat
+$(BATS): %: %.bat
 	mkdir -p $(@D)
 	sed "s|^set KICS2HOME=.*$$|set KICS2HOME=$(ROOT)|" < $< > $@
 	chmod 755 $@
