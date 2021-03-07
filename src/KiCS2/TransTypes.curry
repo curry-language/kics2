@@ -37,10 +37,18 @@ genTypeDeclarations hoResult tdecl = case tdecl of
   (FC.TypeSyn qf vis tnums texp) ->
     [TypeSyn qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absTExp [] texp)]
   (FC.TypeNew qf vis tnums c) ->
-    [TypeNew qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult c)]
+    TypeNew qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult c) : instanceDecls
     where
+      instanceDecls = map ($tdecl) [ showInstance       False hoResult
+                                   , readInstance       False
+                                   , nondetInstance     False
+                                   , generableInstance  False hoResult
+                                   , normalformInstance False hoResult
+                                   , unifiableInstance  False hoResult
+                                   , curryInstance      False
+                                   ]
       targs     = map fcy2absTVarKind tnums
-  t@(FC.Type qf vis tnums cs)
+  (FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
     | Prelude.null cs -> Type qf Public (map fst targs) [] : []
@@ -65,14 +73,14 @@ genTypeDeclarations hoResult tdecl = case tdecl of
             ]
       -- For dictionaries that represent type classes we only generate empty
       -- instances.
-      instanceDecls = map ($t) [ showInstance       (isDictType qf) hoResult
-                               , readInstance       (isDictType qf)
-                               , nondetInstance     (isDictType qf)
-                               , generableInstance  (isDictType qf) hoResult
-                               , normalformInstance (isDictType qf) hoResult
-                               , unifiableInstance  (isDictType qf) hoResult
-                               , curryInstance      (isDictType qf)
-                               ]
+      instanceDecls = map ($tdecl) [ showInstance       (isDictType qf) hoResult
+                                  --  , readInstance       (isDictType qf)
+                                  --  , nondetInstance     (isDictType qf)
+                                  --  , generableInstance  (isDictType qf) hoResult
+                                  --  , normalformInstance (isDictType qf) hoResult
+                                  --  , unifiableInstance  (isDictType qf) hoResult
+                                  --  , curryInstance      (isDictType qf)
+                                   ]
       vis'      = fcy2absVis vis
       targs     = map fcy2absTVarKind tnums
       ctype     = TCons qf $ map (TVar . fst) targs
@@ -163,10 +171,14 @@ showInstance isDict hoResult tdecl = case tdecl of
             , simpleRule [PVar us, mkFailPattern qf]
               (applyF (pre "showChar")        [charc '!'])
            )
-         ] ++ concatMap (showConsRule hoResult) cdecls
+         ] ++ concatMap (showDataConsRule hoResult) cdecls
     | otherwise -> mkEmptyInstance (basics "Show") ctype
    where [cd, d,i,x,y,xs,c,e,us] = newVars ["cd", "d","i","x","y","xs","c","e","_"]
          targs = map fcy2absTVarKind tnums
+         ctype = TCons qf $ map (TVar . fst) targs
+  (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "Show") ctype targs $
+    showNewConsRule hoResult cdecl
+   where targs = map fcy2absTVarKind tnums
          ctype = TCons qf $ map (TVar . fst) targs
   _ -> error "TransTypes.showInstance"
 
@@ -177,8 +189,18 @@ showRule4List =
     Rule [] (SimpleRhs (constF (pre "showsPrec4CurryList"))) [])
 
 -- Generate Show instance rule for a data constructor:
-showConsRule :: ConsHOResult -> FC.ConsDecl -> [(QName, Rule)]
-showConsRule hoResult (FC.Cons qn carity _ _)
+showDataConsRule :: ConsHOResult -> FC.ConsDecl -> [(QName, Rule)]
+showDataConsRule hoResult (FC.Cons qn carity _ _) =
+  showConsRule hoResult qn carity
+
+-- Generate Show instance rule for a newtype constructor:
+showNewConsRule :: ConsHOResult -> FC.NewConsDecl -> [(QName, Rule)]
+showNewConsRule hoResult (FC.NewCons qn _ _) =
+  showConsRule hoResult qn 1
+
+-- Generate Show instance rule for a constructor:
+showConsRule :: ConsHOResult -> QName -> Int -> [(QName, Rule)]
+showConsRule hoResult qn carity
   | isHoCons  = map rule [qn, mkHoConsName qn]
   | otherwise = [rule qn]
 
