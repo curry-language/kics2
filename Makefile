@@ -130,22 +130,62 @@ include mk/utils.mk
 # Builds the KiCS2 compiler using CURRYC (PAKCS by default)
 .PHONY: all
 .NOTPARALLEL:
-all: $(REPL) $(SCRIPTS)
+all: repl compiler scripts
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
+# Builds the REPL (kics2i) only.
+.PHONY: repl
+repl: $(REPL)
+
+# Builds the compiler (kics2c) only.
+.PHONY: compiler
+compiler: $(COMP)
+
+# Builds the scripts (kics2, ...) only.
+.PHONY: scripts
+scripts: $(SCRIPTS)
+
+# Builds the frontend only.
+.PHONY: frontend
+frontend: $(FRONTEND)
+
+# Builds the libraries only.
+.PHONY: lib
+lib: $(LIB)
+
+# Installs the dependencies only.
+.PHONY: deps
+deps: $(CPMDEPS)
+
+# Cleans up library-related build artifacts.
+.PHONY: cleanlib
+cleanlib:
+	rm -rf $(LIB_ARTIFACTS) $(LIBDIR)
+
+# Cleans up runtime-related build artifacts.
+.PHONY: cleanruntime
+cleanruntime:
+	rm -rf $(RUNTIME_ARTIFACTS)
+
+# Cleans up utility-related build artifacts.
+.PHONY: cleanutils
+cleanutils:
+	rm -rf $(UTILS_ARTIFACTS)
+
+# Cleans up binaries.
+.PHONY: cleanbin
+cleanbin:
+	rm -rf $(BINDIR)
+
 # Cleans up build files (not from the frontend, however!)
 .PHONY: clean
-clean:
-	cd $(RUNTIMEDIR) && $(MAKE) clean
-	cd $(UTILSDIR) && $(MAKE) cleanall
-	rm $(INSTALLCURRY)
-	rm -rf $(BINDIR) \
-	       $(LIBDIR) \
-		   $(RUNTIME_ARTIFACTS) \
-	       $(CPMDIR) \
+clean: cleanlib cleanruntime cleanutils cleanbin
+	rm -rf $(CPMDIR) \
 	       $(ROOT)/.curry \
-	       $(SRCDIR)/.curry
+	       $(SRCDIR)/.curry \
+		   $(INSTALLCURRY) \
+		   $(INSTALLHS)
 
 ########################################################################
 # The targets
