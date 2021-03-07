@@ -13,7 +13,7 @@ LIB_TEXDOCDIR := $(LIB_DOCDIR)/src/lib
 # Curry library files
 LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
 # lib names without directory prefix
-LIB_NAMES     = $(subst /,., $(basename $(LIB_CURRY)))
+LIB_NAMES     = $(subst /,., $(LIB_CURRY:$(LIBDIR)/%.curry=%))
 # lib names included in library documentation page (without directory prefix)
 LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
@@ -27,22 +27,22 @@ LIB_HS_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstri
 LIB_TRACE_HS_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_Trace_$(subst .,,$(suffix $(lib))),Curry_Trace_$(lib))))
 
 ALLLIBS       = AllLibraries
-MAINGOAL      = Curry_Main_Goal.curry
+MAINGOAL      = $(LIBDIR)/Curry_Main_Goal.curry
 # Modules not included as regular libraries:
-EXCLUDES      = $(ALLLIBS).curry $(MAINGOAL)
+EXCLUDES      = $(LIBDIR)/$(ALLLIBS).curry $(MAINGOAL)
 # Modules not included in library documentation index page:
 DOCEXCLUDES  = CPNS ValueSequence
 
 PACKAGE         = kics2-libraries
 PACKAGE_TRACE   = kics2-libraries-trace
-LIB_CABAL       = $(PACKAGE).cabal
-LIB_TRACE_CABAL = $(PACKAGE_TRACE).cabal
+LIB_CABAL       = $(LIBDIR)/$(PACKAGE).cabal
+LIB_TRACE_CABAL = $(LIBDIR)/$(PACKAGE_TRACE).cabal
 LIB_CABAL_DEPS  = $(call comma_sep,$(LIBDEPS))
 
 # Executable of CurryDoc:
 CURRYDOC := $(shell which curry-doc)
 
-export LIB = $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) $(ALLLIBS).curry # hstrace
+export LIB = $(LIB_CABAL) $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) $(LIBDIR)/$(ALLLIBS).curry # hstrace
 export LIB_ARTIFACTS = $(LIBDIR)/.curry \
                        $(LIBDIR)/*.hi \
                        $(LIBDIR)/*.o \
@@ -62,46 +62,46 @@ $(LIBDIR)/$(ALLLIBS).curry: $(LIB_CURRY) Makefile
 	for i in $(filter-out Prelude, $(LIB_NAMES)) ; do echo "import $$i" >> $@ ; done
 
 $(LIB_CABAL):
-	echo "name:           $(PACKAGE)"                             > $@
-	echo "version:        $(VERSION)"                            >> $@
-	echo "description:    The standard libraries for KiCS2"      >> $@
-	echo "license:        OtherLicense"                          >> $@
-	echo "author:         The KiCS2 Team"                        >> $@
-	echo "maintainer:     kics2@curry-lang.org"                  >> $@
-	echo "build-type:     Simple"                                >> $@
-	echo "cabal-version:  >= 1.9.2"                              >> $@
-	echo ""                                                      >> $@
-	echo "library"                                               >> $@
-	echo "  build-depends:"                                      >> $@
-	echo "      kics2-runtime == $(VERSION)"                     >> $@
-	echo "    , $(LIB_CABAL_DEPS)"                               >> $@
-	echo "  if os(windows)"                                      >> $@
-	echo "    build-depends: Win32"                              >> $@
-	echo "  else"                                                >> $@
-	echo "    build-depends: unix"                               >> $@
-	echo "  exposed-modules: $(LIB_HS_NAMES)"                    >> $@
-	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
+	@echo "name:           $(PACKAGE)"                             > $@
+	@echo "version:        $(VERSION)"                            >> $@
+	@echo "description:    The standard libraries for KiCS2"      >> $@
+	@echo "license:        OtherLicense"                          >> $@
+	@echo "author:         The KiCS2 Team"                        >> $@
+	@echo "maintainer:     kics2@curry-lang.org"                  >> $@
+	@echo "build-type:     Simple"                                >> $@
+	@echo "cabal-version:  >= 1.9.2"                              >> $@
+	@echo ""                                                      >> $@
+	@echo "library"                                               >> $@
+	@echo "  build-depends:"                                      >> $@
+	@echo "      kics2-runtime == $(VERSION)"                     >> $@
+	@echo "    , $(LIB_CABAL_DEPS)"                               >> $@
+	@echo "  if os(windows)"                                      >> $@
+	@echo "    build-depends: Win32"                              >> $@
+	@echo "  else"                                                >> $@
+	@echo "    build-depends: unix"                               >> $@
+	@echo "  exposed-modules: $(LIB_HS_NAMES)"                    >> $@
+	@echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
 $(LIB_TRACE_CABAL):
-	echo "name:           $(PACKAGE_TRACE)"                          > $@
-	echo "version:        $(VERSION)"                               >> $@
-	echo "description:    The tracing standard libraries for KiCS2" >> $@
-	echo "license:        OtherLicense"                             >> $@
-	echo "author:         The KiCS2 Team"                           >> $@
-	echo "maintainer:     kics2@curry-lang.org"                     >> $@
-	echo "build-type:     Simple"                                   >> $@
-	echo "cabal-version:  >= 1.9.2"                                 >> $@
-	echo ""                                                         >> $@
-	echo "library"                                                  >> $@
-	echo "  build-depends:"                                         >> $@
-	echo "      kics2-runtime == $(VERSION)"                        >> $@
-	echo "    , $(LIB_CABAL_DEPS)"                                  >> $@
-	echo "  if os(windows)"                                         >> $@
-	echo "    build-depends: Win32"                                 >> $@
-	echo "  else"                                                   >> $@
-	echo "    build-depends: unix"                                  >> $@
-	echo "  exposed-modules: $(LIB_TRACE_HS_NAMES)"                 >> $@
-	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
+	@echo "name:           $(PACKAGE_TRACE)"                          > $@
+	@echo "version:        $(VERSION)"                               >> $@
+	@echo "description:    The tracing standard libraries for KiCS2" >> $@
+	@echo "license:        OtherLicense"                             >> $@
+	@echo "author:         The KiCS2 Team"                           >> $@
+	@echo "maintainer:     kics2@curry-lang.org"                     >> $@
+	@echo "build-type:     Simple"                                   >> $@
+	@echo "cabal-version:  >= 1.9.2"                                 >> $@
+	@echo ""                                                         >> $@
+	@echo "library"                                                  >> $@
+	@echo "  build-depends:"                                         >> $@
+	@echo "      kics2-runtime == $(VERSION)"                        >> $@
+	@echo "    , $(LIB_CABAL_DEPS)"                                  >> $@
+	@echo "  if os(windows)"                                         >> $@
+	@echo "    build-depends: Win32"                                 >> $@
+	@echo "  else"                                                   >> $@
+	@echo "    build-depends: unix"                                  >> $@
+	@echo "  exposed-modules: $(LIB_TRACE_HS_NAMES)"                 >> $@
+	@echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 define LIB_RULE
 $(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(COMP) $(LIB_CURRY_FILES) $(LIB_GHC_FILES)
@@ -114,11 +114,11 @@ $(foreach module, $(LIB_CURRY:$(LIBDIR)/%.curry=%),$(eval $(call LIB_RULE,$(modu
 
 # generate FlatCurry file in subdirectory .curry:
 $(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: $(LIBDIR)/%.curry
-	"$(FRONTEND)" --type-annotated-flat $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
+	cd $(LIBDIR) && "$(FRONTEND)" --type-annotated-flat $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate AbstractCurry file in subdirectory .curry:
 $(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry
-	"$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
+	cd $(LIBDIR) && "$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
 # create HTML documentation files for system libraries
