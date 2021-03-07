@@ -43,6 +43,8 @@ GHC_MINOR := $(shell "$(GHC)" --numeric-version | cut -d. -f2)
 export ROOT = $(CURDIR)
 # The directory containing the built binaries
 export BINDIR = $(ROOT)/bin
+# The directory containing local binaries
+export LOCALBINDIR = $(BINDIR)/.local
 # The directory containing the frontend sources
 export FRONTENDDIR = $(ROOT)/frontend
 # The directory containing the start scripts (including 'kics2')
@@ -68,9 +70,9 @@ CPMDIR = $(ROOT)/.cpm
 # The frontend binary ('kics2-frontend')
 export FRONTEND = $(BINDIR)/kics2-frontend
 # The REPL binary ('kics2i')
-export REPL = $(BINDIR)/kics2i
+export REPL = $(LOCALBINDIR)/kics2i
 # The compiler binary ('kics2c')
-export COMP = $(BINDIR)/kics2c
+export COMP = $(LOCALBINDIR)/kics2c
 # The cleancurry binary
 export CLEANCURRY = $(BINDIR)/cleancurry
 
@@ -196,13 +198,13 @@ clean: cleanlib cleanruntime cleanutils cleanbin
 ########################################################################
 
 # Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LIB) $(CLEANCURRY) $(COMP) $(BINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LIB) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
 	$(CURRYC) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
@@ -227,6 +229,10 @@ $(LIBDIR):
 # Creates a directory for the target binaries ('bin')
 $(BINDIR):
 	mkdir -p $(BINDIR)
+
+# Creates a directory for local binaries to be output
+$(LOCALBINDIR):
+	mkdir -p $(LOCALBINDIR)
 
 # Generate a source module with metadata about the KiCS2 installation for use at runtime
 $(INSTALLHS):

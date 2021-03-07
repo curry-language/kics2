@@ -528,7 +528,7 @@ compileCurryProgram rst curryprog = do
   writeVerboseInfo rst 2 $ "Executing: " ++ timekics2Cmd
   system timekics2Cmd
  where
-  kics2Bin  = kics2Home rst </> "bin" </> "kics2c"
+  kics2Bin  = kics2Home rst </> "bin" </> ".local" </> "kics2c"
   kics2Opts = unwords $
     -- pass current value of "bindingoptimization" property to compiler:
     [ "-Dbindingoptimization=" ++ rcValue (rcvars rst) "bindingoptimization"
