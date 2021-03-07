@@ -74,7 +74,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       -- For dictionaries that represent type classes we only generate empty
       -- instances.
       instanceDecls = map ($tdecl) [ showInstance       (isDictType qf) hoResult
-                                  --  , readInstance       (isDictType qf)
+                                   , readInstance       (isDictType qf)
                                   --  , nondetInstance     (isDictType qf)
                                   --  , generableInstance  (isDictType qf) hoResult
                                   --  , normalformInstance (isDictType qf) hoResult
@@ -267,7 +267,13 @@ readInstance isDict tdecl = case tdecl of
         ctype = TCons qf $ map (TVar . fst) targs
         rule | isListType  qf = readListRule qf
              | isTupleType qf = readTupleRule (head cdecls)
-             | otherwise      = readRule cdecls
+             | otherwise      = readDataRule cdecls
+  (FC.TypeNew qf _ tnums cdecl) ->
+    mkInstance (pre "Read") ctype targs [rule]
+   where
+        targs = map fcy2absTVarKind tnums
+        ctype = TCons qf $ map (TVar . fst) targs
+        rule = readNewtypeRule cdecl
   _ -> error "TransTypes.readInstance"
 
 -- Generate special Read instance rule for lists
@@ -325,7 +331,13 @@ readTupleRule (FC.Cons qn@(mn,_) carity _ _) =
           tvars    = map mkTVar [0 .. carity - 1]
 
 
--- Generate Read instance rule for data constructors:
+-- Generate Read instance rule for data and newtype constructors:
+
+readDataRule :: [FC.ConsDecl] -> (QName, Rule)
+readDataRule cdecls = readRule $ map (\(FC.Cons qn carity _ _) -> (qn, carity)) cdecls
+
+readNewtypeRule :: FC.NewConsDecl -> (QName, Rule)
+readNewtypeRule (FC.NewCons qn _ _) = readRule [(qn, 1)]
 
 --instance (Read t0,Read t1) => Read (C_Either t0 t1) where
   --  readsPrec d r =
@@ -339,18 +351,18 @@ readTupleRule (FC.Cons qn@(mn,_) carity _ _) =
   --                        | (_,r0) <- readQualified "Prelude" "Right" s,
   --                          (x1,r1) <- readsPrec 11 r0])
   --                   r)
-readRule :: [FC.ConsDecl] -> (QName, Rule)
+readRule :: [(QName, Int)] -> (QName, Rule)
 readRule cdecls =
   ( pre "readsPrec"
   ,  simpleRule [PVar maybeD, PVar (1,"s")]
-       (foldr1 (\e1 e2 -> InfixApply e1 (pre "++") e2) $ map readParen cdecls)
+       (foldr1 (\e1 e2 -> InfixApply e1 (pre "++") e2) $ map (uncurry readParen) cdecls)
   )
   where
     maybeD = if isDNeeded then (0,"d") else (0,"_")
-    isDNeeded = or [ arity > 0 | (FC.Cons _ arity _ _) <- cdecls ]
+    isDNeeded = or [ arity > 0 | (_, arity) <- cdecls ]
 
-readParen :: FC.ConsDecl -> Expr
-readParen (FC.Cons qn@(mn,_) carity _ _) = applyF (pre "readParen")
+readParen :: QName -> Int -> Expr
+readParen qn@(mn,_) carity = applyF (pre "readParen")
   [ if carity == 0 then constF (pre "False") -- no parentheses required
                    else applyF (pre ">") [Var (0, "d"), intc 10]
   , Lambda [PVar (2,"r")]
