@@ -78,7 +78,7 @@ export CLEANCURRY = $(BINDIR)/cleancurry
 CPMDEPS = $(wildcard $(CPMDIR)/packages/**/*)
 
 # The KiCS2 version, as defined in CPM's package.json
-export VERSION  = $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
+export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
 MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))

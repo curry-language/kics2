@@ -10,9 +10,7 @@ LIB_DOCDIR := $(LIBDIR)/CDOC
 # directory for LaTeX documentation files
 LIB_TEXDOCDIR := $(LIB_DOCDIR)/src/lib
 
-LIB_MODULE_FOLDERS := $(shell find $(LIBDIR) -type d)
-LIB_TRACE_FOLDERS   = $(addprefix $(LIBDIR)/.curry/kics2-$(VERSION)/,$(LIB_MODULE_FOLDERS))
-LIB_CURRY_FILES    := $(shell find $(LIBDIR) -name "*.curry")
+LIB_TRACE_FOLDERS = $(addprefix $(LIBDIR)/.curry/kics2-$(VERSION)/,$(LIB_MODULE_FOLDERS))
 
 # Curry library files
 LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
