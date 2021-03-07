@@ -20,7 +20,7 @@ $(LIB_CURRYONLY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry | $(LIB_MODULE_F
 $(LIB_GHC_FILES): $(LIBDIR)/%.kics2: $(LIBSRCDIR)/%.kics2 | $(LIB_MODULE_FOLDERS)
 	cp $< $@
 
-$(LIB_GHC_CURRY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry %.kics2 | $(LIB_MODULE_FOLDERS)
+$(LIB_GHC_CURRY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry $(LIBSRCDIR)/%.kics2 | $(LIB_MODULE_FOLDERS)
 	cp $< $@
 
 $(LIBDIR)/VERSION: $(LIBTRUNKDIR)/VERSION | $(LIBDIR)

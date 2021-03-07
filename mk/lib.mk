@@ -104,20 +104,20 @@ $(LIB_TRACE_CABAL):
 	echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 define LIB_RULE
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIBDIR)/$1.curry $(COMP)
-	$$(COMP) -v0 -i. $$(subst /,.,$$<)
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIBDIR)/$1.curry $(COMP)
-	$$(COMP) -v0 -i. --trace-failure $$(subst /,.,$$<)
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(COMP) $(LIB_CURRY_FILES) $(LIB_GHC_FILES)
+	cd $$(LIBDIR) && $$(COMP) -v0 -i. $$(subst /,.,$1)
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(COMP) $(LIB_CURRY_FILES) $(LIB_GHC_FILES)
+	cd $$(LIBDIR) && $$(COMP) -v0 -i. --trace-failure $$(subst /,.,$1)
 endef
 
 $(foreach module, $(LIB_CURRY:$(LIBDIR)/%.curry=%),$(eval $(call LIB_RULE,$(module))))
 
 # generate FlatCurry file in subdirectory .curry:
-$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: %.curry
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: $(LIBDIR)/%.curry
 	"$(FRONTEND)" --type-annotated-flat $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate AbstractCurry file in subdirectory .curry:
-$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: %.curry
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry
 	"$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
