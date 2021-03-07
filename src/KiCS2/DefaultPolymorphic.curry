@@ -33,7 +33,7 @@ import Control.Monad.Trans.State
 import Data.Map
 import FlatCurry.Annotated.Types
 import FlatCurry.Annotated.Goodies
-import FlatCurry.Annotated.TypeSubst
+import KiCS2.FlatCurry.Annotated.TypeSubst
 
 --- The Default Polymorphic Monad contains a type substitution as its state.
 type DPM a = State AFCSubst a
