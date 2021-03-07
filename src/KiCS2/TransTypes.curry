@@ -41,11 +41,11 @@ genTypeDeclarations hoResult tdecl = case tdecl of
     where
       instanceDecls = map ($tdecl) [ showInstance       False hoResult
                                    , readInstance       False
-                                   , nondetInstance     False
-                                   , generableInstance  False hoResult
-                                   , normalformInstance False hoResult
-                                   , unifiableInstance  False hoResult
-                                   , curryInstance      False
+                                  --  , nondetInstance     False
+                                  --  , generableInstance  False hoResult
+                                  --  , normalformInstance False hoResult
+                                  --  , unifiableInstance  False hoResult
+                                  --  , curryInstance      False
                                    ]
       targs     = map fcy2absTVarKind tnums
   (FC.Type qf vis tnums cs)
@@ -75,11 +75,11 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       -- instances.
       instanceDecls = map ($tdecl) [ showInstance       (isDictType qf) hoResult
                                    , readInstance       (isDictType qf)
-                                  --  , nondetInstance     (isDictType qf)
-                                  --  , generableInstance  (isDictType qf) hoResult
-                                  --  , normalformInstance (isDictType qf) hoResult
-                                  --  , unifiableInstance  (isDictType qf) hoResult
-                                  --  , curryInstance      (isDictType qf)
+                                   , nondetInstance     (isDictType qf)
+                                   , generableInstance  (isDictType qf) hoResult
+                                   , normalformInstance (isDictType qf) hoResult
+                                   , unifiableInstance  (isDictType qf) hoResult
+                                   , curryInstance      (isDictType qf)
                                    ]
       vis'      = fcy2absVis vis
       targs     = map fcy2absTVarKind tnums
