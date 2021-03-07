@@ -10,8 +10,6 @@ LIB_DOCDIR := $(LIBDIR)/CDOC
 # directory for LaTeX documentation files
 LIB_TEXDOCDIR := $(LIB_DOCDIR)/src/lib
 
-LIB_TRACE_FOLDERS = $(addprefix $(LIBDIR)/.curry/kics2-$(VERSION)/,$(LIB_MODULE_FOLDERS))
-
 # Curry library files
 LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
 # lib names without directory prefix
@@ -19,10 +17,10 @@ LIB_NAMES     = $(subst /,., $(basename $(LIB_CURRY)))
 # lib names included in library documentation page (without directory prefix)
 LIB_DOCNAMES = $(filter-out $(DOCEXCLUDES), $(LIB_NAMES))
 # Generated files
-LIB_AFCY     = $(foreach lib, $(LIB_CURRY:%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy), $(lib))
-LIB_ACY      = $(foreach lib, $(LIB_CURRY:%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy), $(lib))
-LIB_HS       = $(foreach lib, $(LIB_CURRY:.curry=.hs), $(LIBDIR)/.curry/kics2-$(VERSION)/$(call prefix,Curry_,$(lib)))
-LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:.curry=.hs), $(LIBDIR)/.curry/kics2-$(VERSION)/$(call prefix,Curry_Trace_,$(lib)))
+LIB_AFCY     = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy), $(lib))
+LIB_ACY      = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy), $(lib))
+LIB_HS       = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_,$(lib)))
+LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_Trace_,$(lib)))
 LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIB_DOCDIR)/$(subst /,.,$(lib)))
 LIB_TEX      = $(foreach lib, $(LIB_CURRY:.curry=.tex),  $(LIB_TEXDOCDIR)/$(subst /,.,$(lib)))
 LIB_HS_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
@@ -112,7 +110,7 @@ $(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIBDIR
 	$$(COMP) -v0 -i. --trace-failure $$(subst /,.,$$<)
 endef
 
-$(foreach module, $(basename $(LIB_CURRY)),$(eval $(call LIB_RULE,$(module))))
+$(foreach module, $(LIB_CURRY:$(LIBDIR)/%.curry=%),$(eval $(call LIB_RULE,$(module))))
 
 # generate FlatCurry file in subdirectory .curry:
 $(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: %.curry

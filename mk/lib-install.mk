@@ -14,13 +14,13 @@ LIB_CURRYONLY_FILES  = $(filter-out $(LIB_GHC_CURRY_FILES), $(LIB_CURRY_FILES))
 $(LIB_MODULE_FOLDERS): $(LIBDIR)/%: $(LIBSRCDIR)/% | $(LIBDIR)
 	mkdir -p $@
 
-$(LIB_CURRYONLY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry | $(LIBDIR)
+$(LIB_CURRYONLY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry | $(LIB_MODULE_FOLDERS)
 	cp $< $@
 
-$(LIB_GHC_FILES): $(LIBDIR)/%.kics2: $(LIBSRCDIR)/%.kics2 | $(LIBDIR)
+$(LIB_GHC_FILES): $(LIBDIR)/%.kics2: $(LIBSRCDIR)/%.kics2 | $(LIB_MODULE_FOLDERS)
 	cp $< $@
 
-$(LIB_GHC_CURRY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry %.kics2 | $(LIBDIR)
+$(LIB_GHC_CURRY_FILES): $(LIBDIR)/%.curry: $(LIBSRCDIR)/%.curry %.kics2 | $(LIB_MODULE_FOLDERS)
 	cp $< $@
 
 $(LIBDIR)/VERSION: $(LIBTRUNKDIR)/VERSION | $(LIBDIR)

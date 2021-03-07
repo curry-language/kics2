@@ -74,8 +74,8 @@ export COMP = $(BINDIR)/kics2c
 # The cleancurry binary
 export CLEANCURRY = $(BINDIR)/cleancurry
 
-# CPM dependencies
-CPMDEPS = $(wildcard $(CPMDIR)/packages/**/*)
+# Dummy file for tracking installation state of CPM dependencies
+CPMDEPS = $(CPMDIR)/.installation-state-dummy
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -205,7 +205,7 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | $(FRONTE
 
 # Builds the frontend
 $(FRONTEND): | $(BINDIR)
-	@echo "$(HIGHLIGHT)>> Building frontend$(NORMAL)"
+	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
 	@cd $(FRONTENDDIR) && $(MAKE)
 	@cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $(FRONTEND)
 
@@ -214,6 +214,7 @@ $(CPMDEPS): $(PACKAGEJSON)
 	@echo "$(HIGHLIGHT)>> Updating CPM index and installing dependencies$(NORMAL)"
 	$(CYPM) update
 	$(CYPM) install --noexec
+	@touch $@
 
 # Creates a directory for the compiled libraries
 $(LIBDIR):
