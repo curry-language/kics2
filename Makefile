@@ -203,10 +203,6 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | $(FRONTE
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
 
-# Builds and copies the 'cleancurry' executable
-$(CLEANCURRY): utils
-	@cp $(ROOT)/utils/cleancurry $(CLEANCURRY)
-
 # Builds the frontend
 $(FRONTEND): | $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building frontend$(NORMAL)"
