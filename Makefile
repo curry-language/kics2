@@ -204,7 +204,7 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | $(FRONTE
 	mv KiCS2.Compile $(COMP)
 
 # Builds the frontend
-$(FRONTEND): | $(BINDIR)
+$(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
 	@cd $(FRONTENDDIR) && $(MAKE)
 	@cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $(FRONTEND)
