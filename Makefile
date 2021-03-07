@@ -119,12 +119,9 @@ comma_sep = $(subst $(SPACE),$(COMMA)$(SPACE),$(1))
 # The default target
 ########################################################################
 
-# Builds the KiCS2 compiler using CURRYC (PAKCS by default)
-.PHONY: all
+.PHONY: default
 .NOTPARALLEL:
-all: repl compiler scripts
-	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
-	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
+default: all
 
 ########################################################################
 # Included sub-makefiles
@@ -139,6 +136,12 @@ include mk/utils.mk
 ########################################################################
 # The high-level phony targets
 ########################################################################
+
+# Builds the KiCS2 compiler using CURRYC (PAKCS by default)
+.PHONY: all
+all: $(REPL) $(COMP) $(SCRIPTS)
+	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
+	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
 # Builds the REPL (kics2i) only.
 .PHONY: repl
