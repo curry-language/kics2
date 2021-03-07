@@ -114,6 +114,17 @@ prefix    = $(patsubst ./%,%,$(dir $(2))$(1)$(notdir $(2)))
 comma_sep = $(subst $(SPACE),$(COMMA)$(SPACE),$(1))
 
 ########################################################################
+# The default target
+########################################################################
+
+# Builds the KiCS2 compiler using CURRYC (PAKCS by default)
+.PHONY: all
+.NOTPARALLEL:
+all: repl compiler scripts
+	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
+	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
+
+########################################################################
 # Included sub-makefiles
 ########################################################################
 
@@ -126,13 +137,6 @@ include mk/utils.mk
 ########################################################################
 # The high-level phony targets
 ########################################################################
-
-# Builds the KiCS2 compiler using CURRYC (PAKCS by default)
-.PHONY: all
-.NOTPARALLEL:
-all: repl compiler scripts
-	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
-	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
 # Builds the REPL (kics2i) only.
 .PHONY: repl
@@ -198,7 +202,7 @@ $(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGE
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(BINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
 	$(CURRYC) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
