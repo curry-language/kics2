@@ -42,8 +42,8 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       instanceDecls = map ($tdecl) [ showInstance       False hoResult
                                    , readInstance       False
                                    , nondetInstance     False
-                                  --  , generableInstance  False hoResult
-                                  --  , normalformInstance False hoResult
+                                   , generableInstance  False hoResult
+                                   , normalformInstance False hoResult
                                   --  , unifiableInstance  False hoResult
                                   --  , curryInstance      False
                                    ]
@@ -544,6 +544,15 @@ generableInstance isDict hoResult tdecl = case tdecl of
 
       consArgs2gen n = map (applyF (basics "generate") . (:[Var c]))
                             $ mkSuppList n idSupply
+  (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
+    mkInstance (basics "Generable") ctype targs
+      [(basics "generate", simpleRule [s', c'] $ applyF cqf [applyF (basics "generate") [s, c]])]
+   where
+      targs = map fcy2absTVarKind tnums
+      ctype = TCons qf $ map (TVar . fst) targs
+      vs = newVars ["s","c"]
+      [s,c] = map Var vs
+      [s',c'] = map PVar vs
   _ -> error "TransTypes.generableInstance"
 
 -- ---------------------------------------------------------------------------
@@ -572,6 +581,20 @@ normalformInstance isDict hoResult tdecl = case tdecl of
    where targs = map fcy2absTVarKind tnums
          ctype = TCons qf $ map (TVar . fst) targs
          --[cd, cont,i,x,y,xs] = newVars ["cd", "cont","i","x","y","xs"]
+  (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
+    mkInstance (basics "NormalForm") ctype targs
+      [ (basics "$!!", simpleRule [cont', PComb cqf [x']]
+        $ applyF (basics "$!!") [Lambda [y'] $ Apply cont $ applyF cqf [y], x])
+      , (basics "$##", simpleRule [cont', PComb cqf [x']]
+        $ applyF (basics "$##") [Lambda [y'] $ Apply cont $ applyF cqf [y], x])
+      , (basics "searchNF", simpleRule [s', cont', PComb cqf [x']]
+        $ applyF (basics "searchNF") [s, InfixApply cont (pre ".") (Symbol cqf), x])
+      ]
+   where targs = map fcy2absTVarKind tnums
+         ctype = TCons qf $ map (TVar . fst) targs
+         vs = newVars ["cont","x","y","s"]
+         [cont,x,y,s] = map Var vs
+         [cont',x',y',s'] = map PVar vs
   _ -> error "TransTypes.normalformInstance"
 
 -- Generate NormalForm instance rule for a data constructor
