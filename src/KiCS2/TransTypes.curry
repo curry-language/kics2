@@ -41,7 +41,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
     where
       instanceDecls = map ($tdecl) [ showInstance       False hoResult
                                    , readInstance       False
-                                  --  , nondetInstance     False
+                                   , nondetInstance     False
                                   --  , generableInstance  False hoResult
                                   --  , normalformInstance False hoResult
                                   --  , unifiableInstance  False hoResult
@@ -395,24 +395,36 @@ nondetInstance :: Bool -> FC.TypeDecl -> TypeDecl
 nondetInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums _)
     | not isDict -> mkInstance (basics "NonDet") ctype []
-     $ specialConsRules qf ++ tryRules qf ++ matchRules qf
+     $ specialDataConsRules qf ++ dataTryRules qf ++ matchRules qf
     | otherwise -> mkEmptyInstance (basics "NonDet") ctype
+   where
+     targs = map fcy2absTVarKind tnums
+     ctype = TCons qf $ map (TVar . fst) targs
+  (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "NonDet") ctype []
+    $ specialNewConsRules cdecl qf ++ newtypeTryRules qf
    where
      targs = map fcy2absTVarKind tnums
      ctype = TCons qf $ map (TVar . fst) targs
   _ -> error "TransTypes.nondetInstance"
 
-specialConsRules :: QName -> [(QName, Rule)]
-specialConsRules qf = map nameRule
+specialDataConsRules :: QName -> [(QName, Rule)]
+specialDataConsRules = specialConsRules nameRule
+  where nameRule (name, fun) = (basics name, simpleRule [] $ constF fun)
+
+specialNewConsRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
+specialNewConsRules (FC.NewCons cqf _ _) = specialConsRules nameRule
+  where nameRule (name, fun) = (basics name, simpleRule [] $ InfixApply (Symbol cqf) (pre ".") $ constF fun)
+
+specialConsRules :: ((String, QName) -> (QName, Rule)) -> QName -> [(QName, Rule)]
+specialConsRules nameRule qf = map nameRule
   [ ("choiceCons" , mkChoiceName  qf)
   , ("choicesCons", mkChoicesName qf)
   , ("failCons"   , mkFailName    qf)
   , ("guardCons"  , mkGuardName   qf)
   ]
-  where nameRule (name, fun) = (basics name, simpleRule [] (constF fun))
 
-tryRules :: QName -> [(QName, Rule)]
-tryRules qf = map nameRule
+dataTryRules :: QName -> [(QName, Rule)]
+dataTryRules qf = map nameRule
   [ simpleRule [mkChoicePattern  qf "i"] $ applyF (basics "tryChoice")  [cd, i, x, y]
   , simpleRule [mkChoicesPattern qf    ] $ applyF (basics "tryChoices") [cd, i, xs]
   , simpleRule [mkFailPattern    qf    ] $ applyF (basics "Fail")       [cd, info]
@@ -421,6 +433,9 @@ tryRules qf = map nameRule
   ]
   where [i,x,y,xs,c,e,cd,info] = map Var $ newVars ["i","x","y","xs","c","e", "cd","info"]
         nameRule rule  = (basics "try", rule)
+
+newtypeTryRules :: QName -> [(QName, Rule)]
+newtypeTryRules _ = [(basics "try", simpleRule [] $ constF $ basics "Val")]
 
 {-
 match f _ _ _ _ _ (Choice i x y) = f i x y

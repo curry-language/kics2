@@ -104,9 +104,9 @@ $(LIB_TRACE_CABAL):
 	@echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 define LIB_RULE
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) | $(COMP)
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) $(COMP)
 	cd $$(LIBDIR) && $$(COMP) -v0 -i. $$(subst /,.,$1)
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) | $(COMP)
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) $(COMP)
 	cd $$(LIBDIR) && $$(COMP) -v0 -i. --trace-failure $$(subst /,.,$1)
 endef
 
