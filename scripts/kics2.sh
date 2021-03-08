@@ -118,7 +118,7 @@ if [ -z "$CURRYPATH" ]; then
   export CURRYPATH=$KICS2HOME/lib
 fi
 
-REPL="$KICS2HOME/bin/kics2i"
+REPL="$KICS2HOME/bin/.local/kics2i"
 if [ ! -x "$REPL" ] ; then
   echo "ERROR: executable '$REPL' not found!" >&2
   echo "Run: cd $KICS2HOME && make" >&2
