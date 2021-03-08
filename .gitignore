@@ -46,6 +46,8 @@ pkg/
 stack.yaml.lock
 TMPLIBOUT
 *.state
+KiCS2.Compile
+KiCS2.REPL
 
 # binaries
 benchmarks/Benchmarks
