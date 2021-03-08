@@ -408,20 +408,29 @@ nondetInstance isDict tdecl = case tdecl of
   _ -> error "TransTypes.nondetInstance"
 
 specialDataConsRules :: QName -> [(QName, Rule)]
-specialDataConsRules = specialConsRules nameRule
-  where nameRule (name, fun) = (basics name, simpleRule [] $ constF fun)
-
-specialNewConsRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
-specialNewConsRules (FC.NewCons cqf _ _) = specialConsRules nameRule
-  where nameRule (name, fun) = (basics name, simpleRule [] $ InfixApply (Symbol cqf) (pre ".") $ constF fun)
-
-specialConsRules :: ((String, QName) -> (QName, Rule)) -> QName -> [(QName, Rule)]
-specialConsRules nameRule qf = map nameRule
+specialDataConsRules qf = map nameRule
   [ ("choiceCons" , mkChoiceName  qf)
   , ("choicesCons", mkChoicesName qf)
   , ("failCons"   , mkFailName    qf)
   , ("guardCons"  , mkGuardName   qf)
   ]
+  where nameRule (name, fun) = (basics name, simpleRule [] $ constF fun)
+
+specialNewConsRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
+specialNewConsRules (FC.NewCons cqf _ _) _ = map nameRule
+  [ ("choiceCons" , simpleRule [cd', i', PComb cqf [x'], PComb cqf [y']]
+    $ applyF cqf [applyF (basics "choiceCons")  [cd, i, x, y]])
+  , ("choicesCons", simpleRule [cd', i', xs']
+    $ applyF cqf [applyF (basics "choicesCons") [cd, i, applyF (pre "map") [Lambda [PComb cqf [v']] v, xs]]])
+  , ("failCons"   , simpleRule [cd', info']
+    $ applyF cqf [applyF (basics "failCons")    [cd, info]])
+  , ("guardCons"  , simpleRule [cd', c', PComb cqf [e']]
+    $ applyF cqf [applyF (basics "guardCons")   [cd, c, e]])
+  ]
+  where vs = newVars ["i","x","y","xs","c","e", "cd","info", "v"]
+        [i,x,y,xs,c,e,cd,info,v] = map Var vs
+        [i',x',y',xs',c',e',cd',info',v'] = map PVar vs
+        nameRule (name, rule) = (basics name, rule)
 
 dataTryRules :: QName -> [(QName, Rule)]
 dataTryRules qf = map nameRule
