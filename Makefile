@@ -216,7 +216,7 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGE
 $(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
 	@cd $(FRONTENDDIR) && $(MAKE)
-	@cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $(FRONTEND)
+	@cd $(BINDIR) && ln -srf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
 
 # Updates the CPM index and installs dependencies
 $(CPMDEPS): $(PACKAGEJSON)
