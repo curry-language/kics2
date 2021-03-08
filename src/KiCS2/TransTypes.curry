@@ -45,7 +45,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
                                    , generableInstance  False hoResult
                                    , normalformInstance False hoResult
                                    , unifiableInstance  False hoResult
-                                  --  , curryInstance      False
+                                   , curryInstance      False
                                    ]
       targs     = map fcy2absTVarKind tnums
   (FC.Type qf vis tnums cs)
@@ -886,6 +886,11 @@ curryInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums _)
     | not isDict -> mkInstance (basics "Curry") ctype targs []
     | otherwise -> mkEmptyInstance (basics "Curry") ctype
+   where
+      targs = map fcy2absTVarKind tnums
+      ctype = TCons qf $ map (TVar . fst) targs
+  (FC.TypeNew qf _ tnums _) ->
+    mkInstance (basics "Curry") ctype targs []
    where
       targs = map fcy2absTVarKind tnums
       ctype = TCons qf $ map (TVar . fst) targs
