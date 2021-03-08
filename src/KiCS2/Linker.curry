@@ -206,12 +206,11 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   writeFile dotCabalFile $ generateDotCabal rst cabalName mainName
   writeFile cabalProjectFile $ generateCabalProject rst
 
-  let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
+  let replCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-repl"
       cabalCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-install --overwrite-policy=always --install-method=copy --installdir=."
-  tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
-  writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
+  writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile
   (rst'', status) <- if useGhci'
-                      then compileWithGhci rst' ghcCompile mainExp
+                      then compileWithGhci rst' replCompile mainExp
                       else system cabalCompile >>= \stat -> return (rst', stat)
   return (if status > 0
           then (setExitStatus 1 rst'', MainError)
