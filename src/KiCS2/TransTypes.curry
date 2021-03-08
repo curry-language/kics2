@@ -400,7 +400,7 @@ nondetInstance isDict tdecl = case tdecl of
    where
      targs = map fcy2absTVarKind tnums
      ctype = TCons qf $ map (TVar . fst) targs
-  (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "NonDet") ctype []
+  (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "NonDet") ctype targs
     $ specialNewConsRules cdecl qf ++ newtypeTryRules qf
    where
      targs = map fcy2absTVarKind tnums
