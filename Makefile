@@ -143,6 +143,11 @@ all: $(REPL) $(COMP) $(SCRIPTS)
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
+# Builds the REPL and runs it.
+.PHONY: run
+run: $(REPL)
+	$(REPL)
+
 # Builds the REPL (kics2i) only.
 .PHONY: repl
 repl: $(REPL)
