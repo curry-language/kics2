@@ -57,11 +57,11 @@ export LIB_ARTIFACTS = $(LIBDIR)/.curry \
 
 # create a program importing all libraries in order to re-compile them
 # so that all auxiliary files (.nda, .hs, ...) are up-to-date
-$(LIBDIR)/$(ALLLIBS).curry: $(LIB_CURRY) Makefile
+$(LIBDIR)/$(ALLLIBS).curry: $(LIB_CURRY) | $(LIBDIR)
 	rm -f $@
 	for i in $(filter-out Prelude, $(LIB_NAMES)) ; do echo "import $$i" >> $@ ; done
 
-$(LIB_CABAL):
+$(LIB_CABAL): | $(LIBDIR)
 	@echo "name:           $(PACKAGE)"                             > $@
 	@echo "version:        $(VERSION)"                            >> $@
 	@echo "description:    The standard libraries for KiCS2"      >> $@
@@ -82,7 +82,7 @@ $(LIB_CABAL):
 	@echo "  exposed-modules: $(LIB_HS_NAMES)"                    >> $@
 	@echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"           >> $@
 
-$(LIB_TRACE_CABAL):
+$(LIB_TRACE_CABAL): | $(LIBDIR)
 	@echo "name:           $(PACKAGE_TRACE)"                          > $@
 	@echo "version:        $(VERSION)"                               >> $@
 	@echo "description:    The tracing standard libraries for KiCS2" >> $@
@@ -104,20 +104,23 @@ $(LIB_TRACE_CABAL):
 	@echo "  hs-source-dirs: ./.curry/kics2-$(VERSION)"              >> $@
 
 define LIB_RULE
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) $(COMP)
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) | $(COMP)
+	rm -f $$@
 	cd $$(LIBDIR) && $$(COMP) -v0 -i. $$(subst /,.,$1)
-$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) $(COMP)
+
+$(dir $(LIBDIR)/.curry/kics2-$(VERSION)/$1)Curry_Trace_$(notdir $1).hs: $(LIB_CURRY_FILES) $(LIB_GHC_FILES) | $(COMP)
+	rm -f $$@
 	cd $$(LIBDIR) && $$(COMP) -v0 -i. --trace-failure $$(subst /,.,$1)
 endef
 
 $(foreach module, $(LIB_CURRY:$(LIBDIR)/%.curry=%),$(eval $(call LIB_RULE,$(module))))
 
 # generate FlatCurry file in subdirectory .curry:
-$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: $(LIBDIR)/%.curry
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: $(LIBDIR)/%.curry | $(LIBDIR)
 	cd $(LIBDIR) && "$(FRONTEND)" --type-annotated-flat $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 # generate AbstractCurry file in subdirectory .curry:
-$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry
+$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry | $(LIBDIR)
 	cd $(LIBDIR) && "$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
