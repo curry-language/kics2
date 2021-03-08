@@ -395,13 +395,13 @@ nondetInstance :: Bool -> FC.TypeDecl -> TypeDecl
 nondetInstance isDict tdecl = case tdecl of
   (FC.Type qf _ tnums _)
     | not isDict -> mkInstance (basics "NonDet") ctype []
-     $ specialDataConsRules qf ++ dataTryRules qf ++ matchRules qf
+     $ specialDataConsRules qf ++ dataTryRules qf ++ dataMatchRules qf
     | otherwise -> mkEmptyInstance (basics "NonDet") ctype
    where
      targs = map fcy2absTVarKind tnums
      ctype = TCons qf $ map (TVar . fst) targs
   (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "NonDet") ctype targs
-    $ specialNewConsRules cdecl qf ++ newtypeTryRules qf
+    $ specialNewConsRules cdecl qf ++ newtypeMatchRules cdecl qf
    where
      targs = map fcy2absTVarKind tnums
      ctype = TCons qf $ map (TVar . fst) targs
@@ -443,9 +443,6 @@ dataTryRules qf = map nameRule
   where [i,x,y,xs,c,e,cd,info] = map Var $ newVars ["i","x","y","xs","c","e", "cd","info"]
         nameRule rule  = (basics "try", rule)
 
-newtypeTryRules :: QName -> [(QName, Rule)]
-newtypeTryRules _ = [(basics "try", simpleRule [] $ constF $ basics "Val")]
-
 {-
 match f _ _ _ _ _ (Choice i x y) = f i x y
 match _ f _ _ _ _ (Choices i@(NarrowedID _ _) xs) = f i xs
@@ -457,8 +454,8 @@ match _ _ _ f _ _ Fail = f
 match _ _ _ _ f _ (Guard c e) = f c e
 match _ _ _ _ _ f x = f x
 -}
-matchRules :: QName -> [(QName, Rule)]
-matchRules qf = map nameRule
+dataMatchRules :: QName -> [(QName, Rule)]
+dataMatchRules qf = map nameRule
   [ simpleRule (matchAt 0 ++ [mkChoicePattern  qf "i"])
     $ applyV f [cd, i, x, y]
   , simpleRule (matchAt 1 ++ [mkNarrowedChoicesPattern qf "i"])
@@ -482,8 +479,35 @@ matchRules qf = map nameRule
   where underscores = map PVar $ newVars ["_","_","_","_","_"]
         [i,x,y,xs,e,c,cd,info] = map Var $ newVars ["i","x","y","xs","e","c","cd","info"]
         f = (1, "f")
-        nameRule rule  = (basics "match", rule)
+        nameRule rule = (basics "match", rule)
         matchAt n = take n underscores ++ PVar f : drop n underscores
+
+{-
+match chc nrwd fr fl grd vl (C v) = match
+  (\cd i x y -> chc cd i (C x) (C y))
+  (\cd i xs -> nrwd cd i (map C xs))
+  (\cd i xs -> fr cd i (map C xs))
+  fl
+  (\cd cs e -> grd cd cs (C e))
+  (vl . C)
+  v
+-}
+newtypeMatchRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
+newtypeMatchRules (FC.NewCons cqf _ _) _ = map nameRule
+  [ simpleRule [chc', nrwd', fr', fl', grd', vl', PComb cqf [v']] $ applyF (basics "match")
+    [ Lambda [cd', i', x', y'] $ foldl Apply chc [cd, i, applyF cqf [x], applyF cqf [y]]
+    , Lambda [cd', i', xs'] $ foldl Apply nrwd [cd, i, applyF (pre "map") [Symbol cqf, xs]]
+    , Lambda [cd', i', xs'] $ foldl Apply fr [cd, i, applyF (pre "map") [Symbol cqf, xs]]
+    , fl
+    , Lambda [cd', cs', e'] $ foldl Apply grd [cd, cs, applyF cqf [e]]
+    , InfixApply vl (pre ".") (Symbol cqf)
+    , v
+    ]
+  ]
+  where vs = newVars ["chc","nrwd","fr","fl","grd","vl","v","cd","i","x","y","xs","cs","e"]
+        [chc,nrwd,fr,fl,grd,vl,v,cd,i,x,y,xs,cs,e] = map Var vs
+        [chc',nrwd',fr',fl',grd',vl',v',cd',i',x',y',xs',cs',e'] = map PVar vs
+        nameRule rule = (basics "match", rule)
 
 -- ---------------------------------------------------------------------------
 -- Generate instance of Generable class
