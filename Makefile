@@ -192,6 +192,11 @@ cleanutils:
 cleanbin:
 	rm -rf $(BINDIR)
 
+# Cleans up frontend-related build artifacts.
+.PHONY: cleanfrontend
+cleanfrontend:
+	cd $(FRONTENDDIR) && $(MAKE) cleanall
+
 # Cleans up build files (not from the frontend, however!)
 .PHONY: clean
 clean: cleanlib cleanruntime cleanutils cleanbin
@@ -200,6 +205,10 @@ clean: cleanlib cleanruntime cleanutils cleanbin
 	       $(SRCDIR)/.curry \
 		   $(INSTALLCURRY) \
 		   $(INSTALLHS)
+
+# Cleans up everything.
+.PHONY: cleanall
+cleanall: clean cleanfrontend
 
 ########################################################################
 # The targets
