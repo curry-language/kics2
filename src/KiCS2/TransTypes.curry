@@ -44,7 +44,7 @@ genTypeDeclarations hoResult tdecl = case tdecl of
                                    , nondetInstance     False
                                    , generableInstance  False hoResult
                                    , normalformInstance False hoResult
-                                  --  , unifiableInstance  False hoResult
+                                   , unifiableInstance  False hoResult
                                   --  , curryInstance      False
                                    ]
       targs     = map fcy2absTVarKind tnums
@@ -741,6 +741,18 @@ unifiableInstance isDict hoResult tdecl = case tdecl of
          newFail qn = (qn, simpleRule [PVar (1,"a"), PVar (2,"b"), PVar (3, "cd"), PVar (4, "_")]
                            (applyF (basics "Fail_C_Bool") [Var (3, "cd"), applyF (basics "unificationFail") [applyF (basics "showCons") [Var (1,"a")], applyF (basics "showCons") [Var (2,"b")]]])
                        )
+  (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
+    mkInstance (basics "Unifiable") ctype targs
+      [ (basics "=.=", simpleRule [PComb cqf [x'], PComb cqf [y']] $ applyF (basics "=.=") [x, y])
+      , (basics "=.<=", simpleRule [PComb cqf [x'], PComb cqf [y']] $ applyF (basics "=.<=") [x, y])
+      , (basics "bind", simpleRule [cd', i', PComb cqf [x']] $ applyF (basics "bind") [cd, i, x])
+      , (basics "lazyBind", simpleRule [cd', i', PComb cqf [x']] $ applyF (basics "lazyBind") [cd, i, x])
+      ]
+   where targs = map fcy2absTVarKind tnums
+         ctype = TCons qf $ map (TVar . fst) targs
+         vs = newVars ["x","y","cd","i"]
+         [x,y,cd,i] = map Var vs
+         [x',y',cd',i'] = map PVar vs
   _ -> error "TransTypes.unifiableInstance"
 
 -- Generate Unifiable instance rule for a data constructor
