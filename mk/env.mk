@@ -15,4 +15,5 @@ $(ENV_CABAL_PROJECT): | $(ENVDIR)
 
 $(ENVFILE): $(ENV_CABAL_PROJECT) $(LIB) $(RUNTIME) | $(ENVDIR)
 	@echo "$(HIGHLIGHT)>> Installing libraries and runtime into GHC environment$(NORMAL)"
-	cd $(ENVDIR) && $(CABAL) v2-install --lib --env $@ $(ALLDEPS)
+	rm -f $(ENVFILE)
+	cd $(ENVDIR) && $(CABAL) v2-install --lib --package-env $@ $(ALLDEPS)
