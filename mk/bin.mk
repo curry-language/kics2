@@ -11,19 +11,19 @@ export BIN = $(REPL) $(COMP) $(FRONTEND)
 export BIN_ARTIFACTS = $(BINDIR)
 
 ########################################################################
-# The targets
+# The general targets
 ########################################################################
 
-# Builds the REPL executable (with CURRYC and its cpm)
+# Builds the REPL executable (with CURRY and its cpm)
 $(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LIB) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
-	$(CURRYC) :load KiCS2.REPL :save :quit
+	$(CURRY) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
-# Builds the compiler executable (with CURRYC and its cpm)
+# Builds the compiler executable (with CURRY and its cpm)
 $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
-	$(CURRYC) :load KiCS2.Compile :save :quit
+	$(CURRY) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
 
 # Builds the frontend

@@ -8,13 +8,13 @@
 
 # The compiler to compile KiCS2 with. PAKCS by default.
 # Note that this also determines which CPM to use.
-export CURRYC = pakcs
+export CURRY = pakcs
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
 export GHC     := $(shell which ghc)
 export GHC_PKG := $(shell dirname "$(GHC)")/ghc-pkg
 export CABAL   := $(shell which cabal)
-export CYPM    := $(CURRYC) cypm
+export CYPM    := $(CURRY) cypm
 
 # KiCS2 runtime dependencies (Cabal packages)
 export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
@@ -130,7 +130,7 @@ include mk/utils.mk
 # The high-level phony targets
 ########################################################################
 
-# Builds the KiCS2 compiler using CURRYC (PAKCS by default)
+# Builds the KiCS2 compiler using CURRY (PAKCS by default)
 .PHONY: all
 all: $(REPL) $(COMP) $(SCRIPTS)
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
