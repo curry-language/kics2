@@ -162,35 +162,6 @@ updateGhcOptions rst =
    oldOpts = rcValue (rcvars rst) key
    newOpts = ghcOpts rst
 
---- Generates a Cabal file for the compiled main module
-generateDotCabal :: ReplState -> String -> String -> String
-generateDotCabal rst name mainName = unlines
-  [ "name:          " ++ name
-  , "version:       0.0.1"
-  , "description:   Compiled Curry modules"
-  , "build-type:    Simple"
-  , "cabal-version: >= 1.9.2"
-  , ""
-  , "executable " ++ mainName
-  , "  build-depends:  " ++ intercalate ", " dependencies
-  , "  other-modules:  Curry_" ++ mainModuleIdent
-  , "  main-is:        " ++ mainName ++ ".hs"
-  , "  hs-source-dirs: ."
-  ]
-  where dependencies = [ "base", "containers", "ghc", "mtl", "parallel-tree-search"
-                       , "tree-monad", "directory", "network", "network-bsd"
-                       , "old-time", "process", "time", "kics2-runtime", "kics2-libraries"
-                       ] -- TODO: Use dynamically a provided list of packages from the REPL state
-        
-
---- Generates a Cabal project file for the compiled main module
---- TODO: Specify used GHC version here
-generateCabalProject :: ReplState -> String
-generateCabalProject rst = "packages: " ++ intercalate ", " packages
-  where runtimePath = kics2Home rst </> "runtime"
-        librariesPath = kics2Home rst </> "lib"
-        packages = [".", runtimePath, librariesPath]
-
 --- Result of compiling main program
 data MainCompile = MainError | MainDet | MainNonDet
  deriving Eq
@@ -203,15 +174,12 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   (rst',wasUpdated) <- updateGhcOptions rst
   writeFile mainFile $ mainModule rst' isdet isio (traceFailure rst) bindings
 
-  writeFile dotCabalFile $ generateDotCabal rst cabalName mainName
-  writeFile cabalProjectFile $ generateCabalProject rst
-
-  let replCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-repl"
-      cabalCompile = "cd " ++ outputSubdir rst ++ " && cabal v2-install --overwrite-policy=always --install-method=copy --installdir=."
-  writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile
+  let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
+  tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
+  writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
   (rst'', status) <- if useGhci'
-                      then compileWithGhci rst' replCompile mainExp
-                      else system cabalCompile >>= \stat -> return (rst', stat)
+                      then compileWithGhci rst' ghcCompile mainExp
+                      else system tghcCompile >>= \stat -> return (rst', stat)
   return (if status > 0
           then (setExitStatus 1 rst'', MainError)
           else (setExitStatus 0 rst'',
@@ -219,9 +187,6 @@ createAndCompileMain rst createExecutable mainExp bindings = do
  where
   mainName = "Main"
   mainFile = "." </> outputSubdir rst </> (mainName ++ ".hs")
-  cabalName = "kics2-main-goal"
-  dotCabalFile = "." </> outputSubdir rst </> (cabalName ++ ".cabal")
-  cabalProjectFile = "." </> outputSubdir rst </> "cabal.project"
   -- option parsing
   useGhci' = useGhci rst && not createExecutable && not (interactive rst)
 
