@@ -35,6 +35,7 @@ src/Installation.curry
 *.log
 .kics2sc
 lib
+env
 runtime/dist
 runtime/dist-newstyle
 runtime/kics2-runtime.cabal

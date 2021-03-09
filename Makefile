@@ -57,6 +57,10 @@ export UTILSDIR = $(ROOT)/utils
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
 export LIBTRUNKDIR = $(ROOT)/lib-trunk
+# The directory containing the GHC environments for the runtime and libraries
+export ENVDIR = $(ROOT)/env
+# The GHC environment used 
+export ENVFILE = $(ENVDIR)/kics2.ghc.environment
 # The directory containing the KiCS2 sources
 SRCDIR = $(ROOT)/src
 # The (generated) Installation module for use by the compiler
@@ -120,6 +124,7 @@ default: all
 ########################################################################
 
 include mk/bin.mk
+include mk/env.mk
 include mk/lib-install.mk
 include mk/lib.mk
 include mk/runtime.mk
@@ -148,6 +153,10 @@ repl: $(REPL)
 # Builds the compiler (kics2c) only.
 .PHONY: compiler
 compiler: $(COMP)
+
+# Builds the GHC environment only.
+.PHONY: env
+env: $(ENV)
 
 # Builds the scripts (kics2, ...) only.
 .PHONY: scripts
@@ -185,6 +194,11 @@ cleanutils:
 cleanbin:
 	rm -rf $(BIN_ARTIFACTS)
 
+# Cleans up the GHC environments.
+.PHONY: cleanenv
+cleanenv:
+	rm -rf $(ENV_ARTIFACTS)
+
 # Cleans up frontend-related build artifacts.
 .PHONY: cleanfrontend
 cleanfrontend:
@@ -192,7 +206,7 @@ cleanfrontend:
 
 # Cleans up build files (not from the frontend, however!)
 .PHONY: clean
-clean: cleanlib cleanruntime cleanutils cleanbin
+clean: cleanlib cleanruntime cleanutils cleanbin cleanenv
 	rm -rf $(CPMDIR) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
@@ -215,15 +229,19 @@ $(CPMDEPS): $(PACKAGEJSON)
 
 # Creates a directory for the compiled libraries
 $(LIBDIR):
-	mkdir -p $(LIBDIR)
+	mkdir -p $@
 
 # Creates a directory for the target binaries ('bin')
 $(BINDIR):
-	mkdir -p $(BINDIR)
+	mkdir -p $@
 
 # Creates a directory for local binaries to be output
 $(LOCALBINDIR):
-	mkdir -p $(LOCALBINDIR)
+	mkdir -p $@
+
+# Creates a directory for the GHC environment
+$(ENVDIR):
+	mkdir -p $@
 
 # Generate a source module with metadata about the KiCS2 installation for use at runtime
 $(INSTALLHS):
