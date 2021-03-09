@@ -13,6 +13,6 @@ export ENV_ARTIFACTS = $(ENVDIR)
 $(ENV_CABAL_PROJECT): | $(ENVDIR)
 	@echo "packages: $(LIBDIR), $(RUNTIMEDIR)" > $@
 
-$(ENVFILE): $(ENV_CABAL_PROJECT)
+$(ENVFILE): $(ENV_CABAL_PROJECT) $(LIB) $(RUNTIME) | $(ENVDIR)
 	@echo "$(HIGHLIGHT)>> Installing libraries and runtime into GHC environment$(NORMAL)"
 	cd $(ENVDIR) && $(CABAL) v2-install --lib --env $@ $(ALLDEPS)

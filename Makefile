@@ -123,13 +123,13 @@ default: all
 # Included sub-makefiles
 ########################################################################
 
-include mk/bin.mk
-include mk/env.mk
 include mk/lib-install.mk
 include mk/lib.mk
 include mk/runtime.mk
 include mk/scripts.mk
 include mk/utils.mk
+include mk/env.mk
+include mk/bin.mk
 
 ########################################################################
 # The high-level phony targets
