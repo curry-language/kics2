@@ -17,13 +17,13 @@ export CABAL   := $(shell which cabal)
 export CYPM    := $(CURRY) cypm
 
 # KiCS2 runtime dependencies (Cabal packages)
-RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
+export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
 # KiCS2 library dependencies (Cabal packages)
-LIBDEPS     = base directory network network-bsd old-time parallel-tree-search process time
+export LIBDEPS     = base directory network network-bsd old-time parallel-tree-search process time
 # Custom runtime dependencies (Cabal packages)
-CUSTOMDEPS  = kics2-runtime kics2-libraries
+export CUSTOMDEPS  = kics2-runtime kics2-libraries
 # System dependencies (TODO: Windows)
-SYSTEMDEPS  = unix
+export SYSTEMDEPS  = unix
 # All dependencies, with duplicates removed (see 'sort')
 export ALLDEPS = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS) $(CUSTOMDEPS))
 
