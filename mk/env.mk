@@ -15,4 +15,4 @@ $(ENV_CABAL_PROJECT): | $(ENVDIR)
 
 $(ENVFILE): $(ENV_CABAL_PROJECT)
 	@echo "$(HIGHLIGHT)>> Installing libraries and runtime into GHC environment$(NORMAL)"
-	cd $(ENVDIR) && $(CABAL) v2-install --lib --env $@ kics2-libraries kics2-runtime
+	cd $(ENVDIR) && $(CABAL) v2-install --lib --env $@ $(ALLDEPS)
