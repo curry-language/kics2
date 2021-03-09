@@ -67,14 +67,6 @@ INSTALLHS = $(RUNTIMEDIR)/Installation.hs
 PACKAGEJSON = $(ROOT)/package.json
 # The Curry package manager directory
 CPMDIR = $(ROOT)/.cpm
-# The frontend binary ('kics2-frontend')
-export FRONTEND = $(BINDIR)/kics2-frontend
-# The REPL binary ('kics2i')
-export REPL = $(LOCALBINDIR)/kics2i
-# The compiler binary ('kics2c')
-export COMP = $(LOCALBINDIR)/kics2c
-# The cleancurry binary
-export CLEANCURRY = $(BINDIR)/cleancurry
 
 # Dummy file for tracking installation state of CPM dependencies
 CPMDEPS = $(CPMDIR)/.installation-state-dummy
@@ -127,6 +119,7 @@ default: all
 # Included sub-makefiles
 ########################################################################
 
+include mk/bin.mk
 include mk/lib-install.mk
 include mk/lib.mk
 include mk/runtime.mk
@@ -190,7 +183,7 @@ cleanutils:
 # Cleans up binaries.
 .PHONY: cleanbin
 cleanbin:
-	rm -rf $(BINDIR)
+	rm -rf $(BIN_ARTIFACTS)
 
 # Cleans up frontend-related build artifacts.
 .PHONY: cleanfrontend
@@ -214,25 +207,6 @@ cleanall: clean cleanfrontend
 # The targets
 ########################################################################
 
-# Builds the REPL executable (with CURRYC and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LIB) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
-	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
-	$(CURRYC) :load KiCS2.REPL :save :quit
-	mv KiCS2.REPL $(REPL)
-
-# Builds the compiler executable (with CURRYC and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LOCALBINDIR)
-	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
-	$(CURRYC) :load KiCS2.Compile :save :quit
-	mv KiCS2.Compile $(COMP)
-
-# Builds the frontend
-$(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
-	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
-	@cd $(FRONTENDDIR) && $(MAKE)
-	@cd $(BINDIR) && ln -srf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
-
-# Updates the CPM index and installs dependencies
 $(CPMDEPS): $(PACKAGEJSON)
 	@echo "$(HIGHLIGHT)>> Updating CPM index and installing dependencies$(NORMAL)"
 	$(CYPM) update
