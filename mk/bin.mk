@@ -7,6 +7,11 @@ export COMP = $(LOCALBINDIR)/kics2c
 # The frontend binary ('kics2-frontend')
 export FRONTEND = $(BINDIR)/kics2-frontend
 
+# GHC options for compilation
+GHC_OPTS2 = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
+# The call to the GHC binary
+GHC_CALL = $(GHC) $(GHC_OPTS) $(GHC_OPTS2)
+
 export BIN = $(REPL) $(COMP) $(FRONTEND)
 export BIN_ARTIFACTS = $(BINDIR)
 

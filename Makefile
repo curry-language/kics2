@@ -305,7 +305,7 @@ $(INSTALLHS):
 	@echo 'ghcLocalOptions = "$(GHC_OPTS)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcOptions :: String' >> $@
-	@echo 'ghcOptions = ghcLocalOptions ++ " $(foreach pkg,$(CUSTOMDEPS),-package $(pkg))"' >> $@
+	@echo 'ghcOptions = ghcLocalOptions ++ " -package-env $(ENVFILE)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcOptimizations :: String' >> $@
 	@echo 'ghcOptimizations = "$(GHC_OPTIMIZATIONS)"' >> $@
