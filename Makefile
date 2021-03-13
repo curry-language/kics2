@@ -57,6 +57,10 @@ export UTILSDIR = $(ROOT)/utils
 export LIBDIR = $(ROOT)/lib
 # The directory containing the library sources
 export LIBTRUNKDIR = $(ROOT)/lib-trunk
+# The directory containing the tools
+export CURRYTOOLSDIR = $(ROOT)/currytools
+# The directory containing the package manager
+export CPMDIR = $(CURRYTOOLSDIR)/cpm
 # The directory containing the GHC environments for the runtime and libraries
 export ENVDIR = $(ROOT)/env
 # The GHC environment used 
@@ -70,10 +74,10 @@ INSTALLHS = $(RUNTIMEDIR)/Installation.hs
 # The KiCS2 package manifest
 PACKAGEJSON = $(ROOT)/package.json
 # The Curry package manager directory
-CPMDIR = $(ROOT)/.cpm
+DOTCPMDIR = $(ROOT)/.cpm
 
 # Dummy file for tracking installation state of CPM dependencies
-CPMDEPS = $(CPMDIR)/.installation-state-dummy
+CPMDEPS = $(DOTCPMDIR)/.installation-state-dummy
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -137,7 +141,7 @@ include mk/bin.mk
 
 # Builds the KiCS2 compiler using CURRY (PAKCS by default)
 .PHONY: all
-all: $(REPL) $(COMP) $(SCRIPTS)
+all: $(REPL) $(COMP) $(SCRIPTS) # $(CPM)
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
@@ -165,6 +169,10 @@ scripts: $(SCRIPTS)
 # Builds the frontend only.
 .PHONY: frontend
 frontend: $(FRONTEND)
+
+# Builds the package manager only.
+.PHONY: cpm
+cpm: $(CPM)
 
 # Builds the libraries only.
 .PHONY: lib
@@ -207,7 +215,7 @@ cleanfrontend:
 # Cleans up build files (not from the frontend, however!)
 .PHONY: clean
 clean: cleanlib cleanruntime cleanutils cleanbin cleanenv
-	rm -rf $(CPMDIR) \
+	rm -rf $(DOTCPMDIR) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
 		   $(INSTALLCURRY) \

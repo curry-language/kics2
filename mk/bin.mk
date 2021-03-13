@@ -4,8 +4,14 @@
 export REPL = $(LOCALBINDIR)/kics2i
 # The compiler binary ('kics2c')
 export COMP = $(LOCALBINDIR)/kics2c
+# The standard kics2 start script (`kics2`, built by scripts.mk)
+export KICS2BIN = $(BINDIR)/kics2
+# The Curry binary symlinked to the `kics2` script (`curry`)
+export CURRYBIN = $(BINDIR)/curry
 # The frontend binary ('kics2-frontend')
 export FRONTEND = $(BINDIR)/kics2-frontend
+# The package manager binary (`cypm`)
+export CPM = $(BINDIR)/cypm
 
 # GHC options for compilation
 GHC_OPTS2 = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
@@ -36,3 +42,12 @@ $(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRON
 	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
 	@cd $(FRONTENDDIR) && $(MAKE)
 	@cd $(BINDIR) && ln -srf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
+
+# Creates the `curry` executable by linking to `kics2`
+$(CURRYBIN): $(KICS2BIN) $(REPL)
+	@cd $(BINDIR) && ln -srf $(KICS2BIN) $(CURRYBIN)
+
+# Builds the package manager
+$(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
+	@echo "$(HIGHLIGHT)>> Building Curry package manager$(NORMAL)"
+	@cd $(CURRYTOOLSDIR) && $(MAKE)
