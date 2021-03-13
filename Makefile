@@ -34,7 +34,8 @@ GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
 GHC_OPTIMIZATIONS = -O2 -fno-strictness 
-GHC_OPTS          =
+GHC_LOCAL_OPTS    =
+GHC_OPTS          = $(GHC_LOCAL_OPTS) -package-env $(ENVFILE)
 # GHC version
 GHC_MAJOR := $(shell "$(GHC)" --numeric-version | cut -d. -f1)
 GHC_MINOR := $(shell "$(GHC)" --numeric-version | cut -d. -f2)
@@ -63,6 +64,8 @@ export CURRYTOOLSDIR = $(ROOT)/currytools
 export CPMDIR = $(CURRYTOOLSDIR)/cpm
 # The directory containing the GHC environments for the runtime and libraries
 export ENVDIR = $(ROOT)/env
+# The directory containing modules for starting the compiler, e.g. when bootstrapping
+export BOOTDIR = $(ROOT)/boot
 # The GHC environment used 
 export ENVFILE = $(ENVDIR)/kics2.ghc.environment
 # The directory containing the KiCS2 sources
@@ -144,6 +147,12 @@ include mk/bin.mk
 all: $(REPL) $(COMP) $(SCRIPTS) # $(CPM)
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
+
+# Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default)
+# TODO: Assemble the other KiCS2 components (REPL, ...) after bootstrapping
+# TODO: Add a 'faster' 2-stage option or a separate target for that
+.PHONY: bootstrap
+bootstrap: $(STAGE3COMP)
 
 # Builds the REPL and runs it.
 .PHONY: run
@@ -310,10 +319,10 @@ $(INSTALLHS): $(PACKAGEJSON) $(LIBDIR)/VERSION
 	@echo "" >> $@
 	@echo '-- GHC options for using local libraries and not cabal packages:' >> $@
 	@echo 'ghcLocalOptions :: String' >> $@
-	@echo 'ghcLocalOptions = "$(GHC_OPTS)"' >> $@
+	@echo 'ghcLocalOptions = "$(GHC_LOCAL_OPTS)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcOptions :: String' >> $@
-	@echo 'ghcOptions = ghcLocalOptions ++ " -package-env $(ENVFILE)"' >> $@
+	@echo 'ghcOptions = "$(GHC_OPTS)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcOptimizations :: String' >> $@
 	@echo 'ghcOptimizations = "$(GHC_OPTIMIZATIONS)"' >> $@

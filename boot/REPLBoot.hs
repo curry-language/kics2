@@ -2,5 +2,5 @@
 
 module Main where
 import Basics
-import Curry_REPL
+import KiCS2.Curry_REPL
 main = evalDIO d_C_main
