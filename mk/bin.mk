@@ -18,6 +18,9 @@ GHC_OPTS2 = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
 # The call to the GHC binary
 GHC_CALL = $(GHC) $(GHC_OPTS) $(GHC_OPTS2)
 
+# The CURRYPATH used for bootstrapping
+BOOTSTRAP_CURRYPATH := $(SRCDIR):$(subst $(SPACE),:,$(foreach p,$(shell ls $(DOTCPMDIR)/packages),$(DOTCPMDIR)/packages/$(p)/src))
+
 export BIN = $(REPL) $(COMP) $(FRONTEND)
 export BIN_ARTIFACTS = $(BINDIR)
 
