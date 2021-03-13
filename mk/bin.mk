@@ -13,8 +13,10 @@ export FRONTEND = $(BINDIR)/kics2-frontend
 # The package manager binary (`cypm`)
 export CPM = $(BINDIR)/cypm
 
+# The paths to the CPM package sources used for bootstrapping
+BOOTSTRAP_PACKAGE_SRCS = $(foreach p,$(shell ls $(DOTCPMDIR)/packages),$(DOTCPMDIR)/packages/$(p)/src)
 # The CURRYPATH used for bootstrapping
-BOOTSTRAP_CURRYPATH = $(LIBDIR):$(subst $(SPACE),:,$(foreach p,$(shell ls $(DOTCPMDIR)/packages),$(DOTCPMDIR)/packages/$(p)/src))
+BOOTSTRAP_CURRYPATH = $(LIBDIR):$(subst $(SPACE),:,$(BOOTSTRAP_PACKAGE_SRCS))
 # The directory for compiled Haskell files of the compiler
 BOOTSTRAP_OUTDIR = $(SRCDIR)/.curry/kics2-$(VERSION)
 # The main (Haskell) module of `kics2c` for bootstrapping
@@ -24,8 +26,10 @@ BOOTSTRAP_COMPILEBOOT = $(BOOTDIR)/CompileBoot.hs
 BOOTSTRAP_KICS2C_OPTS = -v2 --parse-options=-Wall -i$(BOOTSTRAP_CURRYPATH)
 # GHC options for bootstrap compilation
 BOOTSTRAP_GHC_OPTS = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
-# Includes for bootstrapping
-BOOTSTRAP_GHC_INCL = $(BOOTSTRAP_OUTDIR)
+# Directories for compiled Haskell modules of the packages
+BOOTSTRAP_PACKAGE_OUTDIRS = $(foreach p,$(BOOTSTRAP_PACKAGE_SRCS),$(p)/.curry/kics2-$(VERSION))
+# GHC includes for bootstrapping
+BOOTSTRAP_GHC_INCL = $(BOOTSTRAP_OUTDIR):$(LIBDIR)/.kics2-$(VERSION):$(subst $(SPACE),:,$(BOOTSTRAP_PACKAGE_OUTDIRS))
 # The call to the GHC binary for bootstrapping
 BOOTSTRAP_GHC = $(GHC) $(GHC_OPTS) $(BOOTSTRAP_GHC_OPTS) -i$(BOOTSTRAP_GHC_INCL)
 
