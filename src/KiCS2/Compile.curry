@@ -236,11 +236,13 @@ extractFuncInfos funs =
 -- Patch Prelude in order to add some exports for predefined items
 patchPreludeExports :: AH.Prog -> AH.Prog
 patchPreludeExports p@(AH.Prog m imps td fd od)
-  | m == curryPrelude = AH.Prog m imps (applyDecl:curryDecl:td)
+  | m == curryPrelude = AH.Prog m imps (applyDecl:stringDecl:successDecl:curryDecl:td)
                                 (toCurryString:fd) od
   | otherwise         = p
  where
   applyDecl     = AH.Type (curryPrelude, "C_Apply") AH.Public [] []
+  stringDecl    = AH.Type (curryPrelude, "C_String") AH.Public [] []
+  successDecl   = AH.Type (curryPrelude, "C_Success") AH.Public [] []
   curryDecl     = AH.Type (curryPrelude, "Curry") AH.Public [] []
   toCurryString = AH.Func "" (curryPrelude, "toCurryString") 1 AH.Public
                           AH.Untyped AH.External
