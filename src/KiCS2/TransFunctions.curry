@@ -292,17 +292,18 @@ globalTemporary = renameQName ("Global", "Temporary")
 --- to make it a constant.
 trGlobalDecl :: FuncDecl -> M [AH.FuncDecl]
 trGlobalDecl (Func qn a v t r) = doInDetMode True $ case r of
-  (Rule _ (Comb _ _ [e, _]))  | a == 0  ->
-    trCompleteExpr qn e       >>= \e'      ->
-    renameFun qn           >>= \qn'     ->
-    renameFun globalGlobal >>= \global' ->
-    trDetType 0 t          >>= \t'      ->
+  (Rule _ (Comb _ _ [e, _]))  | a == 0  -> do
+    e'      <- trCompleteExpr qn e
+    qn'     <- renameFun qn
+    global' <- renameFun globalGlobal
+    t'      <- trDetType 0 t
+    tsig    <- toTypeSig <$> trHOTypeExpr AH.FuncType t
     return $
       [ AH.Func "" qn' 2 (cvVisibility v) (toTypeSig t')
         (AHG.simpleRule (map AH.PVar [coverName, constStoreName])
                     (AH.Symbol $ mkGlobalName qn))
       , AH.Func "" (mkGlobalName qn) 0 AH.Private
-        (toTypeSig $ trHOTypeExpr AH.FuncType t)
+        tsig
         (AHG.simpleRule [] (AHG.applyF global'
               [ AHG.clet (map (uncurry AHG.declVar)
                             [ (constStoreName, emptyCs  )
@@ -370,37 +371,47 @@ trNonDetType = trTypeExpr nondetFuncType
   (AH.FuncType supplyType . AH.FuncType coverType . AH.FuncType storeType)
 
 trExprType :: TypeExpr -> M AH.TypeExpr
-trExprType ty =
-  isDetMode >>= \dm ->
-  return $ trHOTypeExpr (if dm then detFuncType else nondetFuncType) ty
+trExprType ty = do
+  dm <- isDetMode
+  trHOTypeExpr (if dm then detFuncType else nondetFuncType) ty
 
 trTypeExpr :: (AH.TypeExpr -> AH.TypeExpr -> AH.TypeExpr)
            -> (AH.TypeExpr -> AH.TypeExpr)
            -> Int -> TypeExpr -> M AH.TypeExpr
 trTypeExpr combFunc addArgs n t
     -- all arguments are applied
-  | n == 0 = return $ addArgs (trHOTypeExpr combFunc t)
+  | n == 0 = addArgs <$> trHOTypeExpr combFunc t
   | n >  0 = case t of
-              ForallType vs ty ->
-                trTypeExpr combFunc addArgs n ty >>= \ty' ->
+              ForallType vs ty -> do
+                ty' <- trTypeExpr combFunc addArgs n ty
                 return $ AH.ForallType (map trTVarKind vs) [] ty'
-              (FuncType t1 t2) ->
-                trTypeExpr combFunc addArgs (n-1) t2 >>= \t2' ->
-                return $ AH.FuncType (trHOTypeExpr combFunc t1) t2'
+              (FuncType t1 t2) -> do
+                t2' <- trTypeExpr combFunc addArgs (n-1) t2
+                t1' <- trHOTypeExpr combFunc t1
+                return $ AH.FuncType t1' t2'
               _                -> failM $ "trTypeExpr: " ++ show (n, t)
   | n <  0 = failM $ "trTypeExpr: " ++ show (n, t)
 
 --- Transform a higher order type expressions using a function
 --- to combine the two type expressions of a functional type.
 trHOTypeExpr :: (AH.TypeExpr -> AH.TypeExpr -> AH.TypeExpr)
-             -> TypeExpr -> AH.TypeExpr
-trHOTypeExpr _ (TVar          i) = AH.TVar (cvTVarIndex i)
-trHOTypeExpr f (FuncType  t1 t2) = f (trHOTypeExpr f t1) (trHOTypeExpr f t2)
-trHOTypeExpr f (TCons     qn ts) = AH.TCons qn (map (trHOTypeExpr f) ts)
-trHOTypeExpr f (ForallType is t) =
-  let t' = trHOTypeExpr f t
-      is' = map trTVarKind is
-  in genContext [] $ AH.ForallType is' [] t'
+             -> TypeExpr -> M AH.TypeExpr
+trHOTypeExpr _ (TVar          i) = return $ AH.TVar (cvTVarIndex i)
+trHOTypeExpr f (FuncType  t1 t2) = do
+  t1' <- trHOTypeExpr f t1
+  t2' <- trHOTypeExpr f t2
+  return $ f t1' t2'
+trHOTypeExpr f (TCons     qn ts) = do
+  dm <- isDetMode
+  isNewtype     <- tmeIsNewtype <$> getType qn
+  isHigherOrder <- (== TypeHO)  <$> getTypeHOClass qn
+  let qn' | not dm && isNewtype && isHigherOrder = mkHoConsName qn
+          | otherwise                            = qn
+  AH.TCons qn' <$> (mapM (trHOTypeExpr f) ts)
+trHOTypeExpr f (ForallType is t) = do
+  t' <- trHOTypeExpr f t
+  let is' = map trTVarKind is
+  return $ genContext [] $ AH.ForallType is' [] t'
 
 cvTVarIndex :: TVarIndex -> AH.TVarIName
 cvTVarIndex i = (i, 't' : show i)
