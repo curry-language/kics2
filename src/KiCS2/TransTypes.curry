@@ -41,12 +41,12 @@ genTypeDeclarations hoResult tdecl = case tdecl of
     | otherwise                                   -> typeNew
     where
       instanceDecls h = map ($tdecl) [ showInstance       False h
-                                     , readInstance       False
-                                     , nondetInstance     False
+                                     , readInstance       False h
+                                     , nondetInstance     False h
                                      , generableInstance  False h
                                      , normalformInstance False h
                                      , unifiableInstance  False h
-                                     , curryInstance      False
+                                     , curryInstance      False h
                                      ]
       targs      = map fcy2absTVarKind tnums
       hoResultFO = Data.Map.insert cqf ConsFO hoResult
@@ -78,12 +78,12 @@ genTypeDeclarations hoResult tdecl = case tdecl of
       -- For dictionaries that represent type classes we only generate empty
       -- instances.
       instanceDecls = map ($tdecl) [ showInstance       (isDictType qf) hoResult
-                                   , readInstance       (isDictType qf)
-                                   , nondetInstance     (isDictType qf)
+                                   , readInstance       (isDictType qf) hoResult
+                                   , nondetInstance     (isDictType qf) hoResult
                                    , generableInstance  (isDictType qf) hoResult
                                    , normalformInstance (isDictType qf) hoResult
                                    , unifiableInstance  (isDictType qf) hoResult
-                                   , curryInstance      (isDictType qf)
+                                   , curryInstance      (isDictType qf) hoResult
                                    ]
       vis'      = fcy2absVis vis
       targs     = map fcy2absTVarKind tnums
@@ -266,8 +266,8 @@ showConsRule hoResult qn carity isNewtype
 --
 -- TODO: No instance for higher-order constructors
 -- ---------------------------------------------------------------------------
-readInstance :: Bool -> FC.TypeDecl -> TypeDecl
-readInstance isDict tdecl = case tdecl of
+readInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
+readInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums cdecls)
     | not isDict -> mkInstance (pre "Read") ctype targs [rule]
     | otherwise -> mkEmptyInstance (basics "Read") ctype
@@ -281,7 +281,10 @@ readInstance isDict tdecl = case tdecl of
     mkInstance (pre "Read") ctype targs [rule]
    where
         targs = map fcy2absTVarKind tnums
-        ctype = TCons qf $ map (TVar . fst) targs
+        isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+        qf' | isHigherOrder = mkHoConsName qf
+            | otherwise     = qf
+        ctype = TCons qf' $ map (TVar . fst) targs
         rule = readNewtypeRule cdecl
   _ -> error "TransTypes.readInstance"
 
@@ -400,8 +403,8 @@ readParen qn@(mn,_) carity = applyF (pre "readParen")
 -- ---------------------------------------------------------------------------
 -- Generate instance of NonDet class:
 -- ---------------------------------------------------------------------------
-nondetInstance :: Bool -> FC.TypeDecl -> TypeDecl
-nondetInstance isDict tdecl = case tdecl of
+nondetInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
+nondetInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums _)
     | not isDict -> mkInstance (basics "NonDet") ctype []
      $ specialDataConsRules qf ++ dataTryRules qf ++ dataMatchRules qf
@@ -890,8 +893,8 @@ bindGuardRule qf lazy = (funcName,
 -- Generate instance of Curry class
 -- ---------------------------------------------------------------------------
 
-curryInstance :: Bool -> FC.TypeDecl -> TypeDecl
-curryInstance isDict tdecl = case tdecl of
+curryInstance :: Bool -> ConsHOResult -> FC.TypeDecl -> TypeDecl
+curryInstance isDict hoResult tdecl = case tdecl of
   (FC.Type qf _ tnums _)
     | not isDict -> mkInstance (basics "Curry") ctype targs []
     | otherwise -> mkEmptyInstance (basics "Curry") ctype
