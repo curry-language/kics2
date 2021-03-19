@@ -36,18 +36,22 @@ genTypeDeclarations :: ConsHOResult -> FC.TypeDecl -> [TypeDecl]
 genTypeDeclarations hoResult tdecl = case tdecl of
   (FC.TypeSyn qf vis tnums texp) ->
     [TypeSyn qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absTExp [] texp)]
-  (FC.TypeNew qf vis tnums c) ->
-    TypeNew qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult c) : instanceDecls
+  (FC.TypeNew qf vis tnums c@(FC.NewCons cqf _ _))
+    | Data.Map.lookup cqf hoResult == Just ConsHO -> typeNew ++ typeNewHO
+    | otherwise                                   -> typeNew
     where
-      instanceDecls = map ($tdecl) [ showInstance       False hoResult
-                                   , readInstance       False
-                                   , nondetInstance     False
-                                   , generableInstance  False hoResult
-                                   , normalformInstance False hoResult
-                                   , unifiableInstance  False hoResult
-                                   , curryInstance      False
-                                   ]
+      instanceDecls h = map ($tdecl) [ showInstance       False h
+                                     , readInstance       False
+                                     , nondetInstance     False
+                                     , generableInstance  False h
+                                     , normalformInstance False h
+                                     , unifiableInstance  False h
+                                     , curryInstance      False
+                                     ]
       targs     = map fcy2absTVarKind tnums
+      hoResult' = Data.Map.insert cqf ConsFO hoResult
+      typeNew   = TypeNew qf                (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult' c) : instanceDecls hoResult'
+      typeNewHO = TypeNew (mkHoConsName qf) (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult  c) : instanceDecls hoResult
   (FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
@@ -112,10 +116,11 @@ fcy2absCDecl targs hoResult (FC.Cons qf ar vis texps)
     vis' = fcy2absVis vis
 
 fcy2absNewCDecl :: [TVarIName] -> ConsHOResult -> FC.NewConsDecl -> NewConsDecl
-fcy2absNewCDecl targs _ (FC.NewCons qf vis texp) = newCons
+fcy2absNewCDecl targs hoResult (FC.NewCons qf vis texp) = newCons
   where
-    -- TODO: Generate higher-order constructor like in fcy2absCDecl?
-    newCons = NewCons (mkFoConsName qf) vis' $ fcy2absTExp targs texp
+    isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+    newCons | isHigherOrder = NewCons (mkHoConsName qf) vis' $ fcy2absHOTExp targs texp
+            | otherwise     = NewCons (mkFoConsName qf) vis' $ fcy2absTExp targs texp
     vis' = fcy2absVis vis
 
 fcy2absTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
@@ -191,17 +196,18 @@ showRule4List =
 -- Generate Show instance rule for a data constructor:
 showDataConsRule :: ConsHOResult -> FC.ConsDecl -> [(QName, Rule)]
 showDataConsRule hoResult (FC.Cons qn carity _ _) =
-  showConsRule hoResult qn carity
+  showConsRule hoResult qn carity False
 
 -- Generate Show instance rule for a newtype constructor:
 showNewConsRule :: ConsHOResult -> FC.NewConsDecl -> [(QName, Rule)]
 showNewConsRule hoResult (FC.NewCons qn _ _) =
-  showConsRule hoResult qn 1
+  showConsRule hoResult qn 1 True
 
 -- Generate Show instance rule for a constructor:
-showConsRule :: ConsHOResult -> QName -> Int -> [(QName, Rule)]
-showConsRule hoResult qn carity
-  | isHoCons  = map rule [qn, mkHoConsName qn]
+showConsRule :: ConsHOResult -> QName -> Int -> Bool -> [(QName, Rule)]
+showConsRule hoResult qn carity isNewtype
+  | isHoCons  = if isNewtype then [rule $ mkHoConsName qn]
+                             else map rule [qn, mkHoConsName qn]
   | otherwise = [rule qn]
 
   where
