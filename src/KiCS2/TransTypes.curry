@@ -929,7 +929,10 @@ curryInstance isDict hoResult tdecl = case tdecl of
     mkInstance (basics "Curry") ctype targs []
    where
       targs = map fcy2absTVarKind tnums
-      ctype = TCons qf $ map (TVar . fst) targs
+      isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+      qf' | isHigherOrder = mkHoConsName qf
+          | otherwise     = qf
+      ctype = TCons qf' $ map (TVar . fst) targs
   _ -> error "TransTypes.curryInstance"
 
 -- ---------------------------------------------------------------------------
