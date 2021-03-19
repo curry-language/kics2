@@ -48,10 +48,10 @@ genTypeDeclarations hoResult tdecl = case tdecl of
                                      , unifiableInstance  False h
                                      , curryInstance      False
                                      ]
-      targs     = map fcy2absTVarKind tnums
-      hoResult' = Data.Map.insert cqf ConsFO hoResult
-      typeNew   = TypeNew qf                (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult' c) : instanceDecls hoResult'
-      typeNewHO = TypeNew (mkHoConsName qf) (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult  c) : instanceDecls hoResult
+      targs      = map fcy2absTVarKind tnums
+      hoResultFO = Data.Map.insert cqf ConsFO hoResult
+      typeNew    = TypeNew qf                (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResultFO c) : instanceDecls hoResultFO
+      typeNewHO  = TypeNew (mkHoConsName qf) (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResult   c) : instanceDecls hoResult
   (FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
@@ -184,7 +184,10 @@ showInstance isDict hoResult tdecl = case tdecl of
   (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "Show") ctype targs $
     showNewConsRule hoResult cdecl
    where targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ map (TVar . fst) targs
+         isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+         qf' | isHigherOrder = mkHoConsName qf
+             | otherwise     = qf
+         ctype = TCons qf' $ map (TVar . fst) targs
   _ -> error "TransTypes.showInstance"
 
   -- Generate specific show for lists (only for finite lists!)
