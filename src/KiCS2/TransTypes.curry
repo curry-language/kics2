@@ -567,10 +567,15 @@ generableInstance isDict hoResult tdecl = case tdecl of
                             $ mkSuppList n idSupply
   (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
     mkInstance (basics "Generable") ctype targs
-      [(basics "generate", simpleRule [s', c'] $ applyF cqf [applyF (basics "generate") [s, c]])]
+      [(basics "generate", simpleRule [s', c'] $ applyF cqf' [applyF (basics "generate") [s, c]])]
    where
       targs = map fcy2absTVarKind tnums
-      ctype = TCons qf $ map (TVar . fst) targs
+      isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+      qf'  | isHigherOrder = mkHoConsName qf
+           | otherwise     = qf
+      cqf' | isHigherOrder = mkHoConsName cqf
+           | otherwise     = cqf
+      ctype = TCons qf' $ map (TVar . fst) targs
       vs = newVars ["s","c"]
       [s,c] = map Var vs
       [s',c'] = map PVar vs
