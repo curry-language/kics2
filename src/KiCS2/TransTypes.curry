@@ -609,15 +609,20 @@ normalformInstance isDict hoResult tdecl = case tdecl of
          --[cd, cont,i,x,y,xs] = newVars ["cd", "cont","i","x","y","xs"]
   (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
     mkInstance (basics "NormalForm") ctype targs
-      [ (basics "$!!", simpleRule [cont', PComb cqf [x']]
-        $ applyF (basics "$!!") [Lambda [y'] $ Apply cont $ applyF cqf [y], x])
-      , (basics "$##", simpleRule [cont', PComb cqf [x']]
-        $ applyF (basics "$##") [Lambda [y'] $ Apply cont $ applyF cqf [y], x])
-      , (basics "searchNF", simpleRule [s', cont', PComb cqf [x']]
-        $ applyF (basics "searchNF") [s, InfixApply cont (pre ".") (Symbol cqf), x])
+      [ (basics "$!!", simpleRule [cont', PComb cqf' [x']]
+        $ applyF (basics "$!!") [Lambda [y'] $ Apply cont $ applyF cqf' [y], x])
+      , (basics "$##", simpleRule [cont', PComb cqf' [x']]
+        $ applyF (basics "$##") [Lambda [y'] $ Apply cont $ applyF cqf' [y], x])
+      , (basics "searchNF", simpleRule [s', cont', PComb cqf' [x']]
+        $ applyF (basics "searchNF") [s, InfixApply cont (pre ".") (Symbol cqf'), x])
       ]
    where targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ map (TVar . fst) targs
+         isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+         qf'  | isHigherOrder = mkHoConsName qf
+              | otherwise     = qf
+         cqf' | isHigherOrder = mkHoConsName cqf
+              | otherwise     = cqf
+         ctype = TCons qf' $ map (TVar . fst) targs
          vs = newVars ["cont","x","y","s"]
          [cont,x,y,s] = map Var vs
          [cont',x',y',s'] = map PVar vs
