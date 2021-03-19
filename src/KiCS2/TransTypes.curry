@@ -415,7 +415,7 @@ nondetInstance isDict hoResult tdecl = case tdecl of
      targs = map fcy2absTVarKind tnums
      ctype = TCons qf $ map (TVar . fst) targs
   (FC.TypeNew qf _ tnums cdecl) -> mkInstance (basics "NonDet") ctype targs
-    $ specialNewConsRules cdecl qf ++ newtypeMatchRules cdecl qf
+    $ specialNewConsRules isHigherOrder cdecl ++ newtypeMatchRules isHigherOrder cdecl
    where
      targs = map fcy2absTVarKind tnums
      isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
@@ -433,21 +433,23 @@ specialDataConsRules qf = map nameRule
   ]
   where nameRule (name, fun) = (basics name, simpleRule [] $ constF fun)
 
-specialNewConsRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
-specialNewConsRules (FC.NewCons cqf _ _) _ = map nameRule
-  [ ("choiceCons" , simpleRule [cd', i', PComb cqf [x'], PComb cqf [y']]
-    $ applyF cqf [applyF (basics "choiceCons")  [cd, i, x, y]])
+specialNewConsRules :: Bool -> FC.NewConsDecl -> [(QName, Rule)]
+specialNewConsRules isHigherOrder (FC.NewCons cqf _ _) = map nameRule
+  [ ("choiceCons" , simpleRule [cd', i', PComb cqf' [x'], PComb cqf' [y']]
+    $ applyF cqf' [applyF (basics "choiceCons")  [cd, i, x, y]])
   , ("choicesCons", simpleRule [cd', i', xs']
-    $ applyF cqf [applyF (basics "choicesCons") [cd, i, applyF (pre "map") [Lambda [PComb cqf [v']] v, xs]]])
+    $ applyF cqf' [applyF (basics "choicesCons") [cd, i, applyF (pre "map") [Lambda [PComb cqf' [v']] v, xs]]])
   , ("failCons"   , simpleRule [cd', info']
-    $ applyF cqf [applyF (basics "failCons")    [cd, info]])
-  , ("guardCons"  , simpleRule [cd', c', PComb cqf [e']]
-    $ applyF cqf [applyF (basics "guardCons")   [cd, c, e]])
+    $ applyF cqf' [applyF (basics "failCons")    [cd, info]])
+  , ("guardCons"  , simpleRule [cd', c', PComb cqf' [e']]
+    $ applyF cqf' [applyF (basics "guardCons")   [cd, c, e]])
   ]
   where vs = newVars ["i","x","y","xs","c","e", "cd","info", "v"]
         [i,x,y,xs,c,e,cd,info,v] = map Var vs
         [i',x',y',xs',c',e',cd',info',v'] = map PVar vs
         nameRule (name, rule) = (basics name, rule)
+        cqf' | isHigherOrder = mkHoConsName cqf
+             | otherwise     = cqf
 
 dataTryRules :: QName -> [(QName, Rule)]
 dataTryRules qf = map nameRule
@@ -509,15 +511,15 @@ match chc nrwd fr fl grd vl (C v) = match
   (vl . C)
   v
 -}
-newtypeMatchRules :: FC.NewConsDecl -> QName -> [(QName, Rule)]
-newtypeMatchRules (FC.NewCons cqf _ _) _ = map nameRule
-  [ simpleRule [chc', nrwd', fr', fl', grd', vl', PComb cqf [v']] $ applyF (basics "match")
-    [ Lambda [cd', i', x', y'] $ foldl Apply chc [cd, i, applyF cqf [x], applyF cqf [y]]
-    , Lambda [cd', i', xs'] $ foldl Apply nrwd [cd, i, applyF (pre "map") [Symbol cqf, xs]]
-    , Lambda [cd', i', xs'] $ foldl Apply fr [cd, i, applyF (pre "map") [Symbol cqf, xs]]
+newtypeMatchRules :: Bool -> FC.NewConsDecl -> [(QName, Rule)]
+newtypeMatchRules isHigherOrder (FC.NewCons cqf _ _) = map nameRule
+  [ simpleRule [chc', nrwd', fr', fl', grd', vl', PComb cqf' [v']] $ applyF (basics "match")
+    [ Lambda [cd', i', x', y'] $ foldl Apply chc [cd, i, applyF cqf' [x], applyF cqf' [y]]
+    , Lambda [cd', i', xs'] $ foldl Apply nrwd [cd, i, applyF (pre "map") [Symbol cqf', xs]]
+    , Lambda [cd', i', xs'] $ foldl Apply fr [cd, i, applyF (pre "map") [Symbol cqf', xs]]
     , fl
-    , Lambda [cd', cs', e'] $ foldl Apply grd [cd, cs, applyF cqf [e]]
-    , InfixApply vl (pre ".") (Symbol cqf)
+    , Lambda [cd', cs', e'] $ foldl Apply grd [cd, cs, applyF cqf' [e]]
+    , InfixApply vl (pre ".") (Symbol cqf')
     , v
     ]
   ]
@@ -525,6 +527,8 @@ newtypeMatchRules (FC.NewCons cqf _ _) _ = map nameRule
         [chc,nrwd,fr,fl,grd,vl,v,cd,i,x,y,xs,cs,e] = map Var vs
         [chc',nrwd',fr',fl',grd',vl',v',cd',i',x',y',xs',cs',e'] = map PVar vs
         nameRule rule = (basics "match", rule)
+        cqf' | isHigherOrder = mkHoConsName cqf
+             | otherwise     = cqf
 
 -- ---------------------------------------------------------------------------
 -- Generate instance of Generable class
