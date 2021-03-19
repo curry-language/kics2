@@ -285,7 +285,7 @@ readInstance isDict hoResult tdecl = case tdecl of
         qf' | isHigherOrder = mkHoConsName qf
             | otherwise     = qf
         ctype = TCons qf' $ map (TVar . fst) targs
-        rule = readNewtypeRule cdecl
+        rule = readNewtypeRule isHigherOrder cdecl
   _ -> error "TransTypes.readInstance"
 
 -- Generate special Read instance rule for lists
@@ -348,8 +348,10 @@ readTupleRule (FC.Cons qn@(mn,_) carity _ _) =
 readDataRule :: [FC.ConsDecl] -> (QName, Rule)
 readDataRule cdecls = readRule $ map (\(FC.Cons qn carity _ _) -> (qn, carity)) cdecls
 
-readNewtypeRule :: FC.NewConsDecl -> (QName, Rule)
-readNewtypeRule (FC.NewCons qn _ _) = readRule [(qn, 1)]
+readNewtypeRule :: Bool -> FC.NewConsDecl -> (QName, Rule)
+readNewtypeRule isHigherOrder (FC.NewCons qn _ _) = readRule [(qn', 1)]
+  where qn' | isHigherOrder = mkHoConsName qn
+            | otherwise     = qn
 
 --instance (Read t0,Read t1) => Read (C_Either t0 t1) where
   --  readsPrec d r =
@@ -416,7 +418,10 @@ nondetInstance isDict hoResult tdecl = case tdecl of
     $ specialNewConsRules cdecl qf ++ newtypeMatchRules cdecl qf
    where
      targs = map fcy2absTVarKind tnums
-     ctype = TCons qf $ map (TVar . fst) targs
+     isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+     qf' | isHigherOrder = mkHoConsName qf
+         | otherwise     = qf
+     ctype = TCons qf' $ map (TVar . fst) targs
   _ -> error "TransTypes.nondetInstance"
 
 specialDataConsRules :: QName -> [(QName, Rule)]
