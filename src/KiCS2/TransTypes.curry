@@ -774,13 +774,18 @@ unifiableInstance isDict hoResult tdecl = case tdecl of
                        )
   (FC.TypeNew qf _ tnums (FC.NewCons cqf _ _)) ->
     mkInstance (basics "Unifiable") ctype targs
-      [ (basics "=.=", simpleRule [PComb cqf [x'], PComb cqf [y']] $ applyF (basics "=.=") [x, y])
-      , (basics "=.<=", simpleRule [PComb cqf [x'], PComb cqf [y']] $ applyF (basics "=.<=") [x, y])
-      , (basics "bind", simpleRule [cd', i', PComb cqf [x']] $ applyF (basics "bind") [cd, i, x])
-      , (basics "lazyBind", simpleRule [cd', i', PComb cqf [x']] $ applyF (basics "lazyBind") [cd, i, x])
+      [ (basics "=.=", simpleRule [PComb cqf' [x'], PComb cqf' [y']] $ applyF (basics "=.=") [x, y])
+      , (basics "=.<=", simpleRule [PComb cqf' [x'], PComb cqf' [y']] $ applyF (basics "=.<=") [x, y])
+      , (basics "bind", simpleRule [cd', i', PComb cqf' [x']] $ applyF (basics "bind") [cd, i, x])
+      , (basics "lazyBind", simpleRule [cd', i', PComb cqf' [x']] $ applyF (basics "lazyBind") [cd, i, x])
       ]
    where targs = map fcy2absTVarKind tnums
-         ctype = TCons qf $ map (TVar . fst) targs
+         isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
+         qf'  | isHigherOrder = mkHoConsName qf
+              | otherwise     = qf
+         cqf' | isHigherOrder = mkHoConsName cqf
+              | otherwise     = cqf
+         ctype = TCons qf' $ map (TVar . fst) targs
          vs = newVars ["x","y","cd","i"]
          [x,y,cd,i] = map Var vs
          [x',y',cd',i'] = map PVar vs
