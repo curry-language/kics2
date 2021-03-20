@@ -25,7 +25,6 @@ import Data.Char                 ( isAlpha, isAlphaNum, isDigit, isSpace, toLowe
 import Data.List                 ( intercalate, intersperse, isPrefixOf, nub, sort )
 import Data.Time
 import Numeric                   ( readNat )
-import ReadShowTerm              ( readsTerm )
 
 import qualified Installation as Inst
 import KiCS2.System.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
@@ -905,7 +904,7 @@ setPrompt :: ReplState -> String -> IO (Maybe ReplState)
 setPrompt rst p
   | null rawPrompt = skipCommand "no prompt specified"
   | otherwise  = case head rawPrompt of
-    '"' -> case readsTerm rawPrompt of
+    '"' -> case reads rawPrompt of
       [(strPrompt, [])] -> return (Just rst { prompt = strPrompt })
       _                 -> skipCommand "could not parse prompt"
     _   -> return (Just rst { prompt = rawPrompt })
