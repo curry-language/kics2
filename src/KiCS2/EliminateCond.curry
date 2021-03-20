@@ -130,8 +130,9 @@ tyVars = nub . trTypeExpr (:[]) (const concat) (++) (flip const)
 
 --- Binds all type variables using the kind *.
 quantifyTyVars :: TypeExpr -> TypeExpr
-quantifyTyVars ty@(ForallType _ _) = ty
-quantifyTyVars ty                  = ForallType vs ty
+quantifyTyVars ty = case ty of
+  ForallType _ _ -> ty
+  _              -> ForallType vs ty
   where vs = map (\v -> (v, KStar)) $ tyVars ty
 
 boolType :: TypeExpr
