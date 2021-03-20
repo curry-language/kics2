@@ -149,10 +149,10 @@ all: $(REPL) $(COMP) $(SCRIPTS) # $(CPM)
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
 # Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default)
-# TODO: Assemble the other KiCS2 components (REPL, ...) after bootstrapping
 # TODO: Add a 'faster' 2-stage option or a separate target for that
+# TODO: Compile REPL with fastest/bootstrapped KiCS2
 .PHONY: bootstrap
-bootstrap: $(STAGE3COMP)
+bootstrap: $(STAGE3COMP) $(REPL) $(SCRIPTS)
 
 # Builds the REPL and runs it.
 .PHONY: run

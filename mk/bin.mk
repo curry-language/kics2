@@ -82,7 +82,7 @@ $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
 ########################################################################
 
 # kics2c compiled with PAKCS (or another KiCS2)
-$(STAGE1COMP): $(REPL) $(CPMDEPS) | $(STAGE1DIR)
+$(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 	cp $(COMP) $@
 	@echo "$(HIGHLIGHT)>> Successfully built stage 1!$(NORMAL)"
 
@@ -90,14 +90,16 @@ $(STAGE1COMP): $(REPL) $(CPMDEPS) | $(STAGE1DIR)
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE2DIR)
 	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
-	$(BOOTSTRAP_GHC) -o $@ $(BOOTSTRAP_COMPILEBOOT)
+	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
+	cp $(COMP) $@
 	@echo "$(HIGHLIGHT)>> Successfully built stage 2!$(NORMAL)"
 
 # kics2c compiled with stage2-kics2c
 $(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE3DIR)
 	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
-	$(BOOTSTRAP_GHC) -o $@ $(BOOTSTRAP_COMPILEBOOT)
+	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
+	cp $(COMP) $@
 	@echo "$(HIGHLIGHT)>> Successfully built stage 3!$(NORMAL)"
 
 # Creates the directory for the first bootstrap stage's binaries
