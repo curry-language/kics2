@@ -88,14 +88,14 @@ $(STAGE1COMP): $(REPL) $(CPMDEPS) | $(STAGE1DIR)
 
 # kics2c compiled with stage1-kics2c
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE2DIR)
-	rm $(COMP)
+	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $@ $(BOOTSTRAP_COMPILEBOOT)
 	@echo "$(HIGHLIGHT)>> Successfully built stage 2!$(NORMAL)"
 
 # kics2c compiled with stage2-kics2c
 $(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE3DIR)
-	rm $(COMP)
+	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $@ $(BOOTSTRAP_COMPILEBOOT)
 	@echo "$(HIGHLIGHT)>> Successfully built stage 3!$(NORMAL)"
