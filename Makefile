@@ -144,7 +144,7 @@ include mk/bin.mk
 
 # Builds the KiCS2 compiler using CURRY (PAKCS by default)
 .PHONY: all
-all: $(REPL) $(COMP) $(SCRIPTS) # $(CPM)
+all: $(REPL) $(COMP) $(SCRIPTS) $(CPM)
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
