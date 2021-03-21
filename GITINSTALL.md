@@ -53,7 +53,7 @@ Currently, there are at least two options:
     this distribution by `make kernel`), you can generate the initial
     KiCS2 compiler by the command
 
-        make bootstrap KICS2=/tmp/kics2/bin/kics2
+        make bootstrap CURRY=/tmp/kics2/bin/kics2
 
     in the directory `kics2`.
 
