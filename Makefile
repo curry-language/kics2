@@ -10,6 +10,9 @@
 # Note that this also determines which CPM to use.
 export CURRY = pakcs
 
+# The name of the Curry system, needed for tool installation
+export CURRYSYSTEM = kics2
+
 # The path to GHC, its package manager, Cabal and the Curry package manager
 export GHC     := $(shell which ghc)
 export GHC_PKG := $(shell dirname "$(GHC)")/ghc-pkg
