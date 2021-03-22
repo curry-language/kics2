@@ -6,9 +6,17 @@
 # --------------------------------------
 # (these parameters might be passed to `make`)
 
-# The compiler to compile KiCS2 with. PAKCS by default.
+# The built KiCS2
+KICS2 = $(CURDIR)/bin/kics2
+
+# The compiler to compile KiCS2 with. By default this
+# is `kics2` if a built version exists, otherwise PAKCS.
 # Note that this also determines which CPM to use.
+ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
+export CURRY = $(KICS2)
+else
 export CURRY = pakcs
+endif
 
 # The name of the Curry system, needed for tool installation
 export CURRYSYSTEM = kics2
