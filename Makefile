@@ -239,7 +239,9 @@ clean: cleanlib cleanruntime cleanutils cleanbin cleanenv
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
 		   $(INSTALLCURRY) \
-		   $(INSTALLHS)
+		   $(INSTALLHS) \
+		   $(BOOTDIR)/*.hi \
+		   $(BOOTDIR)/*.o
 
 # Cleans up everything.
 .PHONY: cleanall
