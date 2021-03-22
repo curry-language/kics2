@@ -89,7 +89,12 @@ $(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 # kics2c compiled with stage1-kics2c
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE2DIR)
 	rm -f $(COMP)
-	cd $(SRCDIR) && $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
+	# Compile in multiple steps to avoid memory issues with PAKCS
+	cd $(SRCDIR) \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.ModuleDeps \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.TransTypes \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.TransFunctions \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
 	cp $(COMP) $@
 	@echo "$(HIGHLIGHT)>> Successfully built stage 2!$(NORMAL)"
