@@ -8,6 +8,7 @@
 --- --------------------------------------------------------------------------
 module KiCS2.GenContext (genContext, mkContext) where
 
+import Control.Monad.Trans.State (State, runState, get, modify)
 import Data.List (nub, partition)
 
 import qualified AbstractHaskell.Types as AH
@@ -67,22 +68,26 @@ genContext bvs = snd . toTypeSig' bvs
 --             ) => Curry (C_Apply (C_Apply a x) y)    when a :: * -> * -> *
 -- forall x y. ( forall z. Curry z => (C_Apply x z)
 --             , Curry y
---             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) * -> -> *
+--             ) => Curry (C_Apply (C_Apply a x) y)    when a :: (* -> *) -> * -> *
 mkContext :: AH.QName -> AH.TypeExpr -> AH.Kind -> AH.Context
-mkContext name ty = snd . mkContext' 0 ty
+mkContext name ty kind = fst $ runState (mkContext' ty kind) 0
   where
-    -- The integer tracks the fresh type variable index.
-    mkContext' :: Int -> AH.TypeExpr -> AH.Kind -> (Int, AH.Context)
-    mkContext' n ty kind = case kind of
-      AH.KindStar        -> (n,   AH.Context []     []       name [ty])
-      AH.KindArrow k1 k2 -> (n'', AH.Context (v:vs) (cx:cxs) name [ty'])
-        where
-          arityKind AH.KindStar        = 0
-          arityKind (AH.KindArrow _ k) = arityKind k + 1
+    kindArgs AH.KindStar         = []
+    kindArgs (AH.KindArrow k k') = k : kindArgs k'
 
-          arity     = arityKind kind
-          (v:vs)    = map (\i -> (i, 'x':(show i))) $ take arity [n ..]
-          n'        = n + arity
-          ty'       = foldl (\t tv -> AH.TCons (curryPrelude, "C_Apply") [t, AH.TVar tv]) ty (v:vs)
-          (n'', cx) = mkContext' n' (AH.TVar v) k1
-          cxs       = map (\tv -> snd $ mkContext' n' (AH.TVar tv) AH.KindStar) $ vs
+    -- The integer tracks the fresh type variable index.
+
+    fresh :: State Int Int
+    fresh = do
+      n <- get
+      modify (+1)
+      return n
+
+    mkContext' :: AH.TypeExpr -> AH.Kind -> State Int AH.Context
+    mkContext' ty' kind' = do
+      let ks = kindArgs kind'
+      vs  <- mapM (const $ (\i -> (i, 'x' : show i)) <$> fresh) ks
+      let tvs = AH.TVar <$> vs
+      cxs <- mapM (uncurry mkContext') $ zip tvs ks
+      let ty'' = foldl (\t tv -> AH.TCons (curryPrelude, "C_Apply") [t, tv]) ty' tvs
+      return $ AH.Context vs cxs name [ty'']
