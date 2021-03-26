@@ -22,10 +22,10 @@ endif
 export CURRYSYSTEM = kics2
 
 # The Stack resolver to use. This also determines the GHC version used for KiCS2!
-export STACKRESOLVER = lts-17.7
+export STACKRESOLVER = lts-16.31
 # GHC version as determined by the Stack resolver (see https://www.stackage.org/)
 GHC_MAJOR = 8
-GHC_MINOR = 10
+GHC_MINOR = 8
 
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
