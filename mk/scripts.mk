@@ -13,14 +13,14 @@ endif
 
 export SCRIPTS = $(BINS) $(BATS)
 
-$(BINS): $(BINDIR)/%: $(SCRIPTSDIR)/%.sh
+$(BINS): $(BINDIR)/%: $(SCRIPTSDIR)/%.sh | $(BINDIR)
 	@echo "Copying script '$*'..."
 	@mkdir -p $(@D)
 	@cat $< | sed "s|^KICS2BUILDDIR=.*$$|KICS2BUILDDIR=$(ROOT)|" | \
 	 sed "s|^KICS2INSTALLDIR=.*$$|KICS2INSTALLDIR=$(KICS2INSTALLDIR)|" > $@
 	@chmod 755 $@
 
-$(BATS): $(BINDIR)/%.bat: $(SCRIPTSDIR)/%.bat
+$(BATS): $(BINDIR)/%.bat: $(SCRIPTSDIR)/%.bat | $(BINDIR)
 	@echo "Copying script '$*'..."
 	@mkdir -p $(@D)
 	@sed "s|^set KICS2HOME=.*$$|set KICS2HOME=$(ROOT)|" < $< > $@
