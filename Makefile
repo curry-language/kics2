@@ -81,6 +81,8 @@ export BOOTDIR = $(ROOT)/boot
 export ENVFILE = $(ENVDIR)/kics2.ghc.environment
 # The directory containing the KiCS2 sources
 SRCDIR = $(ROOT)/src
+# The directory containing runtime sources
+RUNTIMESRCDIR = $(ROOT)/runtime-src
 # The (generated) Installation module for use by the compiler
 INSTALLCURRY = $(SRCDIR)/Installation.curry
 # The (generated) Installation module for use at runtime
@@ -247,6 +249,7 @@ cleankics2: cleanlib cleanruntime cleanutils cleanbin cleanenv
 	rm -rf $(DOTCPMDIR) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
+	       $(RUNTIMESRCDIR)/.curry \
 		   $(INSTALLCURRY) \
 		   $(INSTALLHS) \
 		   $(BOOTDIR)/*.hi \
