@@ -189,6 +189,10 @@ repl: $(REPL)
 .PHONY: compiler
 compiler: $(COMP)
 
+# Builds the runtime only.
+.PHONY: runtime
+runtime: $(RUNTIME)
+
 # Builds the GHC environment only.
 .PHONY: env
 env: $(ENV)
