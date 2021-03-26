@@ -1,0 +1,7 @@
+resolver: lts-17.7
+packages:
+  - lib
+  - runtime
+extra-deps:
+  - parallel-tree-search-0.4.2
+  - tree-monad-0.3.1
