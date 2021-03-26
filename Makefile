@@ -44,8 +44,8 @@ GHC_LIBS         := $(shell "$(GHC_PKG)" list --global --simple-output --names-o
 GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
-GHC_OPTIMIZATIONS = -O2 -fno-strictness 
-GHC_LOCAL_OPTS    =
+GHC_OPTIMIZATIONS = -O2 -fno-strictness
+GHC_LOCAL_OPTS    = -fno-liberate-case
 GHC_OPTS          = $(GHC_LOCAL_OPTS) -package-env $(ENVFILE)
 # GHC version
 GHC_MAJOR := $(shell "$(GHC)" --numeric-version | cut -d. -f1)

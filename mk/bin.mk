@@ -25,7 +25,7 @@ BOOTSTRAP_COMPILEBOOT = $(BOOTDIR)/CompileBoot.hs
 # KiCS2 options for bootstrap compilation
 BOOTSTRAP_KICS2C_OPTS = -v2 --parse-options=-Wall -i$(BOOTSTRAP_CURRYPATH)
 # GHC options for bootstrap compilation
-BOOTSTRAP_GHC_OPTS = $(GHC_OPTIMIZATIONS) --make -v1 -cpp -fno-liberate-case
+BOOTSTRAP_GHC_OPTS = $(GHC_OPTIMIZATIONS) --make -v1 -cpp
 # Directories for compiled Haskell modules of the packages
 BOOTSTRAP_PACKAGE_OUTDIRS = $(foreach p,$(BOOTSTRAP_PACKAGE_SRCS),$(p)/.curry/kics2-$(VERSION))
 # GHC includes for bootstrapping
