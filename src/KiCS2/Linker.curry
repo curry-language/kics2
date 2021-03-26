@@ -16,7 +16,6 @@ module KiCS2.Linker
 
 import Control.Applicative  (when)
 import Control.Monad        (unless)
-import ReadShowTerm         (readQTermFile)
 import System.Environment
 import System.Process
 import System.Directory
@@ -29,6 +28,7 @@ import Data.Maybe           (isNothing)
 import qualified Installation as Inst
 import KiCS2.GhciComm
 import KiCS2.Names         (funcInfoFile, moduleToFileName, renameModule)
+import KiCS2.Files         (readQTermFile)
 import KiCS2.RCFile
 import KiCS2.Utils         (notNull, strip)
 

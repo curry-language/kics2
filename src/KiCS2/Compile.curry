@@ -11,7 +11,6 @@ import Data.Maybe                  ( fromJust )
 import Data.List                   ( intercalate, isPrefixOf )
 import Data.Map                    ( union )
 import Control.Monad               ( when, foldM )
-import ReadShowTerm                ( readQTermFile )
 import System.Directory            ( doesFileExist )
 import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
 import System.IOExts               ( readCompleteFile )
@@ -27,9 +26,7 @@ import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)
 import qualified AbstractHaskell.Printer as AHP
 
-import KiCS2.Analysis              ( AnalysisResult, showAnalysisResult
-                                   , readAnalysisResult
-                                   )
+import KiCS2.Analysis              ( AnalysisResult (..) )
 import KiCS2.CompilerOpts
 import KiCS2.System.CurryPath      ( getLoadPathForModule, stripCurrySuffix
                                    , lookupModuleSourceInLoadPath
@@ -37,7 +34,7 @@ import KiCS2.System.CurryPath      ( getLoadPathForModule, stripCurrySuffix
 import KiCS2.RCFile
 import KiCS2.Files                 ( withBaseName, withDirectory, withExtension
                                    , writeFileInDir, writeQTermFileInDir
-                                   , lookupFileInPath
+                                   , readQTermFile, lookupFileInPath
                                    )
 import KiCS2.LiftCase              ( liftCases )
 import KiCS2.EliminateCond         ( eliminateCond )
@@ -122,24 +119,24 @@ makeModule mods state mod@((mid, (fn, imps, _)), _)
 writeAnalysis :: Options -> ModuleIdent -> FilePath -> AnalysisResult -> IO ()
 writeAnalysis opts mid fn analysis = do
   showDetail opts $ "Writing Analysis file " ++ ndaFile
-  writeQTermFileInDir ndaFile (showAnalysisResult analysis)
+  writeQTermFileInDir ndaFile analysis
     where ndaFile = analysisFile (optOutputSubdir opts) mid fn
 
 readAnalysis :: Options -> ModuleIdent -> FilePath -> IO AnalysisResult
 readAnalysis opts mid fn = do
   showDetail opts $ "Reading Analysis file " ++ ndaFile
-  readAnalysisResult <$> readQTermFile ndaFile
+  readQTermFile ndaFile
     where ndaFile = analysisFile (optOutputSubdir opts) mid fn
 
 loadAnalysis :: Int -> State -> ((ModuleIdent, Source), Int) -> IO State
 loadAnalysis total state ((mid, (fn, _, _)), current) = do
   showStatus opts $ compMessage (current, total) "Analyzing" mid (fn, ndaFile)
-  (types, ndAna, hoType, hoCons, hoFunc) <- readAnalysis opts mid fn
-  return state { typeMap      = typeMap state      `union` types
-               , ndResult     = ndResult state     `union` ndAna
-               , hoResultType = hoResultType state `union` hoType
-               , hoResultCons = hoResultCons state `union` hoCons
-               , hoResultFunc = hoResultFunc state `union` hoFunc
+  result <- readAnalysis opts mid fn
+  return state { typeMap      = typeMap state      `union` arTypeMap result
+               , ndResult     = ndResult state     `union` arNDResult result
+               , hoResultType = hoResultType state `union` arTypeHOResult result
+               , hoResultCons = hoResultCons state `union` arConsHOResult result
+               , hoResultFunc = hoResultFunc state `union` arFuncHOResult result
                }
     where
       ndaFile = analysisFile (optOutputSubdir opts) mid fn

@@ -8,7 +8,9 @@ module KiCS2.Files
   ( -- File name modification
     withComponents, withDirectory, withBaseName, withExtension
     -- file creation
-  , writeFileInDir, writeQTermFileInDir
+  , writeFileInDir, writeQTermFileInDir, writeQTermFile
+    -- file reading
+  , readQTermFile
     -- file deletion
   , removeFileIfExists, (</?>), lookupFileInPath, getFileInPath
   ) where
@@ -23,7 +25,6 @@ import System.FilePath
   )
 import Control.Monad       (when)
 import Data.List           (intersperse, isPrefixOf, last, scanl1)
-import ReadShowTerm        (writeQTermFile)
 
 --- Apply functions to all parts of a file name
 withComponents :: (String -> String) -- change path
@@ -53,12 +54,20 @@ writeFileInDir file content = do
   createDirectoryIfMissing True $ takeDirectory file
   writeFile file content
 
---- write the 'String' into a file where the file name may contain a path.
+--- write the value into a file where the file name may contain a path.
 --- The corresponding directories are created first if missing.
-writeQTermFileInDir :: FilePath -> a -> IO ()
-writeQTermFileInDir file content = do
+writeQTermFileInDir :: Show a => FilePath -> a -> IO ()
+writeQTermFileInDir file value = do
   createDirectoryIfMissing True $ takeDirectory file
-  writeQTermFile file content
+  writeQTermFile file value
+
+--- Writes the term into a file.
+writeQTermFile :: Show a => FilePath -> a -> IO ()
+writeQTermFile file = writeFile file . show
+
+--- Reads the term from a file.
+readQTermFile :: Read a => FilePath -> IO a
+readQTermFile = (read <$>) . readFile
 
 --- This operation removes the specified file only if it exists.
 removeFileIfExists :: FilePath -> IO ()

@@ -6,7 +6,7 @@
 --- @version December 2018
 --- ----------------------------------------------------------------------------
 module KiCS2.Analysis
-  ( AnalysisResult, showAnalysisResult, readAnalysisResult
+  ( AnalysisResult (..)
   , TypeMap, TypeMapEntry (..), initTypeMap, getTypeMap
   , NDResult, NDClass (..), initNDResult, analyseND
   , initHOResult
@@ -28,16 +28,13 @@ import Prelude  as P
 import KiCS2.Classification
 import KiCS2.Names
 
-type AnalysisResult = (TypeMap, NDResult, TypeHOResult, ConsHOResult, FuncHOResult)
-
-showAnalysisResult :: AnalysisResult -> (String, String, String, String, String)
-showAnalysisResult (types, ndAna, hoTyp, hoCons, hoFunc)
-  = (show types, show ndAna, show hoTyp, show hoCons, show hoFunc)
-
-readAnalysisResult :: (String, String, String, String, String) -> AnalysisResult
-readAnalysisResult (types, ndAna, hoTyp, hoCons, hoFunc)
-  = ( read  types , read ndAna , read hoTyp
-    , read  hoCons, read hoFunc)
+data AnalysisResult = AnalysisResult
+  { arTypeMap      :: TypeMap
+  , arNDResult     :: NDResult
+  , arTypeHOResult :: TypeHOResult
+  , arConsHOResult :: ConsHOResult
+  , arFuncHOResult :: FuncHOResult
+  } deriving (Show, Read)
 
 type Map a = Map.Map QName a
 
