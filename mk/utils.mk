@@ -10,5 +10,5 @@ export UTILS_ARTIFACTS = $(UTILSDIR)/*.hi \
 .PHONY: all
 all: $(UTILS)
 
-$(UTILS): $(BINDIR)/%$(EXE_SUFFIX): $(UTILSDIR)/%.hs | $(BINDIR)
-	"$(GHC)" --make -Wall -O2 -o $@ $<
+$(UTILS): $(BINDIR)/%$(EXE_SUFFIX): $(UTILSDIR)/%.hs | $(BINDIR) $(STACKYAML)
+	$(GHC) --make -Wall -O2 -o $@ $<

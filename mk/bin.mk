@@ -38,7 +38,7 @@ export BIN_ARTIFACTS = $(BINDIR)
 ########################################################################
 
 # Builds the REPL executable (with CURRY and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(STACKPKGS) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
 	$(CURRY) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)

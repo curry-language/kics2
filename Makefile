@@ -375,7 +375,7 @@ $(INSTALLHS): $(PACKAGEJSON) $(LIBDIR)/VERSION
 	@echo 'baseVersion = "$(shell cat $(LIBDIR)/VERSION)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcExec :: String' >> $@
-	@echo 'ghcExec = "\"$(GHC)\""' >> $@
+	@echo 'ghcExec = "$(GHC)"' >> $@
 	@echo "" >> $@
 	@echo '-- GHC options for using local libraries and not cabal packages:' >> $@
 	@echo 'ghcLocalOptions :: String' >> $@
