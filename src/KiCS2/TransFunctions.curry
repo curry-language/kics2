@@ -206,7 +206,7 @@ trProg p@(Prog m is ts fs _) =
       visHOFun     = getPrivateFunc visInfo `deleteAll` modHOResFunc
 
       visType      = getPrivateCons visInfo `deleteAll` modTypeMap
-      anaResult    = (visType, visNDRes, visHOType, visHOCons, visHOFun)
+      anaResult    = AnalysisResult visType visNDRes visHOType visHOCons visHOFun
   in
   addNDAnalysis     modNDRes     >>
   addHOTypeAnalysis modHOResType >>
