@@ -242,8 +242,8 @@ cleanfrontend:
 	cd $(FRONTENDDIR) && $(MAKE) cleanall
 
 # Cleans up build files (not from the frontend, however!)
-.PHONY: clean
-clean: cleanlib cleanruntime cleanutils cleanbin cleanenv
+.PHONY: cleankics2
+cleankics2: cleanlib cleanruntime cleanutils cleanbin cleanenv
 	rm -rf $(DOTCPMDIR) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
@@ -253,8 +253,8 @@ clean: cleanlib cleanruntime cleanutils cleanbin cleanenv
 		   $(BOOTDIR)/*.o
 
 # Cleans up everything.
-.PHONY: cleanall
-cleanall: clean cleanfrontend
+.PHONY: clean
+clean: cleankics2 cleanfrontend
 
 ########################################################################
 # The targets
