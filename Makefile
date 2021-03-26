@@ -24,34 +24,6 @@ export CURRYSYSTEM = kics2
 # The Stack resolver to use. This also determines the GHC version used for KiCS2!
 export STACKRESOLVER = lts-17.7
 
-# The path to GHC, its package manager, Cabal and the Curry package manager
-export STACK   := $(shell which stack)
-export GHC     := $(STACK) exec -- ghc
-export CYPM    := $(CURRY) cypm
-
-# KiCS2 runtime dependencies (Cabal packages)
-export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
-# KiCS2 library dependencies (Cabal packages)
-export LIBDEPS     = base directory network network-bsd old-time parallel-tree-search time# process (seems to cause a duplicate install)
-# Custom runtime dependencies (Cabal packages)
-export CUSTOMDEPS  = kics2-runtime kics2-libraries
-# System dependencies (TODO: Windows)
-export SYSTEMDEPS  = unix
-# All dependencies, with duplicates removed (see 'sort')
-export ALLDEPS = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS) $(CUSTOMDEPS))
-
-# Libraries installed with GHC
-GHC_LIBS         := $(shell "$(STACK)" exec ghc-pkg -- list --global --simple-output --names-only)
-# Packages used by the compiler
-GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
-# The compilation of some libraries does not terminate with -O2
-# on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
-GHC_OPTIMIZATIONS = -O2 -fno-strictness
-GHC_OPTS          = -fno-liberate-case
-# GHC version
-GHC_MAJOR := $(shell $(GHC) --numeric-version | cut -d. -f1)
-GHC_MINOR := $(shell $(GHC) --numeric-version | cut -d. -f2)
-
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
 # The directory containing the built binaries
@@ -88,12 +60,19 @@ INSTALLHS = $(RUNTIMEDIR)/Installation.hs
 PACKAGEJSON = $(ROOT)/package.json
 # The Stack manifest
 STACKYAML = $(ROOT)/stack.yaml
+# The Stack lock file
+STACKYAMLLOCK = $(ROOT)/stack.yaml.lock
 # The Curry package manager directory
 DOTCPMDIR = $(ROOT)/.cpm
 # The Stack build directory.
 DOTSTACKWORKDIR = $(ROOT)/.stack-work
 # A directory for auxiliary state files from the Makefile.
 DOTMKDIR = $(ROOT)/.mk
+
+# Dummy file for tracking installation state of CPM dependencies
+CPMDEPS = $(DOTMKDIR)/.cpmdeps-state-dummy
+# Dummy file for tracking installation state of runtime packages
+STACKPKGS = $(DOTMKDIR)/.stackpkgs-state-dummy
 
 # The REPL binary ('kics2i')
 export REPL = $(LOCALBINDIR)/kics2i
@@ -108,10 +87,33 @@ export FRONTEND = $(BINDIR)/kics2-frontend
 # The package manager binary (`cypm`)
 export CPM = $(BINDIR)/cypm
 
-# Dummy file for tracking installation state of CPM dependencies
-CPMDEPS = $(DOTMKDIR)/.cpmdeps-state-dummy
-# Dummy file for tracking installation state of runtime packages
-STACKPKGS = $(DOTMKDIR)/.stackpkgs-state-dummy
+# The path to GHC, its package manager, Cabal and the Curry package manager
+export STACK = STACK_YAML=$(STACKYAML) $(shell which stack)
+export GHC   = $(STACK) exec -- ghc
+export CYPM  = $(CURRY) cypm
+
+# KiCS2 runtime dependencies (Cabal packages)
+export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
+# KiCS2 library dependencies (Cabal packages)
+export LIBDEPS     = base directory network network-bsd old-time parallel-tree-search time# process (seems to cause a duplicate install)
+# Custom runtime dependencies (Cabal packages)
+export CUSTOMDEPS  = kics2-runtime kics2-libraries
+# System dependencies (TODO: Windows)
+export SYSTEMDEPS  = unix
+# All dependencies, with duplicates removed (see 'sort')
+export ALLDEPS = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS) $(CUSTOMDEPS))
+
+# Libraries installed with GHC
+GHC_LIBS          = $(shell $(STACK) exec ghc-pkg -- list --global --simple-output --names-only)
+# Packages used by the compiler
+GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
+# The compilation of some libraries does not terminate with -O2
+# on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
+GHC_OPTIMIZATIONS = -O2 -fno-strictness
+GHC_OPTS          = -fno-liberate-case
+# GHC version
+GHC_MAJOR = $(shell $(GHC) --numeric-version | cut -d. -f1)
+GHC_MINOR = $(shell $(GHC) --numeric-version | cut -d. -f2)
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -265,6 +267,8 @@ cleanfrontend:
 cleankics2: cleanlib cleanruntime cleanutils cleanbin
 	rm -rf $(DOTCPMDIR) \
 	       $(DOTSTACKWORKDIR) \
+	       $(STACKYAML) \
+	       $(STACKYAMLLOCK) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
 	       $(RUNTIMESRCDIR)/.curry \
