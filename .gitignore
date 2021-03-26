@@ -45,6 +45,7 @@ cabal-dev/
 pkg/
 .mk
 .stack-work
+/stack.yaml
 stack.yaml.lock
 TMPLIBOUT
 *.state
