@@ -1,18 +1,5 @@
 # Makefile for building and bootstrapping compiler/REPL and other binaries.
 
-# The REPL binary ('kics2i')
-export REPL = $(LOCALBINDIR)/kics2i
-# The compiler binary ('kics2c')
-export COMP = $(LOCALBINDIR)/kics2c
-# The standard kics2 start script (`kics2`, built by scripts.mk)
-export KICS2BIN = $(BINDIR)/kics2
-# The Curry binary symlinked to the `kics2` script (`curry`)
-export CURRYBIN = $(BINDIR)/curry
-# The frontend binary ('kics2-frontend')
-export FRONTEND = $(BINDIR)/kics2-frontend
-# The package manager binary (`cypm`)
-export CPM = $(BINDIR)/cypm
-
 # The paths to the CPM package sources used for bootstrapping
 BOOTSTRAP_PACKAGE_SRCS = $(foreach p,$(shell ls $(DOTCPMDIR)/packages),$(DOTCPMDIR)/packages/$(p)/src)
 # The CURRYPATH used for bootstrapping
