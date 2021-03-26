@@ -155,15 +155,24 @@ include mk/bin.mk
 
 # Builds the KiCS2 compiler using CURRY (PAKCS by default)
 .PHONY: all
-all: $(REPL) $(COMP) $(SCRIPTS) $(CPM)
+all:
+	$(MAKE) kernel
+	$(MAKE) tools
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
 # Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default)
-# TODO: Add a 'faster' 2-stage option or a separate target for that
-# TODO: Compile REPL with fastest/bootstrapped KiCS2
 .PHONY: bootstrap
-bootstrap: $(STAGE3COMP) $(REPL) $(SCRIPTS)
+bootstrap: $(STAGE3COMP)
+	$(MAKE) $(REPL) $(SCRIPTS)
+
+# Builds the REPL, compiler and scripts.
+.PHONY: kernel
+kernel: $(REPL) $(COMP) $(SCRIPTS)
+
+# Builds the tools.
+.PHONY: tools
+tools: $(CPM)
 
 # Builds the REPL and runs it.
 .PHONY: run
