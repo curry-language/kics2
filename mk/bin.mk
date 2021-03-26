@@ -51,13 +51,13 @@ export BIN_ARTIFACTS = $(BINDIR)
 ########################################################################
 
 # Builds the REPL executable (with CURRY and its cpm)
-$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(CLEANCURRY) $(COMP) $(ENV) $(LOCALBINDIR)
+$(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
 	$(CURRY) :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRY and its cpm)
-$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(RUNTIME) $(LOCALBINDIR)
+$(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(LOCALBINDIR)
 	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
 	$(CURRY) :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
@@ -87,7 +87,7 @@ $(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 	@echo "$(HIGHLIGHT)>> Successfully built stage 1!$(NORMAL)"
 
 # kics2c compiled with stage1-kics2c
-$(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE2DIR)
+$(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR)
 	rm -f $(COMP)
 	# Compile in multiple steps to avoid memory issues with PAKCS
 	cd $(SRCDIR) \
@@ -100,7 +100,7 @@ $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE2DIR)
 	@echo "$(HIGHLIGHT)>> Successfully built stage 2!$(NORMAL)"
 
 # kics2c compiled with stage2-kics2c
-$(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) $(ENVFILE) | $(STAGE3DIR)
+$(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE3DIR)
 	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)

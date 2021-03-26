@@ -22,9 +22,8 @@ endif
 export CURRYSYSTEM = kics2
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
-export GHC     := $(shell which ghc)
-export GHC_PKG := $(shell dirname "$(GHC)")/ghc-pkg
-export CABAL   := $(shell which cabal)
+export STACK   := $(shell which stack)
+export GHC     := $(STACK) exec -- ghc
 export CYPM    := $(CURRY) cypm
 
 # KiCS2 runtime dependencies (Cabal packages)
@@ -39,17 +38,16 @@ export SYSTEMDEPS  = unix
 export ALLDEPS = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS) $(CUSTOMDEPS))
 
 # Libraries installed with GHC
-GHC_LIBS         := $(shell "$(GHC_PKG)" list --global --simple-output --names-only)
+GHC_LIBS         := $(shell "$(STACK)" exec ghc-pkg -- list --global --simple-output --names-only)
 # Packages used by the compiler
 GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
 GHC_OPTIMIZATIONS = -O2 -fno-strictness
-GHC_LOCAL_OPTS    = -fno-liberate-case
-GHC_OPTS          = $(GHC_LOCAL_OPTS) -package-env $(ENVFILE)
+GHC_OPTS          = -fno-liberate-case
 # GHC version
-GHC_MAJOR := $(shell "$(GHC)" --numeric-version | cut -d. -f1)
-GHC_MINOR := $(shell "$(GHC)" --numeric-version | cut -d. -f2)
+GHC_MAJOR := $(shell $(GHC) --numeric-version | cut -d. -f1)
+GHC_MINOR := $(shell $(GHC) --numeric-version | cut -d. -f2)
 
 # The KiCS2 directory (the current one)
 export ROOT = $(CURDIR)
@@ -73,12 +71,8 @@ export LIBTRUNKDIR = $(ROOT)/lib-trunk
 export CURRYTOOLSDIR = $(ROOT)/currytools
 # The directory containing the package manager
 export CPMDIR = $(CURRYTOOLSDIR)/cpm
-# The directory containing the GHC environments for the runtime and libraries
-export ENVDIR = $(ROOT)/env
 # The directory containing modules for starting the compiler, e.g. when bootstrapping
 export BOOTDIR = $(ROOT)/boot
-# The GHC environment used 
-export ENVFILE = $(ENVDIR)/kics2.ghc.environment
 # The directory containing the KiCS2 sources
 SRCDIR = $(ROOT)/src
 # The directory containing runtime sources
@@ -89,11 +83,19 @@ INSTALLCURRY = $(SRCDIR)/Installation.curry
 INSTALLHS = $(RUNTIMEDIR)/Installation.hs
 # The KiCS2 package manifest
 PACKAGEJSON = $(ROOT)/package.json
+# The Stack manifest
+STACKYAML = $(ROOT)/stack.yaml
 # The Curry package manager directory
 DOTCPMDIR = $(ROOT)/.cpm
+# The Stack build directory.
+DOTSTACKWORKDIR = $(ROOT)/.stack-work
+# A directory for auxiliary state files from the Makefile.
+DOTMKDIR = $(ROOT)/.mk
 
 # Dummy file for tracking installation state of CPM dependencies
-CPMDEPS = $(DOTCPMDIR)/.installation-state-dummy
+CPMDEPS = $(DOTMKDIR)/.cpmdeps-state-dummy
+# Dummy file for tracking installation state of runtime packages
+STACKPKGS = $(DOTMKDIR)/.stackpkgs-state-dummy
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -148,7 +150,6 @@ include mk/lib.mk
 include mk/runtime.mk
 include mk/scripts.mk
 include mk/utils.mk
-include mk/env.mk
 include mk/bin.mk
 
 ########################################################################
@@ -163,14 +164,15 @@ all:
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
-# Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default)
+# Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default),
+# then performs a bootstrapped build of the kernel (REPL) and tools
 .PHONY: bootstrap
 bootstrap: $(STAGE3COMP)
-	$(MAKE) $(REPL) $(SCRIPTS)
+	$(MAKE)
 
 # Builds the REPL, compiler and scripts.
 .PHONY: kernel
-kernel: $(REPL) $(COMP) $(SCRIPTS)
+kernel: $(REPL) $(SCRIPTS)
 
 # Builds the tools.
 .PHONY: tools
@@ -193,10 +195,6 @@ compiler: $(COMP)
 .PHONY: runtime
 runtime: $(RUNTIME)
 
-# Builds the GHC environment only.
-.PHONY: env
-env: $(ENV)
-
 # Builds the scripts (kics2, ...) only.
 .PHONY: scripts
 scripts: $(SCRIPTS)
@@ -212,6 +210,10 @@ cpm: $(CPM)
 # Builds the libraries only.
 .PHONY: lib
 lib: $(LIB)
+
+# Builds the runtime packages (kics2-libraries and kics2-runtime).
+.PHONY: pkgs
+pkgs: $(STACKPKGS)
 
 # Installs the dependencies only.
 .PHONY: deps
@@ -237,11 +239,6 @@ cleanutils:
 cleanbin:
 	rm -rf $(BIN_ARTIFACTS)
 
-# Cleans up the GHC environments.
-.PHONY: cleanenv
-cleanenv:
-	rm -rf $(ENV_ARTIFACTS)
-
 # Cleans up frontend-related build artifacts.
 .PHONY: cleanfrontend
 cleanfrontend:
@@ -249,8 +246,9 @@ cleanfrontend:
 
 # Cleans up build files (not from the frontend, however!)
 .PHONY: cleankics2
-cleankics2: cleanlib cleanruntime cleanutils cleanbin cleanenv
+cleankics2: cleanlib cleanruntime cleanutils cleanbin
 	rm -rf $(DOTCPMDIR) \
+	       $(DOTSTACKWORKDIR) \
 	       $(ROOT)/.curry \
 	       $(SRCDIR)/.curry \
 	       $(RUNTIMESRCDIR)/.curry \
@@ -267,10 +265,15 @@ clean: cleankics2 cleanfrontend
 # The targets
 ########################################################################
 
-$(CPMDEPS): $(PACKAGEJSON)
+$(CPMDEPS): $(PACKAGEJSON) | $(DOTMKDIR)
 	@echo "$(HIGHLIGHT)>> Updating CPM index and installing dependencies$(NORMAL)"
 	$(CYPM) update
 	$(CYPM) install --noexec
+	@touch $@
+
+$(STACKPKGS): $(STACKYAML) $(LIB) $(RUNTIME) | $(DOTMKDIR)
+	@echo "$(HIGHLIGHT)>> Rebuilding runtime and libraries$(NORMAL)"
+	$(STACK) build
 	@touch $@
 
 # Creates a directory for the compiled libraries
@@ -285,8 +288,8 @@ $(BINDIR):
 $(LOCALBINDIR):
 	mkdir -p $@
 
-# Creates a directory for the GHC environment
-$(ENVDIR):
+# Creates a directory for auxiliary local state files from the Makefiles.
+$(DOTMKDIR):
 	mkdir -p $@
 
 # Generate a source module with metadata about the KiCS2 installation for use at runtime

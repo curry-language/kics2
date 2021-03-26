@@ -48,6 +48,7 @@ export LIB_ARTIFACTS = $(LIBDIR)/.curry \
                        $(LIBDIR)/*.o \
                        $(LIBDIR)/dist \
                        $(LIBDIR)/dist-newstyle \
+                       $(LIBDIR)/.stack-work \
                        $(LIB_CABAL) \
                        $(LIB_TRACE_CABAL)
 

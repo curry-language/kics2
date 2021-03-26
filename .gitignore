@@ -43,6 +43,7 @@ docs/src/version.tex
 docs/src/tooldocs/casc/curry-style-guide.html
 cabal-dev/
 pkg/
+.mk
 .stack-work
 stack.yaml.lock
 TMPLIBOUT

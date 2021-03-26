@@ -21,6 +21,7 @@ export RUNTIME = $(RUNTIME_CABAL)
 export RUNTIME_ARTIFACTS = $(RUNTIME_CABAL) \
                            $(RUNTIMEDIR)/dist \
                            $(RUNTIMEDIR)/dist-newstyle \
+                           $(RUNTIMEDIR)/.stack-work \
                            $(RUNTIMEDIR)/**/*.hi \
                            $(RUNTIMEDIR)/**/*.hi-boot \
                            $(RUNTIMEDIR)/**/*.o \
