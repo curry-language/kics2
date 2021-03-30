@@ -112,8 +112,8 @@ GHC_LIBS          = $(shell $(STACK) exec ghc-pkg -- list --global --simple-outp
 GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
-GHC_OPTIMIZATIONS = -O2 -fno-strictness
-GHC_OPTS          = -fno-liberate-case
+GHC_OPTIMIZATIONS = -O2 -fno-strictness -fno-liberate-case
+GHC_OPTS          =
 
 # The KiCS2 version, as defined in CPM's package.json
 export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
@@ -383,7 +383,7 @@ $(INSTALLHS): $(PACKAGEJSON) $(LIBDIR)/VERSION
 	@echo "" >> $@
 	@echo '-- GHC options for using local libraries and not cabal packages:' >> $@
 	@echo 'ghcLocalOptions :: String' >> $@
-	@echo 'ghcLocalOptions = "$(GHC_LOCAL_OPTS)"' >> $@
+	@echo 'ghcLocalOptions = "$(GHC_OPTS)"' >> $@
 	@echo "" >> $@
 	@echo 'ghcOptions :: String' >> $@
 	@echo 'ghcOptions = "$(GHC_OPTS)"' >> $@
