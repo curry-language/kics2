@@ -116,7 +116,7 @@ GHC_OPTIMIZATIONS = -O2 -fno-strictness -fno-liberate-case
 GHC_OPTS          =
 
 # The KiCS2 version, as defined in CPM's package.json
-export VERSION := $(shell $(CYPM) info | perl -nle "print $$& while m{^\S*Version\S*\s+\K([\d\.]+)\s*}g")
+export VERSION := $(shell cat $(PACKAGEJSON) | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])")
 MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
