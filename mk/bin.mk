@@ -53,11 +53,11 @@ $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGE
 $(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
 	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
 	@cd $(FRONTENDDIR) && $(MAKE)
-	@cd $(BINDIR) && ln -srf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
+	@cd $(BINDIR) && ln -sf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
 
 # Creates the `curry` executable by linking to `kics2`
 $(CURRYBIN): $(KICS2BIN) $(REPL)
-	@cd $(BINDIR) && ln -srf $(KICS2BIN) $(CURRYBIN)
+	@cd $(BINDIR) && ln -sf $(KICS2BIN) $(CURRYBIN)
 
 # Builds the package manager
 $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
