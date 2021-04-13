@@ -7,13 +7,14 @@
 # (these parameters might be passed to `make`)
 
 # The built KiCS2
-KICS2 = $(CURDIR)/bin/kics2
+BUILT_KICS2 = $(CURDIR)/bin/kics2
+BUILT_CYPM = $(CURDIR)/bin/cypm
 
 # The compiler to compile KiCS2 with. By default this
 # is `kics2` if a built version exists, otherwise PAKCS.
 # Note that this also determines which CPM to use.
-ifeq ($(shell test -x "$(KICS2)" ; echo $$?),0)
-export CURRY = $(KICS2)
+ifeq ($(shell test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?),0)
+export CURRY = $(BUILT_KICS2)
 else
 export CURRY = pakcs
 endif
