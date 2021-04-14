@@ -418,7 +418,7 @@ trHOTypeExpr f (TCons     qn ts) = do
   dm    <- isDetMode
   isNew <- isNewtype qn
   ho    <- getTypeHOClass qn
-  let qn' | not dm && isNew && ho == TypeHO = mkHoConsName qn
+  let qn' | not dm && isNew && ho == TypeHO = mkHoNewtypeName qn
           | otherwise                       = qn
   AH.TCons qn' <$> (mapM (trHOTypeExpr f) ts)
 trHOTypeExpr f (ForallType is t) = do

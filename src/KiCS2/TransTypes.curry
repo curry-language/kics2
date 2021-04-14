@@ -19,7 +19,7 @@ import KiCS2.Analysis
 import KiCS2.GenContext
 import KiCS2.Names
   ( mkChoiceName, mkChoicesName, mkFailName, mkGuardName, mkFoConsName
-  , mkHoConsName, renameModule, unGenRename, unRenameModule, renameQName
+  , mkHoConsName, mkHoNewtypeName, renameModule, unGenRename, unRenameModule, renameQName
   , unRenameQName, curryPrelude, funcPrefix, genRename)
 
 -- ---------------------------------------------------------------------------
@@ -618,7 +618,7 @@ normalformInstance isDict hoResult tdecl = case tdecl of
       ]
    where targs = map fcy2absTVarKind tnums
          isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
-         qf'  | isHigherOrder = mkHoConsName qf
+         qf'  | isHigherOrder = mkHoNewtypeName qf
               | otherwise     = qf
          cqf' | isHigherOrder = mkHoConsName cqf
               | otherwise     = cqf
@@ -781,7 +781,7 @@ unifiableInstance isDict hoResult tdecl = case tdecl of
       ]
    where targs = map fcy2absTVarKind tnums
          isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
-         qf'  | isHigherOrder = mkHoConsName qf
+         qf'  | isHigherOrder = mkHoNewtypeName qf
               | otherwise     = qf
          cqf' | isHigherOrder = mkHoConsName cqf
               | otherwise     = cqf
@@ -930,7 +930,7 @@ curryInstance isDict hoResult tdecl = case tdecl of
    where
       targs = map fcy2absTVarKind tnums
       isHigherOrder = Data.Map.lookup qf hoResult == Just ConsHO
-      qf' | isHigherOrder = mkHoConsName qf
+      qf' | isHigherOrder = mkHoNewtypeName qf
           | otherwise     = qf
       ctype = TCons qf' $ map (TVar . fst) targs
   _ -> error "TransTypes.curryInstance"
