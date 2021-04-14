@@ -134,9 +134,9 @@ loadAnalysis total state ((mid, (fn, _, _)), current) = do
   result <- readAnalysis opts mid fn
   return state { typeMap      = typeMap state      `union` arTypeMap result
                , ndResult     = ndResult state     `union` arNDResult result
-               , hoResultType = hoResultType state `union` arTypeHOResult result
-               , hoResultCons = hoResultCons state `union` arConsHOResult result
-               , hoResultFunc = hoResultFunc state `union` arFuncHOResult result
+               , hoResultType = hoResultType state `union` arHOResultType result
+               , hoResultCons = hoResultCons state `union` arHOResultCons result
+               , hoResultFunc = hoResultFunc state `union` arHOResultFunc result
                }
     where
       ndaFile = analysisFile (optOutputSubdir opts) mid fn
