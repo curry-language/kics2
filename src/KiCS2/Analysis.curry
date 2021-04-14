@@ -7,7 +7,8 @@
 --- ----------------------------------------------------------------------------
 module KiCS2.Analysis
   ( AnalysisResult (..)
-  , TypeMap, TypeMapEntry (..), initTypeMap, getTypeMap
+  , TypeMap, initTypeMap, getTypeMap
+  , Newtypes, initNewtypes, getNewtypes
   , NDResult, NDClass (..), initNDResult, analyseND
   , initHOResult
   , TypeHOResult, TypeHOClass (..), initTypeHOResult, analyseHOType
@@ -19,10 +20,10 @@ module KiCS2.Analysis
 
 import FlatCurry.Types
 import FlatCurry.Goodies
-import Data.Maybe        (fromJust, fromMaybe)
+import Data.Maybe        (fromJust, fromMaybe, mapMaybe)
 import Data.List         (partition, isPrefixOf, isInfixOf)
 import Data.Map as Map
-import Data.Set as Set (Set, empty, union, insert, toList)
+import Data.Set as Set (Set, empty, union, insert, toList, fromList)
 import Prelude  as P
 
 import KiCS2.Classification
@@ -30,10 +31,11 @@ import KiCS2.Names
 
 data AnalysisResult = AnalysisResult
   { arTypeMap      :: TypeMap
+  , arNewtypes     :: Newtypes
   , arNDResult     :: NDResult
-  , arTypeHOResult :: TypeHOResult
-  , arConsHOResult :: ConsHOResult
-  , arFuncHOResult :: FuncHOResult
+  , arHOResultType :: TypeHOResult
+  , arHOResultCons :: ConsHOResult
+  , arHOResultFunc :: FuncHOResult
   } deriving (Show, Read)
 
 type Map a = Map.Map QName a
@@ -48,20 +50,15 @@ type Map a = Map.Map QName a
 -- This could also be done by inspecting the type signature of the respective
 -- function, but it may not be accurate for various reasons.
 
-data TypeMapEntry = TypeMapEntry
-  { tmeQName     :: QName
-  , tmeIsNewtype :: Bool
-  } deriving (Eq, Show, Read)
-
-type TypeMap = Map TypeMapEntry
+type TypeMap = Map QName
 
 initTypeMap :: TypeMap
 initTypeMap = Map.fromList primTypes
 
 --- List of constructors of known primitive types.
-primTypes :: [(QName, TypeMapEntry)]
+primTypes :: [(QName, QName)]
 primTypes = map (\(x, y) -> ( renameQName (prelude, x)
-                            , TypeMapEntry (renameQName (prelude, y)) False
+                            , renameQName (prelude, y)
                             )) $
   [ ("True", "Bool"), ("False", "Bool"), ("Int", "Int")
   , ("Float", "Float"), ("Char", "Char")
@@ -75,11 +72,32 @@ getTypeMap ts = Map.fromList
               $ concatMap extractConsNames
               $ ts
   where
-    extractConsNames :: TypeDecl -> [(QName, TypeMapEntry)]
+    extractConsNames :: TypeDecl -> [(QName, QName)]
     extractConsNames t = case t of
-      Type    qn _ _ cs -> map (\c -> (consName c, TypeMapEntry qn False)) cs
-      TypeNew qn _ _ c  -> [(newConsName c, TypeMapEntry qn True)]
+      Type    qn _ _ cs -> map (\c -> (consName c, qn)) cs
+      TypeNew qn _ _ c  -> [(newConsName c, qn)]
       _                 -> []
+
+-- -----------------------------------------------------------------------------
+-- Set of newtypes
+-- -----------------------------------------------------------------------------
+
+-- The set of newtypes is needed by TransFunctions during the generation
+-- of type declarations, since higher-order newtypes use a separate type
+-- in nondeterministic functions.
+
+type Newtypes = Set.Set QName
+
+initNewtypes :: Newtypes
+initNewtypes = Set.empty
+
+getNewtypes :: [TypeDecl] -> Newtypes
+getNewtypes = Set.fromList . mapMaybe extractNewtypeName
+  where
+    extractNewtypeName :: TypeDecl -> Maybe QName
+    extractNewtypeName t = case t of
+      TypeNew qn _ _ _ -> Just qn
+      _                -> Nothing
 
 -- -----------------------------------------------------------------------------
 -- Analysis using fix-point iteration

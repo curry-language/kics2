@@ -13,6 +13,7 @@ import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Class
 import           Control.Monad.IO.Class
 import           Data.Map            (lookup, union, deleteAll)
+import           Data.Set            (member)
 
 import qualified AbstractHaskell.Types   as AH
 import qualified AbstractHaskell.Goodies as AHG
@@ -51,6 +52,7 @@ updState = modify
 
 data State = State
   { typeMap      :: TypeMap
+  , newtypes     :: Newtypes
   , ndResult     :: NDResult
   , hoResultType :: TypeHOResult
   , hoResultCons :: ConsHOResult
@@ -80,11 +82,19 @@ addTypeMap :: TypeMap -> M ()
 addTypeMap newTypes =
  updState (\st -> st { typeMap = typeMap st `union` newTypes })
 
-
-getType :: QName -> M TypeMapEntry
+getType :: QName -> M QName
 getType qn = getState >>= \st ->
   maybe (failM $ show qn ++ " not in type map") return
   $ Data.Map.lookup qn (typeMap st)
+
+-- Newtypes
+
+addNewtypes :: Newtypes -> M ()
+addNewtypes newNewtypes = updState $ \st ->
+  st { newtypes = newNewtypes `union` newtypes st }
+
+isNewtype :: QName -> M Bool
+isNewtype qn = member qn . newtypes <$> getState
 
 -- NDResult
 
@@ -197,6 +207,7 @@ trProg p@(Prog m is ts fs _) =
       modHOResCons = analyseHOCons p
       modHOResFunc = analyseHOFunc p (hoResultType st `union` modHOResType)
       modTypeMap   = getTypeMap    ts
+      modNewtypes  = getNewtypes   ts
       visInfo      = analyzeVisibility p
 
       visNDRes     = getPrivateFunc visInfo `deleteAll` modNDRes
@@ -206,13 +217,15 @@ trProg p@(Prog m is ts fs _) =
       visHOFun     = getPrivateFunc visInfo `deleteAll` modHOResFunc
 
       visType      = getPrivateCons visInfo `deleteAll` modTypeMap
-      anaResult    = AnalysisResult visType visNDRes visHOType visHOCons visHOFun
+      visNewtypes  = getPrivateType visInfo `deleteAll` modNewtypes
+      anaResult    = AnalysisResult visType visNewtypes visNDRes visHOType visHOCons visHOFun
   in
   addNDAnalysis     modNDRes     >>
   addHOTypeAnalysis modHOResType >>
   addHOConsAnalysis modHOResCons >>
   addHOFuncAnalysis modHOResFunc >>
   addTypeMap        modTypeMap   >>
+  addNewtypes       modNewtypes  >>
   -- translation of the functions
   mapM trFunc fs >>= \fss ->
   return $ (AH.Prog m is [] (concat fss) [], anaResult)
@@ -402,13 +415,11 @@ trHOTypeExpr f (FuncType  t1 t2) = do
   t2' <- trHOTypeExpr f t2
   return $ f t1' t2'
 trHOTypeExpr f (TCons     qn ts) = do
-  dm <- isDetMode
-  tm <- typeMap <$> getState
-  ht <- hoResultType <$> getState
-  let isNewtype     = maybe False tmeIsNewtype $ Data.Map.lookup qn tm
-      isHigherOrder = maybe False (== TypeHO)  $ Data.Map.lookup qn ht
-      qn' | not dm && isNewtype && isHigherOrder = mkHoConsName qn
-          | otherwise                            = qn
+  dm    <- isDetMode
+  isNew <- isNewtype qn
+  ho    <- getTypeHOClass qn
+  let qn' | not dm && isNew && ho == TypeHO = mkHoConsName qn
+          | otherwise                       = qn
   AH.TCons qn' <$> (mapM (trHOTypeExpr f) ts)
 trHOTypeExpr f (ForallType is t) = do
   t' <- trHOTypeExpr f t
@@ -470,17 +481,18 @@ trRule qn a (External _) =
 trBody :: QName -> [Int] -> Expr -> M AH.Expr
 trBody qn vs e = case e of
   Case _ (Var i) bs ->
-    getMatchedType (head bs) >>= \(ty, isNew) ->
+    getMatchedType (head bs) >>= \ty ->
+    isNewtype ty             >>= \isNew ->
     mapM (trBranch qn) bs    >>= \bs' ->
     let lbs = litBranches bs' in
     consBranches qn vs i ty  >>= \cbs ->
     return $ AH.Case (cvVar i) (bs' ++ lbs ++ if isNew then [] else cbs)
   _ -> trCompleteExpr qn e
 
---- Fetch the matched type name and whether it's a newtype.
-getMatchedType :: BranchExpr -> M (QName, Bool)
-getMatchedType (Branch (Pattern p _) _) = (\e -> (tmeQName e, tmeIsNewtype e)) <$> getType p
-getMatchedType (Branch (LPattern  l) _) = return $ (\qn -> (qn, False)) $ case l of
+--- Fetch the matched type name.
+getMatchedType :: BranchExpr -> M QName
+getMatchedType (Branch (Pattern p _) _) = getType p
+getMatchedType (Branch (LPattern  l) _) = return $ case l of
   Intc _   -> curryInt
   Floatc _ -> curryFloat
   Charc _  -> curryChar
