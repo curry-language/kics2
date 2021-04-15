@@ -417,9 +417,9 @@ trHOTypeExpr f (FuncType  t1 t2) = do
 trHOTypeExpr f (TCons     qn ts) = do
   dm    <- isDetMode
   isNew <- isNewtype qn
-  ho    <- getTypeHOClass qn
-  let qn' | not dm && isNew && ho == TypeHO = mkHoNewtypeName qn
-          | otherwise                       = qn
+  isHO  <- maybe False (== TypeHO) . Data.Map.lookup qn . hoResultType <$> getState
+  let qn' | not dm && isNew && isHO = mkHoNewtypeName qn
+          | otherwise               = qn
   AH.TCons qn' <$> (mapM (trHOTypeExpr f) ts)
 trHOTypeExpr f (ForallType is t) = do
   t' <- trHOTypeExpr f t
