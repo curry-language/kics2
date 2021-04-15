@@ -65,6 +65,7 @@ data State = State
 defaultState :: State
 defaultState = State
   { typeMap      = initTypeMap
+  , newtypes     = initNewtypes
   , ndResult     = initNDResult
   , hoResultType = initTypeHOResult
   , hoResultCons = initHOResult
