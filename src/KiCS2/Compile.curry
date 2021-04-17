@@ -133,6 +133,7 @@ loadAnalysis total state ((mid, (fn, _, _)), current) = do
   showStatus opts $ compMessage (current, total) "Analyzing" mid (fn, ndaFile)
   result <- readAnalysis opts mid fn
   return state { typeMap      = typeMap state      `union` arTypeMap result
+               , newtypes     = newtypes state     `union` arNewtypes result
                , ndResult     = ndResult state     `union` arNDResult result
                , hoResultType = hoResultType state `union` arHOResultType result
                , hoResultCons = hoResultCons state `union` arHOResultCons result
