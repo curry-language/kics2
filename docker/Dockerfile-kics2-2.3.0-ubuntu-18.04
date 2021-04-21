@@ -10,6 +10,8 @@ RUN apt-get --assume-yes install git zip unzip sqlite3
 # required for KiCS2
 RUN apt-get --assume-yes install ghc ghc-prof cabal-install rlwrap
     
+RUN apt-get --assume-yes install time
+
 RUN rm -rf /var/lib/apt/lists/*
 
 # just to be sure
