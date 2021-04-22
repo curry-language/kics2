@@ -28,12 +28,12 @@ import KiCS2.Names
 
 --- Translate a list of FlatCurry type declarations into the
 --- corresponding type and instance declarations for Haskell.
-transTypes :: ConsHOResult -> [FC.TypeDecl] -> [TypeDecl]
-transTypes hoResCons = concatMap (genTypeDeclarations hoResCons)
+transTypes :: Newtypes -> ConsHOResult -> TypeHOResult -> [FC.TypeDecl] -> [TypeDecl]
+transTypes newtypes hoResCons hoResType = concatMap (genTypeDeclarations newtypes hoResCons hoResType)
 
 
-genTypeDeclarations :: ConsHOResult -> FC.TypeDecl -> [TypeDecl]
-genTypeDeclarations hoResCons tdecl = case tdecl of
+genTypeDeclarations :: Newtypes -> ConsHOResult -> TypeHOResult -> FC.TypeDecl -> [TypeDecl]
+genTypeDeclarations newtypes hoResCons hoResType tdecl = case tdecl of
   (FC.TypeSyn qf vis tnums texp) ->
     [TypeSyn qf (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absTExp [] texp)]
   (FC.TypeNew qf vis tnums c@(FC.NewCons cqf _ _))
@@ -49,9 +49,9 @@ genTypeDeclarations hoResCons tdecl = case tdecl of
                                      , curryInstance      False h
                                      ]
       targs      = map fcy2absTVarKind tnums
-      hoResultFO = Data.Map.insert cqf ConsFO hoResCons
-      typeNew    = TypeNew qf                (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResultFO c) : instanceDecls hoResultFO
-      typeNewHO  = TypeNew (mkHoConsName qf) (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) hoResCons   c) : instanceDecls hoResCons
+      hoResFO = Data.Map.insert cqf ConsFO hoResCons
+      typeNew    = TypeNew qf                (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) newtypes hoResFO   hoResType c) : instanceDecls hoResFO
+      typeNewHO  = TypeNew (mkHoConsName qf) (fcy2absVis vis) (map (fcy2absTVar . fst) tnums) (fcy2absNewCDecl (map fst targs) newtypes hoResCons hoResType c) : instanceDecls hoResCons
   (FC.Type qf vis tnums cs)
       -- type names are always exported to avoid ghc type errors.
       -- TODO: Describe why/which errors may occur.
@@ -69,7 +69,7 @@ genTypeDeclarations hoResCons tdecl = case tdecl of
     where
       isBoolType = (==) ("Curry_Prelude", "C_Bool")
       isDictType = (==) "OP_uscore_Dict_hash_" . take 20 . snd
-      ds = concatMap (fcy2absCDecl (map fst targs) hoResCons) cs ++
+      ds = concatMap (fcy2absCDecl (map fst targs) newtypes hoResCons hoResType) cs ++
             [ Cons (mkChoiceName  qf) 3 vis' [coverType, idType, ctype, ctype]
             , Cons (mkChoicesName qf) 2 vis' [coverType, idType, clisttype]
             , Cons (mkFailName    qf) 2 vis' [coverType, failInfoType]
@@ -105,21 +105,21 @@ fcy2absKind :: FC.Kind -> Kind
 fcy2absKind FC.KStar          = KindStar
 fcy2absKind (FC.KArrow k1 k2) = KindArrow (fcy2absKind k1) (fcy2absKind k2)
 
-fcy2absCDecl :: [TVarIName] -> ConsHOResult -> FC.ConsDecl -> [ConsDecl]
-fcy2absCDecl targs hoResCons (FC.Cons qf ar vis texps)
+fcy2absCDecl :: [TVarIName] -> Newtypes -> ConsHOResult -> TypeHOResult -> FC.ConsDecl -> [ConsDecl]
+fcy2absCDecl targs newtypes hoResCons hoResType (FC.Cons qf ar vis texps)
   | isHigherOrder = [foCons, hoCons]
   | otherwise     = [foCons]
   where
     isHigherOrder = Data.Map.lookup qf hoResCons == Just ConsHO
     foCons = Cons (mkFoConsName qf) ar vis' (map (fcy2absTExp   targs) texps)
-    hoCons = Cons (mkHoConsName qf) ar vis' (map (fcy2absHOTExp targs) texps)
+    hoCons = Cons (mkHoConsName qf) ar vis' (map (fcy2absHOTExp targs newtypes hoResType) texps)
     vis' = fcy2absVis vis
 
-fcy2absNewCDecl :: [TVarIName] -> ConsHOResult -> FC.NewConsDecl -> NewConsDecl
-fcy2absNewCDecl targs hoResCons (FC.NewCons qf vis texp) = newCons
+fcy2absNewCDecl :: [TVarIName] -> Newtypes -> ConsHOResult -> TypeHOResult -> FC.NewConsDecl -> NewConsDecl
+fcy2absNewCDecl targs newtypes hoResCons hoResType (FC.NewCons qf vis texp) = newCons
   where
     isHigherOrder = Data.Map.lookup qf hoResCons == Just ConsHO
-    newCons | isHigherOrder = NewCons (mkHoConsName qf) vis' $ fcy2absHOTExp targs texp
+    newCons | isHigherOrder = NewCons (mkHoConsName qf) vis' $ fcy2absHOTExp targs newtypes hoResType texp
             | otherwise     = NewCons (mkFoConsName qf) vis' $ fcy2absTExp targs texp
     vis' = fcy2absVis vis
 
@@ -138,14 +138,19 @@ fcy2absTExp vs = genContext vs' . fcy2absTExp'
     fcy2absTExp' (FC.ForallType is t) =
       ForallType (map fcy2absTVarKind is) [] $ fcy2absTExp' t
 
-fcy2absHOTExp :: [TVarIName] -> FC.TypeExpr -> TypeExpr
-fcy2absHOTExp vs = genContext vs' . fcy2absHOTExp'
+fcy2absHOTExp :: [TVarIName] -> Newtypes -> TypeHOResult -> FC.TypeExpr -> TypeExpr
+fcy2absHOTExp vs newtypes hoResType = genContext vs' . fcy2absHOTExp'
   where
     vs' = map (\v -> (v, KindStar)) vs -- the kind does not matter, trust me.
     fcy2absHOTExp' (FC.TVar         i)  =
       TVar (fcy2absTVar i)
     fcy2absHOTExp' (FC.TCons   qf tys)  =
-      TCons qf (map fcy2absHOTExp' tys)
+      TCons qf' (map fcy2absHOTExp' tys)
+      where
+        isNew               = member qf newtypes
+        isHO                = Data.Map.lookup qf hoResType == Just TypeHO
+        qf' | isNew && isHO = mkHoNewtypeName qf
+            | otherwise     = qf
     fcy2absHOTExp' (FC.FuncType t1 t2)  =
       funcType (fcy2absHOTExp' t1) (fcy2absHOTExp' t2)
         where funcType ta tb = TCons (basics "Func") [ta, tb]

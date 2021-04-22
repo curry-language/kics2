@@ -179,7 +179,7 @@ compileModule total state ((mid, (fn, _, tfcyFileName)), current) = do
   dump DumpFunDecls opts funDeclName (show ahsFun)
 
   showDetail opts "Transforming type declarations"
-  let typeDecls = transTypes (hoResultCons state') ts
+  let typeDecls = transTypes (newtypes state') (hoResultCons state') (hoResultType state') ts
   dump DumpTypeDecls opts typeDeclName (show typeDecls)
 
   showDetail opts "Combining to Abstract Haskell"
