@@ -15,6 +15,7 @@ export TARBALL = $(DISTSDIR)/$(TARBALLNAME)
 # TODO: Deal with paths, especially stack
 # TODO: Include binaries?
 # TODO: Copy docs
+# TODO: Remove Git history?
 
 $(TARBALL): $(DISTBINDIR)/kics2 $(DISTLOCALBINDIR)/kics2c $(DISTLOCALBINDIR)/kics2i $(DISTDIR)
 	cd $(DISTSDIR) && tar cfvz $(TARBALL) $(DISTDIR)
