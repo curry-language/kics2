@@ -4,15 +4,32 @@ DISTNAME = kics2-$(VERSION)
 TARBALLNAME = $(DISTNAME).tar.gz
 
 DISTDIR = $(DISTSDIR)/$(DISTNAME)
+DISTBINDIR = $(DISTDIR)/bin
+DISTLOCALBINDIR = $(DISTBINDIR)/.local
 export TARBALL = $(DISTSDIR)/$(TARBALLNAME)
 
 ##############################################################################
 # The distribution targets
 ##############################################################################
 
-# TODO: Include built compiler & more
-$(TARBALL): $(DISTDIR)
+# TODO: Deal with paths, especially stack
+# TODO: Include binaries?
+# TODO: Copy docs
+
+$(TARBALL): $(DISTBINDIR)/kics2 $(DISTLOCALBINDIR)/kics2c $(DISTLOCALBINDIR)/kics2i $(DISTDIR)
 	cd $(DISTSDIR) && tar cfvz $(TARBALL) $(DISTDIR)
+
+$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
+	cp $< $@
+
+$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
+	cp $< $@
+
+$(DISTBINDIR): | $(DISTDIR)
+	mkdir -p $@
+
+$(DISTLOCALBINDIR): | $(DISTDIR)
+	mkdir -p $@
 
 $(DISTDIR):
 	rm -rf $(DISTDIR)
