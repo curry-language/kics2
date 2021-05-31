@@ -52,6 +52,8 @@ export CURRYTOOLSDIR = $(ROOT)/currytools
 export CPMDIR = $(CURRYTOOLSDIR)/cpm
 # The directory containing modules for starting the compiler, e.g. when bootstrapping
 export BOOTDIR = $(ROOT)/boot
+# The directory containing a built distribution archives (e.g. tarballs).
+export DISTSDIR = $(ROOT)/dists
 # The directory containing the KiCS2 sources
 SRCDIR = $(ROOT)/src
 # The directory containing runtime sources
@@ -170,6 +172,7 @@ include mk/runtime.mk
 include mk/scripts.mk
 include mk/utils.mk
 include mk/bin.mk
+include mk/dist.mk
 
 ########################################################################
 # The high-level phony targets
@@ -237,6 +240,10 @@ pkgs: $(STACKPKGS)
 # Installs the dependencies only.
 .PHONY: deps
 deps: $(CPMDEPS)
+
+# Creates a KiCS2 distribution.
+.PHONY: dist
+dist: $(TARBALL)
 
 # Cleans up library-related build artifacts.
 .PHONY: cleanlib
@@ -311,6 +318,10 @@ $(LOCALBINDIR):
 
 # Creates a directory for auxiliary local state files from the Makefiles.
 $(DOTMKDIR):
+	mkdir -p $@
+
+# Creates a directory for the distributions.
+$(DISTSDIR):
 	mkdir -p $@
 
 # Generates a stack configuration.
