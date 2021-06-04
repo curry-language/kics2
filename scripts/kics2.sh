@@ -2,7 +2,7 @@
 
 # Start interactive read-eval-print loop for KiCS2
 
-KICS2BUILDDIR=`echo KICS2HOME must be defined here!`
+KICS2BUILDDIR=$(dirname $(dirname $(realpath $0)))
 KICS2INSTALLDIR=
 # Define the main directory where KICS2 is installed:
 if [ -d "$KICS2INSTALLDIR" ] ; then

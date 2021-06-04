@@ -16,10 +16,10 @@ export SCRIPTS = $(BINS) $(BATS)
 $(BINS): $(BINDIR)/%: $(SCRIPTSDIR)/%.sh | $(BINDIR)
 	@echo "Copying script '$*'..."
 	@mkdir -p $(@D)
-	@cat $< | sed "s|^KICS2BUILDDIR=.*$$|KICS2BUILDDIR=$(ROOT)|" | \
-	 sed "s|^KICS2INSTALLDIR=.*$$|KICS2INSTALLDIR=$(KICS2INSTALLDIR)|" > $@
+	@cp $< $@
 	@chmod 755 $@
 
+# TODO: Hardcoding $(ROOT) here prevents the script from being relocated
 $(BATS): $(BINDIR)/%.bat: $(SCRIPTSDIR)/%.bat | $(BINDIR)
 	@echo "Copying script '$*'..."
 	@mkdir -p $(@D)
