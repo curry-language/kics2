@@ -39,7 +39,8 @@ import System.FilePath     ( FilePath, (</>), (<.>), addTrailingPathSeparator
 
 import Data.PropertyFile   ( getPropertyFromFile )
 
-import Installation        ( compilerName, fullVersion, installDir )
+import Installation        ( compilerName, fullVersion )
+import KiCS2.InstallationPaths ( kics2HomeDir )
 
 ------------------------------------------------------------------------------
 --- Functions for handling file names of Curry modules
@@ -192,12 +193,14 @@ addCurrySubdir dir = dir </> currySubdir
 
 --- Returns the current path (list of directory names) of the
 --- system libraries.
-sysLibPath :: [String]
-sysLibPath = case compilerName of
-  "pakcs" -> [installDir </> "lib"]
-  "kics"  -> [installDir </> "src" </> "lib"]
-  "kics2" -> [installDir </> "lib"]
-  _       -> error "Distribution.sysLibPath: unknown compilerName"
+sysLibPath :: IO [String]
+sysLibPath = do
+  k2home <- kics2HomeDir
+  return $ case compilerName of
+    "pakcs" -> [k2home </> "lib"]
+    "kics"  -> [k2home </> "src" </> "lib"]
+    "kics2" -> [k2home </> "lib"]
+    _       -> error "Distribution.sysLibPath: unknown compilerName"
 
 --- Returns the current path (list of directory names) that is
 --- used for loading modules w.r.t. a given module path.
@@ -214,10 +217,11 @@ getLoadPathForModule modpath = do
     do currypath <- getEnv "CURRYPATH"
        let llib = maybe [] (\l -> if null l then [] else splitSearchPath l)
                         mblib
+       slp <- sysLibPath
        return $ (fileDir : (if null currypath
                             then []
                             else splitSearchPath currypath) ++
-                           llib ++ sysLibPath)
+                           llib ++ slp)
     else error "Distribution.getLoadPathForModule: unknown compilerName"
 
 --- Returns a directory name and the actual source file name for a module

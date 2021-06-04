@@ -348,15 +348,6 @@ $(INSTALLHS): $(PACKAGEJSON) $(LIBDIR)/VERSION
 	@echo 'compilerName :: String' >> $@
 	@echo 'compilerName = "kics2"' >> $@
 	@echo "" >> $@
-	@echo 'installDir :: String' >> $@
-	@echo 'installDir = if null pkgInstallDir then buildDir else if unsafePerformIO (doesDirectoryExist pkgInstallDir) then pkgInstallDir else buildDir' >> $@
-	@echo "" >> $@
-	@echo 'buildDir :: String' >> $@
-	@echo 'buildDir = "$(ROOT)"' >> $@
-	@echo "" >> $@
-	@echo 'pkgInstallDir :: String' >> $@
-	@echo 'pkgInstallDir = ""' >> $@
-	@echo "" >> $@
 	@echo 'majorVersion :: Int' >> $@
 	@echo 'majorVersion = $(MAJORVERSION)' >> $@
 	@echo "" >> $@

@@ -19,13 +19,14 @@ module KiCS2.System.FrontendExec
   ) where
 
 import Installation             ( compilerName, majorVersion
-                                , minorVersion, installDir
+                                , minorVersion
                                 )
 import Data.Char                ( toUpper )
 import Data.List                ( intercalate, nub )
 import Data.PropertyFile        ( getPropertiesFromFile )
 import System.FilePath          ( FilePath, (</>), takeDirectory, takeFileName )
 import System.Process           ( system )
+import KiCS2.InstallationPaths  ( kics2HomeDir )
 import KiCS2.System.CurryPath   ( curryrcFileName, currySubdir, getLoadPathForModule )
 
 -------------------------------------------------------------------
@@ -71,9 +72,10 @@ data FrontendParams =
     }
 
 --- The default parameters of the front end.
-defaultParams :: FrontendParams
-defaultParams =
-  FrontendParams
+defaultParams :: IO FrontendParams
+defaultParams = do
+  k2home <- kics2HomeDir
+  return $ FrontendParams
     { quiet        = False
     , extended     = True
     , cpp          = False
@@ -85,7 +87,7 @@ defaultParams =
     , logfile      = Nothing
     , targets      = []
     , specials     = ""
-    , frontendPath = installDir </> "bin" </> compilerName ++ "-frontend"
+    , frontendPath = k2home </> "bin" </> compilerName ++ "-frontend"
     }
  where
   defaultDefs = [("__" ++ map toUpper compilerName ++ "__",
@@ -96,11 +98,12 @@ defaultParams =
 rcParams :: IO FrontendParams
 rcParams = do
   rcfile <- curryrcFileName
+  defps <- defaultParams
   [mbExtended,mbOverlapWarn] <- getPropertiesFromFile rcfile
                                   ["curryextensions","warnoverlapping"]
   return $ setExtended    (mbExtended    /= Just "no")
          $ setOverlapWarn (mbOverlapWarn /= Just "no")
-         $ defaultParams
+         $ defps
 
 --- Set quiet mode of the front end.
 setQuiet :: Bool -> FrontendParams -> FrontendParams

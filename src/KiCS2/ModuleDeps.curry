@@ -37,10 +37,11 @@ import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import KiCS2.CompilerOpts
 import KiCS2.System.CurryPath      ( inCurrySubdirModule, stripCurrySuffix )
+import KiCS2.InstallationPaths     ( kics2HomeDir )
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
 import KiCS2.RCFile                ( rcValue )
-import Installation                ( compilerName, installDir
+import Installation                ( compilerName
                                    , majorVersion, minorVersion, fullVersion
                                    )
 
@@ -161,14 +162,16 @@ getAfcyFileName opts mn fn
   = do showStatus opts $ "Reading directly from type-annotated FlatCurry file '"++fn++"'"
        return fn
   | otherwise
-  = do afcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
+  = do defps <- defaultParams
+       k2home <- kics2HomeDir
+       afcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
                    $ setDefinitions  [(compiler, version)]
                    $ setFullPath     importPaths
                    $ setQuiet        (optVerbosity opts == VerbQuiet)
                    $ setSpecials     (optParser opts)
                    $ setOutDir       currySubdir
-                   $ setFrontendPath (installDir </> "bin" </> "kics2-frontend")
-                   defaultParams
+                   $ setFrontendPath (k2home </> "bin" </> "kics2-frontend")
+                   defps
        return afcyname
   where importPaths = "." : optImportPaths opts
         compiler    = "__" ++ map toUpper compilerName ++ "__"

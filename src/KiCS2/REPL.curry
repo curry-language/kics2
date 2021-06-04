@@ -31,6 +31,7 @@ import KiCS2.System.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurry
                                  , sysLibPath )
 import KiCS2.Files               ( removeFileIfExists )
 import KiCS2.GhciComm            ( stopGhciComm )
+import KiCS2.InstallationPaths   ( kics2HomeDir )
 import KiCS2.Names               ( funcInfoFile, moduleNameToPath )
 import KiCS2.RCFile
 import KiCS2.Utils               ( showMonoTypeExpr, showMonoQualTypeExpr
@@ -57,21 +58,21 @@ main :: IO ()
 main = do
   rcFileDefs <- readRC
   args       <- getArgs
+  rst        <- initReplState
   let (nodefargs,defargs) = extractRCArgs args
       (mainargs,rtargs)   = break (=="--") nodefargs
       rcDefs              = updateRCDefs rcFileDefs defargs
       furtherRcDefs       = filter (\da -> fst da `notElem` map fst rcFileDefs)
                                    defargs
-      rst = initReplState
-              { kics2Home = Inst.installDir
-              , rcvars    = rcDefs
+      rst' = rst
+              { rcvars    = rcDefs
               , rtsArgs   = if null rtargs then "" else unwords (tail rtargs)
               }
-  ipath  <- defaultImportPaths rst
+  ipath  <- defaultImportPaths rst'
   if null furtherRcDefs
    then processArgsAndStart
-          rst { importPaths = ipath }
-          (map strip (words (rcValue (rcvars rst) "defaultparams")) ++ mainargs)
+          rst' { importPaths = ipath }
+          (map strip (words (rcValue (rcvars rst') "defaultparams")) ++ mainargs)
    else putStrLn $ "Error: rc property name '" ++ fst (head furtherRcDefs) ++
                    "' not found in kics2rc file!"
 
@@ -169,7 +170,8 @@ printHelpOnTools = putStrLn $ unlines
 --- Retrieve the KiCS2 banner
 getBanner :: IO String
 getBanner = do
-  logo <- readCompleteFile $ Inst.installDir </> "include" </> "logo" <.> "txt"
+  k2home <- kics2HomeDir
+  logo <- readCompleteFile $ k2home </> "include" </> "logo" <.> "txt"
   return (logo ++ version)
  where
   version =
@@ -242,21 +244,21 @@ importUnsafeModule rst =
   then return True
   else do
     let acyMainModFile = abstractCurryFileName (mainMod rst)
-        frontendParams = currentFrontendParams rst
+    frontendParams <- currentFrontendParams rst
     catch (callFrontendWithParams ACY frontendParams (mainMod rst) >>
            readAbstractCurryFile acyMainModFile >>= \p ->
            return ("Unsafe" `elem` imports p))
           (\_ -> return (mainMod rst /= "Prelude")) -- just to be safe
 
 -- Compute the front-end parameters for the current state:
-currentFrontendParams :: ReplState -> FrontendParams
+currentFrontendParams :: ReplState -> IO FrontendParams
 currentFrontendParams rst =
-    setQuiet       True
-  $ setFullPath    (loadPaths rst)
-  $ setExtended    (rcValue (rcvars rst) "curryextensions" /= "no")
-  $ setOverlapWarn (rcValue (rcvars rst) "warnoverlapping" /= "no")
-  $ setSpecials    (parseOpts rst)
-    defaultParams
+     setQuiet       True
+  .  setFullPath    (loadPaths rst)
+  .  setExtended    (rcValue (rcvars rst) "curryextensions" /= "no")
+  .  setOverlapWarn (rcValue (rcvars rst) "warnoverlapping" /= "no")
+  .  setSpecials    (parseOpts rst)
+ <$> defaultParams
 
 -- ---------------------------------------------------------------------------
 -- Main goal file stuff
@@ -279,7 +281,8 @@ writeMainGoalFile rst imports mtype goal = writeFile mainGoalFile $
 -- Remove mainGoalFile and auxiliaries
 cleanMainGoalFile :: ReplState -> IO ()
 cleanMainGoalFile rst = unless keepfiles $ do
-  system $ Inst.installDir </>  "bin" </> "cleancurry " ++ mainGoalFile
+  k2home <- kics2HomeDir
+  system $ k2home </> "bin" </> "cleancurry " ++ mainGoalFile
   removeFileIfExists mainGoalFile
  where keepfiles = rcValue (rcvars rst) "keepfiles" == "yes"
 
@@ -290,7 +293,7 @@ getAcyOfMainGoal rst = do
   let mainGoalProg    = stripCurrySuffix mainGoalFile
       acyMainGoalFile = --abstractCurryFileName mainGoalProg
                          inCurrySubdir (stripCurrySuffix mainGoalProg) ++ ".acy"
-      frontendParams  = currentFrontendParams rst
+  frontendParams <- currentFrontendParams rst
   prog <- catch (callFrontendWithParams ACY frontendParams mainGoalProg >>
                  tryReadACYFile acyMainGoalFile)
                 (\_ -> return Nothing)
@@ -893,7 +896,8 @@ replOptions =
 setLocalMode :: ReplState -> String -> IO (Maybe ReplState)
 setLocalMode rst _ = do
   pid <- getPID
-  let libdir = installDir </> "lib"
+  k2home <- kics2HomeDir
+  let libdir = k2home </> "lib"
       testfile = libdir </> "xxx" ++ show pid
   catch (writeFile testfile "" >> removeFile testfile)
         (\_-> do putStrLn $ "Warning: no write permission on `" ++ libdir ++ "'"
@@ -1083,9 +1087,10 @@ showFunctionInModule rst mod fun =
     writeVerboseInfo rst 1 $
       "Showing source code of function '" ++ mod ++ "." ++ fun ++
       "' in separate window..."
+    slpath <- sysLibPath
     let spguicmd = "CURRYPATH=" ++
                    intercalate [searchPathSeparator]
-                               (importPaths rst ++ sysLibPath) ++
+                               (importPaths rst ++ slpath) ++
                    " && export CURRYPATH && " ++ spgui ++ " " ++ mod
     writeVerboseInfo rst 2 $ "Executing: " ++ spguicmd
     (rst',h') <- maybe (do h <- connectToCommand spguicmd
@@ -1133,9 +1138,10 @@ checkAndCallCpmTool tool package continue = do
 execCommandWithPath :: ReplState -> String -> [String]
                     -> IO (Maybe ReplState)
 execCommandWithPath rst cmd args = do
+  slpath <- sysLibPath
   let setpath = "CURRYPATH=" ++
                 intercalate [searchPathSeparator]
-                            (importPaths rst ++ sysLibPath) ++
+                            (importPaths rst ++ slpath) ++
                 " && export CURRYPATH && "
       syscmd = setpath ++ cmd ++ ' ' : unwords args
   writeVerboseInfo rst 2 $ "Executing: " ++ syscmd

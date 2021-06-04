@@ -17,10 +17,10 @@ import System.Directory (getHomeDirectory, doesFileExist, copyFile, renameFile)
 import System.FilePath  (FilePath, (</>), (<.>))
 
 import KiCS2.Utils        (strip)
-import Installation       (installDir)
+import KiCS2.InstallationPaths (kics2HomeDir)
 
-defaultRC :: FilePath
-defaultRC = installDir </> "kics2rc.default"
+defaultRC :: IO FilePath
+defaultRC = (</> "kics2rc.default") <$> kics2HomeDir
 
 --- Location of the rc file of a user.
 --- After bootstrapping, one can also use Distribution.rcFileName
@@ -36,11 +36,12 @@ readRC :: IO [(String, String)]
 readRC = do
   rcName   <- rcFileName
   rcExists <- doesFileExist rcName
-  catch (if rcExists then updateRC else copyFile defaultRC rcName)
+  defRC    <- defaultRC
+  catch (if rcExists then updateRC else copyFile defRC rcName)
     (const (return ()))
   -- check again existence of user rc file:
   newrcExists <- doesFileExist rcName
-  readPropertyFile (if newrcExists then rcName else defaultRC)
+  readPropertyFile (if newrcExists then rcName else defRC)
 
 rcKeys :: [(String, String)] -> [String]
 rcKeys = sort . map fst
@@ -51,12 +52,13 @@ rcKeys = sort . map fst
 updateRC :: IO ()
 updateRC = do
   rcName    <- rcFileName
+  defRC     <- defaultRC
   userprops <- readPropertyFile rcName
-  distprops <- readPropertyFile defaultRC
+  distprops <- readPropertyFile defRC
   unless (rcKeys userprops == rcKeys distprops) $ do
     putStrLn $ "Updating \"" ++ rcName ++ "\"..."
     renameFile rcName $ rcName <.> "bak"
-    copyFile defaultRC rcName
+    copyFile defRC rcName
     mapM_ (\ (n, v) -> maybe (return ())
               (\uv -> unless (uv == v) $ updatePropertyFile rcName n uv)
               (lookup n userprops))

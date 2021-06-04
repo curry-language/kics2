@@ -27,6 +27,7 @@ import Data.Maybe           (isNothing)
 
 import qualified Installation as Inst
 import KiCS2.GhciComm
+import KiCS2.InstallationPaths (kics2HomeDir, ghcExec)
 import KiCS2.Names         (funcInfoFile, moduleToFileName, renameModule)
 import KiCS2.Files         (readQTermFile)
 import KiCS2.RCFile
@@ -72,40 +73,42 @@ data ReplState = ReplState
   }
 
 --- Initial state of REPL
-initReplState :: ReplState
-initReplState = ReplState
-  { kics2Home    = ""
-  , rcvars       = []
-  , idSupply     = "ghc"
-  , verbose      = 1
-  , importPaths  = []
-  , libPaths     = map (Inst.installDir </>) ["lib"]
-  , localCompile = False
-  , preludeName  = "Prelude"
-  , outputSubdir = ".curry" </> "kics2-" ++ Inst.fullVersion
-  , mainMod      = "Prelude"
-  , addMods      = []
-  , prompt       = "%s> "
-  , optim        = True
-  , ndMode       = BFS
-  , firstSol     = False
-  , interactive  = False
-  , showBindings = True
-  , showTime     = False
-  , traceFailure = False
-  , profile      = False
-  , useGhci      = False
-  , safeExec     = False
-  , parseOpts    = ""
-  , cmpOpts      = ""
-  , ghcOpts      = ""
-  , rtsOpts      = ""
-  , rtsArgs      = ""
-  , quit         = False
-  , exitStatus   = 0
-  , sourceguis   = []
-  , ghcicomm     = Nothing
-  }
+initReplState :: IO ReplState
+initReplState = do
+  k2home <- kics2HomeDir
+  return $ ReplState
+    { kics2Home    = k2home
+    , rcvars       = []
+    , idSupply     = "ghc"
+    , verbose      = 1
+    , importPaths  = []
+    , libPaths     = map (k2home </>) ["lib"]
+    , localCompile = False
+    , preludeName  = "Prelude"
+    , outputSubdir = ".curry" </> "kics2-" ++ Inst.fullVersion
+    , mainMod      = "Prelude"
+    , addMods      = []
+    , prompt       = "%s> "
+    , optim        = True
+    , ndMode       = BFS
+    , firstSol     = False
+    , interactive  = False
+    , showBindings = True
+    , showTime     = False
+    , traceFailure = False
+    , profile      = False
+    , useGhci      = False
+    , safeExec     = False
+    , parseOpts    = ""
+    , cmpOpts      = ""
+    , ghcOpts      = ""
+    , rtsOpts      = ""
+    , rtsArgs      = ""
+    , quit         = False
+    , exitStatus   = 0
+    , sourceguis   = []
+    , ghcicomm     = Nothing
+    }
 
 loadPaths :: ReplState -> [String]
 loadPaths rst = "." : importPaths rst ++ libPaths rst
@@ -174,7 +177,7 @@ createAndCompileMain rst createExecutable mainExp bindings = do
   (rst',wasUpdated) <- updateGhcOptions rst
   writeFile mainFile $ mainModule rst' isdet isio (traceFailure rst) bindings
 
-  let ghcCompile = ghcCall rst' useGhci' wasUpdated mainFile
+  ghcCompile <- ghcCall rst' useGhci' wasUpdated mainFile
   tghcCompile <- getTimeCmd rst' "GHC compilation" ghcCompile
   writeVerboseInfo rst' 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
   (rst'', status) <- if useGhci'
@@ -203,7 +206,7 @@ compileWithGhci rst ghcCompile mainExp = do
 --- Compile a Haskell module (used for :compile command)
 compileModuleWithGHC :: ReplState -> String -> IO ReplState
 compileModuleWithGHC rst modname = do
-  let ghcCompile = ghcCall rst False True mainFile
+  ghcCompile <- ghcCall rst False True mainFile
   tghcCompile <- getTimeCmd rst "GHC compilation" ghcCompile
   writeVerboseInfo rst 3 $ "Compiling " ++ mainFile ++ " with: " ++ tghcCompile
   status <- system tghcCompile
@@ -212,27 +215,29 @@ compileModuleWithGHC rst modname = do
   mainFile = "." </> outputSubdir rst
                  </> moduleToFileName (renameModule modname) ++ ".hs"
 
-ghcCall :: ReplState -> Bool -> Bool -> String -> String
-ghcCall rst useGhci recompile mainFile = unwords . filter notNull $
-  [ Inst.ghcExec
-  , if localCompile rst then Inst.ghcLocalOptions else Inst.ghcOptions
-  , if optim rst && not useGhci then Inst.ghcOptimizations else ""
-  , if useGhci                  then "--interactive"       else "--make"
-  , if verbose rst < 2          then "-v0"                 else "-v1"
-  , if withGhcSupply            then "-package ghc"        else ""
-  , if isParSearch              then "-threaded"           else ""
-  , if withProfiling            then "-prof -fprof-auto"   else ""
-  , if withRtsOpts
-    then "-rtsopts -with-rtsopts=\"" ++
-         unwords [rtsOpts rst, parOpts, profOpt] ++ "\""
-    else ""
-  , if recompile                then "-fforce-recomp"    else ""
-      -- XRelaxedPolyRec due to problem in FlatCurryShow
-  , "-XMultiParamTypeClasses", "-XFlexibleInstances", "-XRelaxedPolyRec"
-  , ghcOpts rst
-  , "-i" ++ (intercalate [searchPathSeparator] ghcImports)
-  , mainFile
-  ]
+ghcCall :: ReplState -> Bool -> Bool -> String -> IO String
+ghcCall rst useGhci recompile mainFile = do
+  ghc <- ghcExec
+  return $ unwords . filter notNull $
+    [ ghc
+    , if localCompile rst then Inst.ghcLocalOptions else Inst.ghcOptions
+    , if optim rst && not useGhci then Inst.ghcOptimizations else ""
+    , if useGhci                  then "--interactive"       else "--make"
+    , if verbose rst < 2          then "-v0"                 else "-v1"
+    , if withGhcSupply            then "-package ghc"        else ""
+    , if isParSearch              then "-threaded"           else ""
+    , if withProfiling            then "-prof -fprof-auto"   else ""
+    , if withRtsOpts
+      then "-rtsopts -with-rtsopts=\"" ++
+           unwords [rtsOpts rst, parOpts, profOpt] ++ "\""
+      else ""
+    , if recompile                then "-fforce-recomp"    else ""
+        -- XRelaxedPolyRec due to problem in FlatCurryShow
+    , "-XMultiParamTypeClasses", "-XFlexibleInstances", "-XRelaxedPolyRec"
+    , ghcOpts rst
+    , "-i" ++ (intercalate [searchPathSeparator] ghcImports)
+    , mainFile
+    ]
  where
   withGhcSupply = (idSupply rst) `elem` ["ghc", "ioref"]
   withRtsOpts   = notNull (rtsOpts rst) || isParSearch || withProfiling
