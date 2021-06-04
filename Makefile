@@ -28,8 +28,9 @@ export STACKRESOLVER = lts-16.31
 GHC_MAJOR = 8
 GHC_MINOR = 8
 
-# The KiCS2 directory (the current one)
+# The KiCS2 home directory (the current one)
 export ROOT = $(CURDIR)
+export KICS2HOME = $(ROOT)
 # The directory containing the built binaries
 export BINDIR = $(ROOT)/bin
 # The directory containing local binaries
