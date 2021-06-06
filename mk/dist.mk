@@ -25,16 +25,19 @@ export DIST_ARTIFACTS = $(DISTROOTDIR)
 # take advantage the fully bootstrapped kics2c
 # to quickly `make` the complete KiCS2 system.
 
-$(TARBALL): $(DISTLOCALBINDIR)/kics2c $(DISTDIR)
+$(TARBALL): $(DISTBINDIR)/kics2-frontend $(DISTLOCALBINDIR)/kics2c $(DISTDIR)
 	rm -rf $(DISTDIR)/.git $(DISTDIR)/**/.git
 	cd $(DISTROOTDIR) && tar -cvzf $(TARBALLNAME) $(DISTNAME)
-
-$(DISTLOCALBINDIR)/kics2c: $(LOCALBINDIR)/kics2c | $(DISTLOCALBINDIR)
-	cp $< $@
 
 $(DISTDIR): | $(DISTROOTDIR)
 	rm -rf $(DISTDIR)
 	git clone $(ROOT) $(DISTDIR) --recurse-submodules
+
+$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
+	cp $< $@
+
+$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
+	cp $< $@
 
 $(DISTBINDIR): | $(DISTDIR)
 	mkdir -p $@
