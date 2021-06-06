@@ -11,7 +11,7 @@ BUILT_KICS2 = $(CURDIR)/bin/kics2
 BUILT_CYPM = $(CURDIR)/bin/cypm
 
 # 1 if true, 0 otherwise
-BUILT_KICS2_AVAILABLE = $(shell ! test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?)
+BUILT_KICS2_AVAILABLE := $(shell ! test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?)
 
 # The compiler to compile KiCS2 with. By default this
 # is `kics2` if a built version exists, otherwise PAKCS.
@@ -166,7 +166,7 @@ comma_sep = $(subst $(SPACE),$(COMMA)$(SPACE),$(1))
 # available, otherwise performs a full bootstrap.
 .PHONY: default
 .NOTPARALLEL:
-ifeq ($(BUILT_KICS2_AVAILABLE),1)
+ifeq ($(CURRY:%kics2=),)
 default: all
 else
 default: bootstrap
