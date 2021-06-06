@@ -18,11 +18,11 @@ export DIST_ARTIFACTS = $(DISTROOTDIR)
 # TODO: Deal with paths, especially stack
 # TODO: Copy (built?) docs
 
-# The distribution includes the kics2c compiler built
+# The distribution includes the `kics2c` compiler built
 # using the current Curry compiler (i.e. if you want to
 # bootstrap, you have to run `make bootstrap` prior to
 # `make dist`). The user of the distribution can then
-# take advantage the fully bootstrapped kics2c
+# take advantage the fully bootstrapped `kics2c`
 # to quickly `make` the complete KiCS2 system.
 
 $(TARBALL): $(DISTBINDIR)/kics2-frontend $(DISTLOCALBINDIR)/kics2c $(DISTDIR)
@@ -33,10 +33,10 @@ $(DISTDIR): | $(DISTROOTDIR)
 	rm -rf $(DISTDIR)
 	git clone $(ROOT) $(DISTDIR) --recurse-submodules
 
-$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
+$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
 	cp $< $@
 
-$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
+$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
 	cp $< $@
 
 $(DISTBINDIR): | $(DISTDIR)
