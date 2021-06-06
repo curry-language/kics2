@@ -83,7 +83,7 @@ docs/markdown_syntax.html
 docs/src/markdown_syntax.tex
 
 # distribution
-dists/
+dist/
 kics2*.tar.gz
 
 # editors

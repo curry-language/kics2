@@ -54,7 +54,7 @@ export CPMDIR = $(CURRYTOOLSDIR)/cpm
 # The directory containing modules for starting the compiler, e.g. when bootstrapping
 export BOOTDIR = $(ROOT)/boot
 # The directory containing a built distribution archives (e.g. tarballs).
-export DISTSDIR = $(ROOT)/dists
+export DISTROOTDIR = $(ROOT)/dist
 # The directory containing the KiCS2 sources
 SRCDIR = $(ROOT)/src
 # The directory containing runtime sources
@@ -322,7 +322,7 @@ $(DOTMKDIR):
 	mkdir -p $@
 
 # Creates a directory for the distributions.
-$(DISTSDIR):
+$(DISTROOTDIR):
 	mkdir -p $@
 
 # Generates a stack configuration.

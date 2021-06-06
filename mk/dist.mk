@@ -3,27 +3,30 @@
 DISTNAME = kics2-$(VERSION)
 TARBALLNAME = $(DISTNAME).tar.gz
 
-DISTDIR = $(DISTSDIR)/$(DISTNAME)
+DISTDIR = $(DISTROOTDIR)/$(DISTNAME)
 DISTBINDIR = $(DISTDIR)/bin
 DISTLOCALBINDIR = $(DISTBINDIR)/.local
-export TARBALL = $(DISTSDIR)/$(TARBALLNAME)
+export TARBALL = $(DISTROOTDIR)/$(TARBALLNAME)
 
 ##############################################################################
 # The distribution targets
 ##############################################################################
 
 # TODO: Deal with paths, especially stack
-# TODO: Include binaries?
-# TODO: Copy docs
+# TODO: Copy (built?) docs
 # TODO: Remove Git history?
 
-$(TARBALL): $(DISTBINDIR)/kics2 $(DISTLOCALBINDIR)/kics2c $(DISTLOCALBINDIR)/kics2i $(DISTDIR)
-	cd $(DISTSDIR) && tar cfvz $(TARBALL) $(DISTDIR)
+# The distribution includes the kics2c compiler built
+# using the current Curry compiler (i.e. if you want to
+# bootstrap, you have to run `make bootstrap` prior to
+# `make dist`). The user of the distribution can then
+# take advantage the fully bootstrapped kics2c
+# to quickly `make` the complete KiCS2 system.
 
-$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
-	cp $< $@
+$(TARBALL): $(DISTLOCALBINDIR)/kics2c $(DISTDIR)
+	cd $(DISTROOTDIR) && tar -cvzf $(TARBALLNAME) $(DISTNAME)
 
-$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
+$(DISTLOCALBINDIR)/kics2c: $(LOCALBINDIR)/kics2c | $(DISTLOCALBINDIR)
 	cp $< $@
 
 $(DISTBINDIR): | $(DISTDIR)
