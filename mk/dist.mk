@@ -8,6 +8,9 @@ DISTBINDIR = $(DISTDIR)/bin
 DISTLOCALBINDIR = $(DISTBINDIR)/.local
 export TARBALL = $(DISTROOTDIR)/$(TARBALLNAME)
 
+export DIST = $(TARBALL)
+export DIST_ARTIFACTS = $(DISTROOTDIR)
+
 ##############################################################################
 # The distribution targets
 ##############################################################################

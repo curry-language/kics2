@@ -244,7 +244,7 @@ deps: $(CPMDEPS)
 
 # Creates a KiCS2 distribution.
 .PHONY: dist
-dist: $(TARBALL)
+dist: $(DIST)
 
 # Cleans up library-related build artifacts.
 .PHONY: cleanlib
@@ -266,6 +266,11 @@ cleanutils:
 cleanbin:
 	rm -rf $(BIN_ARTIFACTS)
 
+# Cleans up distributions.
+.PHONY: cleandist
+cleandist:
+	rm -rf $(DIST_ARTIFACTS)
+
 # Cleans up frontend-related build artifacts.
 .PHONY: cleanfrontend
 cleanfrontend:
@@ -273,7 +278,7 @@ cleanfrontend:
 
 # Cleans up build files (not from the frontend, however!)
 .PHONY: cleankics2
-cleankics2: cleanlib cleanruntime cleanutils cleanbin
+cleankics2: cleanlib cleanruntime cleanutils cleanbin cleandist
 	rm -rf $(DOTCPMDIR) \
 	       $(DOTSTACKWORKDIR) \
 	       $(STACKYAML) \
