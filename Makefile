@@ -10,10 +10,13 @@
 BUILT_KICS2 = $(CURDIR)/bin/kics2
 BUILT_CYPM = $(CURDIR)/bin/cypm
 
+# 1 if true, 0 otherwise
+BUILT_KICS2_AVAILABLE = $(shell ! test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?)
+
 # The compiler to compile KiCS2 with. By default this
 # is `kics2` if a built version exists, otherwise PAKCS.
 # Note that this also determines which CPM to use.
-ifeq ($(shell test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?),0)
+ifeq ($(BUILT_KICS2_AVAILABLE),1)
 export CURRY = $(BUILT_KICS2)
 else
 export CURRY = pakcs
@@ -159,9 +162,15 @@ comma_sep = $(subst $(SPACE),$(COMMA)$(SPACE),$(1))
 # The default target
 ########################################################################
 
+# Builds the entire KiCS2 system. Uses an existing KiCS2 compiler if
+# available, otherwise performs a full bootstrap.
 .PHONY: default
 .NOTPARALLEL:
+ifeq ($(BUILT_KICS2_AVAILABLE),1)
 default: all
+else
+default: bootstrap
+endif
 
 ########################################################################
 # Included sub-makefiles
@@ -179,7 +188,7 @@ include mk/dist.mk
 # The high-level phony targets
 ########################################################################
 
-# Builds the KiCS2 compiler using CURRY (PAKCS by default)
+# Builds the entire KiCS2 system using CURRY (PAKCS by default)
 .PHONY: all
 all:
 	$(MAKE) kernel
@@ -187,11 +196,11 @@ all:
 	@echo "$(SUCCESS)>> Successfully built KiCS2!$(NORMAL)"
 	@echo "$(SUCCESS)>> The executables are located in $(BINDIR)$(NORMAL)"
 
-# Bootstraps the KiCS2 compiler in 3 stages using CURRY (PAKCS by default),
+# Bootstraps the entire KiCS2 system in 3 stages using CURRY (PAKCS by default),
 # then performs a bootstrapped build of the kernel (REPL) and tools
 .PHONY: bootstrap
 bootstrap: $(STAGE3COMP)
-	$(MAKE)
+	$(MAKE) all
 
 # Builds the REPL, compiler and scripts.
 .PHONY: kernel
