@@ -17,7 +17,6 @@ export DIST_ARTIFACTS = $(DISTROOTDIR)
 
 # TODO: Deal with paths, especially stack
 # TODO: Copy (built?) docs
-# TODO: Remove Git history?
 
 # The distribution includes the kics2c compiler built
 # using the current Curry compiler (i.e. if you want to
@@ -27,17 +26,18 @@ export DIST_ARTIFACTS = $(DISTROOTDIR)
 # to quickly `make` the complete KiCS2 system.
 
 $(TARBALL): $(DISTLOCALBINDIR)/kics2c $(DISTDIR)
+	rm -rf $(DISTDIR)/.git $(DISTDIR)/**/.git
 	cd $(DISTROOTDIR) && tar -cvzf $(TARBALLNAME) $(DISTNAME)
 
 $(DISTLOCALBINDIR)/kics2c: $(LOCALBINDIR)/kics2c | $(DISTLOCALBINDIR)
 	cp $< $@
+
+$(DISTDIR): | $(DISTROOTDIR)
+	rm -rf $(DISTDIR)
+	git clone $(ROOT) $(DISTDIR) --recurse-submodules
 
 $(DISTBINDIR): | $(DISTDIR)
 	mkdir -p $@
 
 $(DISTLOCALBINDIR): | $(DISTDIR)
 	mkdir -p $@
-
-$(DISTDIR):
-	rm -rf $(DISTDIR)
-	git clone $(ROOT) $(DISTDIR) --recurse-submodules
