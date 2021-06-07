@@ -27,7 +27,7 @@ export RUNTIME_ARTIFACTS = $(RUNTIME_CABAL) \
                            $(RUNTIMEDIR)/**/*.o \
                            $(RUNTIMEDIR)/**/*.o-boot
 
-$(RUNTIME_CABAL):
+$(RUNTIME_CABAL): $(INSTALLHS)
 ifndef VERSION
 	$(error VERSION is not defined. Please use 'make' on top-level)
 endif
