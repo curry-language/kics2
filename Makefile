@@ -7,11 +7,11 @@ PYTHON3 := $(shell which python3)
 STACKBIN := $(shell which stack)
 
 ifeq ($(PYTHON3),)
-$(error Please make sure that 'python3' is on your PATH or specify it explicitly by passing `make PYTHON3=...`)
+$(error Please make sure that 'python3' is on your PATH or specify it explicitly by passing 'make PYTHON3=...')
 endif
 
 ifeq ($(STACKBIN),)
-$(error Please make sure that 'stack' (The Haskell Stack build tool) is on your PATH or specify it explicitly by passing `make STACKBIN=...`)
+$(error Please make sure that 'stack' (The Haskell Stack build tool) is on your PATH or specify it explicitly by passing 'make STACKBIN=...')
 endif
 
 # The built KiCS2
@@ -140,6 +140,10 @@ MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
 # The build version number (if >0, then it is a pre-release)
 BUILDVERSION    = 1
+
+ifeq ($(VERSION),)
+$(error "Could not determine VERSION. Please make sure that a 'package.json' exists and that it defines a 'version' mapping!")
+endif
 
 # Git history is unavailable in distributions, therefore we use a flag to check for it.
 # 1 if true, 0 otherwise
