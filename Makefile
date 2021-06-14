@@ -2,9 +2,17 @@
 # Makefile for KiCS2 compiler suite
 ########################################################################
 
-# Some parameters for this installation
-# --------------------------------------
-# (these parameters might be passed to `make`)
+# Essential system dependencies
+PYTHON3 := $(shell which python3)
+STACKBIN := $(shell which stack)
+
+ifeq ($(PYTHON3),)
+$(error Please make sure that 'python3' is on your PATH or specify it explicitly by passing `make PYTHON3=...`)
+endif
+
+ifeq ($(STACKBIN),)
+$(error Please make sure that 'stack' (The Haskell Stack build tool) is on your PATH or specify it explicitly by passing `make STACKBIN=...`)
+endif
 
 # The built KiCS2
 BUILT_KICS2 = $(CURDIR)/bin/kics2
@@ -15,7 +23,10 @@ BUILT_KICS2_AVAILABLE := $(shell ! test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)
 
 # The compiler to compile KiCS2 with. By default this
 # is `kics2` if a built version exists, otherwise PAKCS.
-# Note that this also determines which CPM to use.
+# Note that this also determines which CPM to use. You
+# can also pass this variable explicitly to `make`:
+#
+#     make CURRY=/path/to/curry
 ifeq ($(BUILT_KICS2_AVAILABLE),1)
 export CURRY = $(BUILT_KICS2)
 else
@@ -98,7 +109,7 @@ export FRONTEND = $(BINDIR)/kics2-frontend
 export CPM = $(BINDIR)/cypm
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
-export STACK = STACK_YAML=$(STACKYAML) $(shell which stack)
+export STACK = STACK_YAML=$(STACKYAML) $(STACKBIN)
 export GHC   = $(STACK) exec -- ghc
 export CYPM  = $(CURRY) cypm
 
@@ -123,7 +134,7 @@ GHC_OPTIMIZATIONS = -O2 -fno-strictness -fno-liberate-case
 GHC_OPTS          =
 
 # The KiCS2 version, as defined in CPM's package.json
-export VERSION := $(shell cat $(PACKAGEJSON) | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])")
+export VERSION := $(shell cat $(PACKAGEJSON) | $(PYTHON3) -c "import sys,json;print(json.load(sys.stdin)['version'])")
 MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
