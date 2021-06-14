@@ -75,6 +75,7 @@ $(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 
 # kics2c compiled with stage1-kics2c
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR)
+	@echo "$(HIGHLIGHT)>> Building stage 2 compiler$(NORMAL)"
 	rm -f $(COMP)
 	# Compile in multiple steps to avoid memory issues with PAKCS
 	cd $(SRCDIR) \
@@ -88,6 +89,7 @@ $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR
 
 # kics2c compiled with stage2-kics2c
 $(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE3DIR)
+	@echo "$(HIGHLIGHT)>> Building stage 3 compiler$(NORMAL)"
 	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
