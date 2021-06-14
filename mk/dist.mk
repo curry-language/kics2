@@ -8,10 +8,18 @@ DISTSRCDIR = $(DISTDIR)/src
 DISTBINDIR = $(DISTDIR)/bin
 DISTLIBDIR = $(DISTDIR)/lib
 DISTDOTMKDIR = $(DISTDIR)/.mk
-DISTCPMDEPSDUMMY = $(DISTDOTMKDIR)/.cpmdeps-state-dummy
 DISTDOTCPMDIR = $(DISTDIR)/.cpm
 DISTCPMPACKAGESDIR = $(DISTDOTCPMDIR)/packages
 DISTLOCALBINDIR = $(DISTBINDIR)/.local
+
+DISTFRONTEND = $(DISTBINDIR)/kics2-frontend
+DISTCOMP = $(DISTLOCALBINDIR)/kics2c
+DISTREPL = $(DISTLOCALBINDIR)/kics2i
+DISTINSTALLCURRY = $(DISTSRCDIR)/Installation.curry
+DISTLIBVERSION = $(DISTLIBDIR)/VERSION
+DISTPACKAGEJSON = $(DISTDIR)/package.json
+DISTCPMDEPSDUMMY = $(DISTDOTMKDIR)/.cpmdeps-state-dummy
+
 export TARBALL = $(DISTROOTDIR)/$(TARBALLNAME)
 
 export DIST = $(TARBALL)
@@ -31,13 +39,13 @@ export DIST_ARTIFACTS = $(DISTROOTDIR)
 # take advantage the fully bootstrapped `kics2c`
 # to quickly `make` the complete KiCS2 system.
 
-$(TARBALL): $(DISTDIR) $(DISTBINDIR)/kics2-frontend $(DISTLOCALBINDIR)/kics2c $(DISTLOCALBINDIR)/kics2i $(DISTSRCDIR)/Installation.curry $(DISTLIBDIR)/VERSION $(DISTCPMPACKAGESDIR) $(DISTCPMDEPSDUMMY)
+$(TARBALL): $(DISTDIR) $(DISTFRONTEND) $(DISTCOMP) $(DISTREPL) $(DISTINSTALLCURRY) $(DISTLIBVERSION) $(DISTCPMPACKAGESDIR) $(DISTCPMDEPSDUMMY)
 	# Make sure that `make` doesn't have to rebuild `kics2c`, `kics2i` and CPM dependencies
-	touch $(DISTLIBDIR)/VERSION
-	touch $(DISTSRCDIR)/Installation.curry
-	touch $(DISTSRCDIR)/package.json
-	touch $(DISTLOCALBINDIR)/kics2c
-	touch $(DISTLOCALBINDIR)/kics2i
+	touch $(DISTLIBVERSION)
+	touch $(DISTINSTALLCURRY)
+	touch $(DISTPACKAGEJSON)
+	touch $(DISTCOMP)
+	touch $(DISTREPL)
 	touch $(DISTCPMDEPSDUMMY)
 
 	# Create the tarball
