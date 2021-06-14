@@ -129,8 +129,17 @@ MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
 # The build version number (if >0, then it is a pre-release)
 BUILDVERSION    = 1
+
+# Git history is unavailable in distributions, therefore we use a flag to check for it.
+# 1 if true, 0 otherwise
+GIT_HISTORY_AVAILABLE := $(shell ! test -d "$(ROOT)/.git"; echo $$?)
+
 # Compiler and installation dates
+ifeq ($(GIT_HISTORY_AVAILABLE),1)
 COMPILERDATE := $(shell git log -1 --format="%ci" | cut -c-10)
+else
+COMPILERDATE := $(shell date "+%Y-%m-%d")
+endif
 INSTALLDATE  := $(shell date)
 
 # The executable suffix (Windows or POSIX)
