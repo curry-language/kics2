@@ -374,6 +374,7 @@ $(STACKYAML): | $(LIB) $(RUNTIME)
 	@echo "extra-deps:"                                               >> $@
 	@echo "  - parallel-tree-search-0.4.2"                            >> $@
 	@echo "  - tree-monad-0.3.1"                                      >> $@
+	@echo "allow-different-user: true"                                >> $@
 
 # Generate a source module with metadata about the KiCS2 installation for use by the compiler
 $(INSTALLCURRY): $(PACKAGEJSON) $(LIBDIR)/VERSION
