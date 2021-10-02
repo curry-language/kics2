@@ -39,19 +39,19 @@ export BIN_ARTIFACTS = $(BINDIR)
 
 # Builds the REPL executable (with CURRY and its cpm)
 $(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(STACKPKGS) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
-	@echo "$(HIGHLIGHT)>> Building KiCS2 REPL$(NORMAL)"
+	@$(ECHOINFO) "Building KiCS2 REPL"
 	$(CURRY) :set v2 :load KiCS2.REPL :save :quit
 	mv KiCS2.REPL $(REPL)
 
 # Builds the compiler executable (with CURRY and its cpm)
 $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(LOCALBINDIR)
-	@echo "$(HIGHLIGHT)>> Building KiCS2 compiler$(NORMAL)"
+	@$(ECHOINFO) "Building KiCS2 compiler"
 	$(CURRY) :set v2 :load KiCS2.Compile :save :quit
 	mv KiCS2.Compile $(COMP)
 
 # Builds the frontend
 $(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
-	@echo "$(HIGHLIGHT)>> Building Curry frontend$(NORMAL)"
+	@$(ECHOINFO) "Building Curry frontend"
 	@cd $(FRONTENDDIR) && $(MAKE)
 	@cd $(BINDIR) && ln -sf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
 
@@ -61,7 +61,7 @@ $(CURRYBIN): $(KICS2BIN) $(REPL)
 
 # Builds the package manager
 $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
-	@echo "$(HIGHLIGHT)>> Building Curry package manager$(NORMAL)"
+	@$(ECHOINFO) "Building Curry package manager"
 	@cd $(CURRYTOOLSDIR) && $(MAKE)
 
 ########################################################################
@@ -71,11 +71,11 @@ $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
 # kics2c compiled with PAKCS (or another KiCS2)
 $(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 	cp $(COMP) $@
-	@echo "$(HIGHLIGHT)>> Successfully built stage 1!$(NORMAL)"
+	@$(ECHOINFO) "Successfully built stage 1!"
 
 # kics2c compiled with stage1-kics2c
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR)
-	@echo "$(HIGHLIGHT)>> Building stage 2 compiler$(NORMAL)"
+	@$(ECHOINFO) "Building stage 2 compiler"
 	rm -f $(COMP)
 	# Compile in multiple steps to avoid memory issues with PAKCS
 	cd $(SRCDIR) \
@@ -85,16 +85,16 @@ $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR
 		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
 	cp $(COMP) $@
-	@echo "$(HIGHLIGHT)>> Successfully built stage 2!$(NORMAL)"
+	@$(ECHOINFO) "Successfully built stage 2!"
 
 # kics2c compiled with stage2-kics2c
 $(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE3DIR)
-	@echo "$(HIGHLIGHT)>> Building stage 3 compiler$(NORMAL)"
+	@$(ECHOINFO) "Building stage 3 compiler"
 	rm -f $(COMP)
 	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
 	cp $(COMP) $@
-	@echo "$(HIGHLIGHT)>> Successfully built stage 3!$(NORMAL)"
+	@$(ECHOINFO) "Successfully built stage 3!"
 
 # Creates the directory for the first bootstrap stage's binaries
 $(STAGE1DIR):
