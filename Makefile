@@ -278,6 +278,8 @@ deps: $(CPMDEPS)
 # Creates a KiCS2 distribution.
 .PHONY: dist
 dist: $(DIST)
+	@$(ECHOSUCCESS) "Successfully built KiCS2 distribution!"
+	@$(ECHOSUCCESS) "The tarball is located at $(DIST)"
 
 # Cleans up library-related build artifacts.
 .PHONY: cleanlib
