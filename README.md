@@ -50,6 +50,10 @@ This directory contains:
   This directory contains a collection of standard libraries
   implemented in Curry (including the standard prelude).
 
+`mk`:
+  This directory contains a collection of makefiles for building
+  the various components of KiCS2.
+
 `runtime`:
   This directory contains Haskell programs used by the run time
   system of KiCS2.
