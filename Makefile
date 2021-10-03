@@ -111,9 +111,9 @@ export FRONTEND = $(BINDIR)/kics2-frontend
 export CPM = $(BINDIR)/cypm
 
 # A utility for outputting a colored info message
-export ECHOINFO = $(MKSCRIPTSDIR)/echo-info
+export ECHOINFO = $(MKSCRIPTSDIR)/echo-highlighted 6
 # A utility for outputting a colored success message
-export ECHOSUCCESS = $(MKSCRIPTSDIR)/echo-success
+export ECHOSUCCESS = $(MKSCRIPTSDIR)/echo-highlighted 2
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
 export STACK = STACK_YAML=$(STACKYAML) $(STACKBIN)
