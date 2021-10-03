@@ -63,7 +63,7 @@ $(TARBALL): $(DISTDIR) $(DISTFRONTEND) $(DISTCOMP) $(DISTBOOTSTRAPCOMPS) $(DISTS
 	# Create the tarball
 	cd $(DISTROOTDIR) && tar -cvzf $(TARBALLNAME) $(DISTNAME)
 
-$(DISTDIR): | $(DISTROOTDIR)
+$(DISTDIR): $(ROOT) | $(DISTROOTDIR)
 	rm -rf $(DISTDIR)
 	git clone $(ROOT) $(DISTDIR)
 	cat $(ROOT)/.dist-modules | sed 's|ROOT|$(ROOT)|' > $(DISTDIR)/.gitmodules
