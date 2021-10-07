@@ -1,14 +1,16 @@
 # Makefile for building installation utils
 
 # The cleancurry binary
-export CLEANCURRY = $(LOCALBINDIR)/cleancurry
+export CLEANCURRY = $(BINDIR)/cleancurry
 
-export UTILS = $(foreach u, pwd cleancurry which, $(LOCALBINDIR)/$(u)$(EXE_SUFFIX))
+LOCALUTILS = $(foreach u, pwd cleancurry which, $(LOCALBINDIR)/$(u)$(EXE_SUFFIX))
+
+export UTILS = $(LOCALUTILS) $(CLEANCURRY)
 export UTILS_ARTIFACTS = $(UTILSDIR)/*.hi \
                          $(UTILSDIR)/*.o
 
-.PHONY: all
-all: $(UTILS)
-
-$(UTILS): $(LOCALBINDIR)/%$(EXE_SUFFIX): $(UTILSDIR)/%.hs | $(LOCALBINDIR) $(STACKYAML)
+$(LOCALUTILS): $(LOCALBINDIR)/%$(EXE_SUFFIX): $(UTILSDIR)/%.hs | $(LOCALBINDIR) $(STACKYAML)
 	$(GHC) --make -Wall -O2 -o $@ $<
+
+$(CLEANCURRY): $(LOCALBINDIR)/cleancurry
+	ln -srf $< $@
