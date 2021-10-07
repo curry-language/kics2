@@ -255,6 +255,10 @@ runtime: $(RUNTIME)
 .PHONY: scripts
 scripts: $(SCRIPTS)
 
+# Builds the utils (cleancurry, ...) only.
+.PHONY: utils
+utils: $(UTILS)
+
 # Builds the frontend only.
 .PHONY: frontend
 frontend: $(FRONTEND)
