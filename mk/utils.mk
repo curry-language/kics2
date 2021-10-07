@@ -13,4 +13,4 @@ $(LOCALUTILS): $(LOCALBINDIR)/%$(EXE_SUFFIX): $(UTILSDIR)/%.hs | $(LOCALBINDIR) 
 	$(GHC) --make -Wall -O2 -o $@ $<
 
 $(CLEANCURRY): $(LOCALBINDIR)/cleancurry
-	ln -srf $< $@
+	ln -sf .local/cleancurry $@
