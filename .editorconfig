@@ -13,3 +13,6 @@ insert_final_newline = true
 [{Makefile,**.mk}]
 indent_style = tab
 indent_size = 4
+
+[*.json]
+indent_size = 4
