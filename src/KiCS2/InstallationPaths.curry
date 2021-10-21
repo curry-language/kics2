@@ -12,4 +12,11 @@ kics2HomeDir = getEnv "KICS2HOME"
 ghcExec :: IO String
 ghcExec = do
   k2home <- kics2HomeDir
-  return $ "STACK_YAML=" ++ k2home ++ "/stack.yaml stack exec -- ghc"
+  return $ unwords $
+    [ "stack"
+    , "--stack-yaml", k2home ++ "/stack.yaml"
+    , "--stack-root", k2home ++ "/.stack"
+    , "exec"
+    , "--"
+    , "ghc"
+    ]

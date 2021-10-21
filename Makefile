@@ -83,6 +83,8 @@ INSTALLHS = $(RUNTIMEDIR)/Installation.hs
 PACKAGEJSON = $(ROOT)/package.json
 # The Stack manifest
 STACKYAML = $(ROOT)/stack.yaml
+# The Stack root directory
+STACKROOT = $(ROOT)/.stack
 # The Stack lock file
 STACKYAMLLOCK = $(ROOT)/stack.yaml.lock
 # The Curry package manager directory
@@ -116,7 +118,7 @@ export ECHOINFO = $(MKSCRIPTSDIR)/echo-highlighted 6
 export ECHOSUCCESS = $(MKSCRIPTSDIR)/echo-highlighted 2
 
 # The path to GHC, its package manager, Cabal and the Curry package manager
-export STACK = STACK_YAML=$(STACKYAML) $(STACKBIN)
+export STACK = $(STACKBIN) --stack-yaml $(STACKYAML) --stack-root $(STACKROOT)
 export GHC   = $(STACK) exec -- ghc
 export CYPM  = $(CURRY) cypm
 
@@ -333,6 +335,7 @@ cleankics2: cleanlib cleanruntime cleanutils cleanbin cleandist
 # Cleans up everything.
 .PHONY: clean
 clean: cleankics2 cleanfrontend
+	rm -rf $(STACKROOT)
 
 ########################################################################
 # The targets
