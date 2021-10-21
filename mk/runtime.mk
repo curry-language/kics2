@@ -5,7 +5,7 @@ RUNTIME_PACKAGE = kics2-runtime
 # Name of the cabal file
 RUNTIME_CABAL = $(RUNTIMEDIR)/$(RUNTIME_PACKAGE).cabal
 # idsupply directory to use
-RUNTIME_IDSUPPLYDIR  = $(RUNTIMEDIR)/idsupplyioref
+RUNTIME_IDSUPPLYDIR  = idsupplyioref
 # Additional flags for compilation of the runtime
 RUNTIME_FLAGS =
 
