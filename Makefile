@@ -350,6 +350,7 @@ $(CPMDEPS): $(PACKAGEJSON) | $(DOTMKDIR)
 $(STACKPKGS): $(STACKYAML) $(LIB) $(RUNTIME) | $(DOTMKDIR)
 	@$(ECHOINFO) "Rebuilding runtime and libraries"
 	$(STACK) build
+	chmod a+rw $(STACKROOT)/**/*.pantry-write-lock
 	@touch $@
 
 # Creates a directory for the compiled libraries
