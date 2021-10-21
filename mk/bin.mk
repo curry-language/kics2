@@ -41,23 +41,23 @@ export BIN_ARTIFACTS = $(BINDIR)
 $(REPL): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(STACKPKGS) $(CLEANCURRY) $(COMP) $(LOCALBINDIR)
 	@$(ECHOINFO) "Building KiCS2 REPL"
 	$(CURRY) :set v2 :load KiCS2.REPL :save :quit
-	mv KiCS2.REPL $(REPL)
+	mv KiCS2.REPL $@
 
 # Builds the compiler executable (with CURRY and its cpm)
 $(COMP): $(shell find $(SRCDIR)/KiCS2 -name "*.curry") $(INSTALLCURRY) $(PACKAGEJSON) | $(FRONTEND) $(CPMDEPS) $(LOCALBINDIR)
 	@$(ECHOINFO) "Building KiCS2 compiler"
 	$(CURRY) :set v2 :load KiCS2.Compile :save :quit
-	mv KiCS2.Compile $(COMP)
+	mv KiCS2.Compile $@
 
 # Builds the frontend
 $(FRONTEND): $(shell find $(FRONTENDDIR) -name "*.hs" -o -name "*.cabal") $(FRONTENDDIR)/Makefile $(FRONTENDDIR)/stack.yaml | $(BINDIR)
 	@$(ECHOINFO) "Building Curry frontend"
 	@cd $(FRONTENDDIR) && $(MAKE)
-	@cd $(BINDIR) && ln -sf $(FRONTENDDIR)/bin/curry-frontend $(FRONTEND)
+	@cd $(BINDIR) && ln -sf ../frontend/bin/curry-frontend $@
 
 # Creates the `curry` executable by linking to `kics2`
 $(CURRYBIN): $(KICS2BIN) $(REPL)
-	@cd $(BINDIR) && ln -sf $(KICS2BIN) $(CURRYBIN)
+	@cd $(BINDIR) && ln -sf kics2 $@
 
 # Builds the package manager
 $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
