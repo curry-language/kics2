@@ -33,6 +33,11 @@ else
 export CURRY = pakcs
 endif
 
+# Optionally a custom installation directory that KiCS2
+# is assumed to reside in at runtime. Useful for distribution
+# packages.
+export KICS2INSTALLDIR =
+
 # The name of the Curry system, needed for tool installation
 export CURRYSYSTEM = kics2
 
@@ -458,4 +463,4 @@ $(INSTALLHS): $(INSTALLCURRY)
 	@echo 'buildDir = "$(ROOT)"' >> $@
 	@echo "" >> $@
 	@echo 'pkgInstallDir :: String' >> $@
-	@echo 'pkgInstallDir = ""' >> $@
+	@echo 'pkgInstallDir = "$(KICS2INSTALLDIR)"' >> $@
