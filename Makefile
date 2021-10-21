@@ -228,10 +228,13 @@ all:
 	@$(ECHOSUCCESS) "The executables are located in $(BINDIR)"
 
 # Bootstraps the entire KiCS2 system in 3 stages using CURRY (PAKCS by default),
-# then performs a bootstrapped build of the kernel (REPL) and tools
+# then performs a bootstrapped build of the tools
 .PHONY: bootstrap
-bootstrap: $(STAGE3COMP)
-	$(MAKE) all
+bootstrap: $(STAGE3COMP) $(STAGE3REPL)
+	$(MAKE) scripts
+	$(MAKE) tools
+	@$(ECHOSUCCESS) "Successfully bootstrapped KiCS2!"
+	@$(ECHOSUCCESS) "The executables are located in $(BINDIR)"
 
 # Builds the REPL, compiler and scripts.
 .PHONY: kernel

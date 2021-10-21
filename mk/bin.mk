@@ -8,9 +8,11 @@ BOOTSTRAP_CURRYPATH = $(LIBDIR):$(subst $(SPACE),:,$(BOOTSTRAP_PACKAGE_SRCS))
 BOOTSTRAP_OUTDIR = $(SRCDIR)/.curry/kics2-$(VERSION)
 # The main (Haskell) module of `kics2c` for bootstrapping
 BOOTSTRAP_COMPILEBOOT = $(BOOTDIR)/CompileBoot.hs
+# The main (Haskell) module of `kics2i` for bootstrapping
+BOOTSTRAP_REPLBOOT = $(BOOTDIR)/REPLBoot.hs
 
 # KiCS2 options for bootstrap compilation
-BOOTSTRAP_KICS2C_OPTS = -v2 --parse-options=-Wall -i$(BOOTSTRAP_CURRYPATH)
+BOOTSTRAP_KICS2_OPTS = -v2 --parse-options=-Wall -i$(BOOTSTRAP_CURRYPATH)
 # GHC options for bootstrap compilation
 BOOTSTRAP_GHC_OPTS = $(GHC_OPTIMIZATIONS) --make -v1 -cpp
 # Directories for compiled Haskell modules of the packages
@@ -71,7 +73,7 @@ $(CPM): $(shell find $(CPMDIR) -name "*.curry") $(CPMDIR)/Makefile $(CURRYBIN)
 # kics2c compiled with PAKCS (or another KiCS2)
 $(STAGE1COMP): $(COMP) $(CPMDEPS) | $(STAGE1DIR)
 	cp $(COMP) $@
-	@$(ECHOINFO) "Successfully built stage 1!"
+	@$(ECHOINFO) "Successfully built stage 1 compiler!"
 
 # kics2c compiled with stage1-kics2c
 $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR)
@@ -79,22 +81,31 @@ $(STAGE2COMP): $(STAGE1COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE2DIR
 	rm -f $(COMP)
 	# Compile in multiple steps to avoid memory issues with PAKCS
 	cd $(SRCDIR) \
-		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.ModuleDeps \
-		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.TransTypes \
-		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.TransFunctions \
-		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.ModuleDeps \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.TransTypes \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.TransFunctions \
+		&& $(STAGE1COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
 	cp $(COMP) $@
-	@$(ECHOINFO) "Successfully built stage 2!"
+	@$(ECHOINFO) "Successfully built stage 2 compiler!"
 
 # kics2c compiled with stage2-kics2c
 $(STAGE3COMP): $(STAGE2COMP) $(BOOTSTRAP_COMPILEBOOT) | $(STACKPKGS) $(STAGE3DIR)
 	@$(ECHOINFO) "Building stage 3 compiler"
 	rm -f $(COMP)
-	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2C_OPTS) KiCS2.Compile
+	cd $(SRCDIR) && $(STAGE2COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.Compile
 	$(BOOTSTRAP_GHC) -o $(COMP) $(BOOTSTRAP_COMPILEBOOT)
 	cp $(COMP) $@
-	@$(ECHOINFO) "Successfully built stage 3!"
+	@$(ECHOINFO) "Successfully built stage 3 compiler!"
+
+# kics2i compiled with stage3-kics2c
+$(STAGE3REPL): $(STAGE3COMP) $(BOOTSTRAP_REPLBOOT) | $(STACKPKGS) $(STAGE3DIR)
+	@$(ECHOINFO) "Building stage 3 REPL"
+	rm -f $(COMP)
+	cd $(SRCDIR) && $(STAGE3COMP) $(BOOTSTRAP_KICS2_OPTS) KiCS2.REPL
+	$(BOOTSTRAP_GHC) -o $(REPL) $(BOOTSTRAP_REPLBOOT)
+	cp $(REPL) $@
+	@$(ECHOINFO) "Successfully built stage 3 REPL!"
 
 # Creates the directory for the first bootstrap stage's binaries
 $(STAGE1DIR):
