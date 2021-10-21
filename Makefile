@@ -350,7 +350,9 @@ $(CPMDEPS): $(PACKAGEJSON) | $(DOTMKDIR)
 $(STACKPKGS): $(STACKYAML) $(LIB) $(RUNTIME) | $(DOTMKDIR)
 	@$(ECHOINFO) "Rebuilding runtime and libraries"
 	$(STACK) build
-	chmod a+rw $(STACKROOT)/**/*.pantry-write-lock
+	chmod a+rw $(STACKROOT)/stack.sqlite3.pantry-write-lock \
+	           $(STACKROOT)/pantry/pantry.sqlite3.pantry-write-lock \
+	           $(DOTSTACKWORKDIR)/stack.sqlite3.pantry-write-lock
 	@touch $@
 
 # Creates a directory for the compiled libraries
