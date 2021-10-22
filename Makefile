@@ -230,7 +230,7 @@ all:
 # Bootstraps the entire KiCS2 system in 3 stages using CURRY (PAKCS by default),
 # then performs a bootstrapped build of the tools
 .PHONY: bootstrap
-bootstrap: $(STAGE3COMP) $(STAGE3REPL)
+bootstrap: $(STAGE3REPL)
 	$(MAKE) scripts
 	$(MAKE) tools
 	@$(ECHOSUCCESS) "Successfully bootstrapped KiCS2!"
