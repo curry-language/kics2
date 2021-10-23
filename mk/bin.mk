@@ -27,10 +27,11 @@ STAGE1DIR = $(LOCALBINDIR)/stage1
 STAGE2DIR = $(LOCALBINDIR)/stage2
 STAGE3DIR = $(LOCALBINDIR)/stage3
 
-# The bootstrapped compiler binaries.
+# The bootstrapped compiler/REPL binaries.
 STAGE1COMP = $(STAGE1DIR)/kics2c
 STAGE2COMP = $(STAGE2DIR)/kics2c
 STAGE3COMP = $(STAGE3DIR)/kics2c
+STAGE3REPL = $(STAGE3DIR)/kics2i
 
 export BIN = $(REPL) $(COMP) $(FRONTEND)
 export BIN_ARTIFACTS = $(BINDIR)
