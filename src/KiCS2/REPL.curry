@@ -322,21 +322,20 @@ getAcyOfExpr rst expr = do
 showTypeOfGoal :: ReplState -> String -> IO Bool
 showTypeOfGoal rst goal = do
   mbProg <- getAcyOfExpr rst goal
-  maybe (return False)
-        (\ (CurryProg _ _ _ _ _ _ [CFunc _ _ _ qty _] _) -> do
-          putStrLn $ goal ++ " :: " ++ showMonoQualTypeExpr False qty
-          return True)
-        mbProg
+  case mbProg of
+    Just (CurryProg _ _ _ _ _ _ [CFunc _ _ _ qty _] _) -> do
+      putStrLn $ goal ++ " :: " ++ showMonoQualTypeExpr False qty
+      return True
+    _                                                  -> return False
 
 -- Get the module of a function visible in the main program:
 getModuleOfFunction :: ReplState -> String -> IO String
 getModuleOfFunction rst funname = do
-  mbprog <- getAcyOfExpr rst $
+  mbProg <- getAcyOfExpr rst $
     if isAlpha (head funname) then funname else '(' : funname ++ ")"
-  return $ maybe ""
-                 (\ (CurryProg _ _ _ _  _ _ [CFunc _ _ _ _ mainrules] _) ->
-                    modOfMain mainrules)
-                 mbprog
+  return $ case mbProg of
+    Just (CurryProg _ _ _ _ _ _ [CFunc _ _ _ _ mainRules] _) -> modOfMain mainRules
+    _                                                        -> ""
  where modOfMain r = case r of
         [CRule [] (CSimpleRhs (CSymbol (m, _)) [])]       -> m
         [CRule [] (CGuardedRhs [(_, CSymbol (m, _))] [])] -> m
