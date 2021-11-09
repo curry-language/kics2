@@ -52,7 +52,7 @@ check_and_call_tool() {
 
 # check whether the real program name and the first argument is a tool
 # in the distribution and, if yes, exec the tool
-DISTTOOL=`readlink -f $0`-$1
+DISTTOOL=`realpath $0`-$1
 if [ -x "$DISTTOOL" ] ; then
   shift
   exec "$DISTTOOL" ${1+"$@"}
