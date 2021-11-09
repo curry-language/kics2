@@ -42,7 +42,7 @@ export KICS2INSTALLDIR =
 export CURRYSYSTEM = kics2
 
 # The Stack resolver to use. This also determines the GHC version used for KiCS2!
-export STACKRESOLVER = lts-16.31
+export STACKRESOLVER = lts-18.14
 # GHC version as determined by the Stack resolver (see https://www.stackage.org/)
 GHC_MAJOR = 8
 GHC_MINOR = 8
