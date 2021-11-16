@@ -1,6 +1,6 @@
 # Makefile for creating a KiCS2 distribution
 
-DISTNAME = kics2-$(VERSION)
+DISTNAME := kics2-$(VERSION)-$(shell uname -m)-$(shell uname -s | tr '[:upper:]' '[:lower:]')
 TARBALLNAME = $(DISTNAME).tar.gz
 
 DISTDIR = $(DISTROOTDIR)/$(DISTNAME)
