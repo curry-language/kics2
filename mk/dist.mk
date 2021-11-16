@@ -71,52 +71,37 @@ $(DISTDIR): $(ROOT) | $(DISTROOTDIR)
 	rm -rf $(DISTDIR)/.git $(DISTDIR)/**/.git $(DISTDIR)/.gitmodules $(DISTDIR)/.dist-modules
 
 $(DISTSRCDIR)/%: $(SRCDIR)/%
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
-$(DISTBINDIR)/%: $(BINDIR)/% | $(DISTBINDIR)
+$(DISTBINDIR)/%: $(BINDIR)/%
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
-$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/% | $(DISTLOCALBINDIR)
+$(DISTLOCALBINDIR)/%: $(LOCALBINDIR)/%
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
-$(DISTLIBDIR)/%: $(LIBDIR)/% | $(DISTLIBDIR)
+$(DISTLIBDIR)/%: $(LIBDIR)/%
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
-$(DISTCPMPACKAGESDIR): $(DOTCPMDIR)/packages | $(DISTDOTCPMDIR)
+$(DISTCPMPACKAGESDIR): $(DOTCPMDIR)/packages
+	mkdir -p $$(dirname $@)
 	cp -r $< $@
 
-$(DISTCPMDEPSDUMMY): $(CPMDEPS) | $(DISTDOTMKDIR)
+$(DISTCPMDEPSDUMMY): $(CPMDEPS)
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
-$(DISTSTAGE1COMP): $(DISTCOMP) | $(DISTSTAGE1DIR)
+$(DISTSTAGE1COMP): $(DISTCOMP)
+	mkdir -p $$(dirname $@)
 	ln -sf ../kics2c $@
 
-$(DISTSTAGE2COMP): $(DISTCOMP) | $(DISTSTAGE2DIR)
+$(DISTSTAGE2COMP): $(DISTCOMP)
+	mkdir -p $$(dirname $@)
 	ln -sf ../kics2c $@
 
-$(DISTSTAGE3COMP): $(DISTCOMP) | $(DISTSTAGE3DIR)
+$(DISTSTAGE3COMP): $(DISTCOMP)
+	mkdir -p $$(dirname $@)
 	ln -sf ../kics2c $@
-
-$(DISTBINDIR): | $(DISTDIR)
-	mkdir -p $@
-
-$(DISTLOCALBINDIR): | $(DISTDIR)
-	mkdir -p $@
-
-$(DISTLIBDIR): | $(LIBDIR)
-	mkdir -p $@
-
-$(DISTDOTCPMDIR): | $(DOTCPMDIR)
-	mkdir -p $@
-
-$(DISTDOTMKDIR): | $(DISTDIR)
-	mkdir -p $@
-
-$(DISTSTAGE1DIR): | $(DISTLOCALBINDIR)
-	mkdir -p $@
-
-$(DISTSTAGE2DIR): | $(DISTLOCALBINDIR)
-	mkdir -p $@
-
-$(DISTSTAGE3DIR): | $(DISTLOCALBINDIR)
-	mkdir -p $@
