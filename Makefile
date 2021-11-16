@@ -90,6 +90,8 @@ PACKAGEJSON = $(ROOT)/package.json
 STACKYAML = $(ROOT)/stack.yaml
 # The Stack root directory
 STACKROOT = $(ROOT)/.stack
+# The Stack configuration file
+STACKCONFIG = $(STACKROOT)/config.yaml
 # The Stack lock file
 STACKYAMLLOCK = $(ROOT)/stack.yaml.lock
 # The Curry package manager directory
@@ -361,6 +363,7 @@ $(STACKPKGS): $(STACKYAML) $(LIB) $(RUNTIME) | $(DOTMKDIR)
 	chmod a+rw $(STACKROOT)/stack.sqlite3.pantry-write-lock \
 	           $(STACKROOT)/pantry/pantry.sqlite3.pantry-write-lock \
 	           $(DOTSTACKWORKDIR)/stack.sqlite3.pantry-write-lock
+	chmod a+r $(STACKYAMLLOCK) $(STACKCONFIG)
 	@touch $@
 
 # Creates a directory for the compiled libraries
