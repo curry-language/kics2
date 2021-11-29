@@ -1,4 +1,5 @@
 # Global Stack configuration for KiCS2
-# Make sure to edit stack-config.yaml, not config.yaml, which is auto-generated!
+# Make sure to edit stack-config.yaml.in, not config.yaml,
+# since the latter is auto-generated!
 
 recommend-stack-upgrade: false

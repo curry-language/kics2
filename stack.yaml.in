@@ -1,0 +1,11 @@
+# Make sure to edit stack.yaml.in, not stack.yaml,
+# since the latter is auto-generated!
+
+resolver: $STACKRESOLVER
+packages:
+  - lib/
+  - runtime/
+extra-deps:
+  - parallel-tree-search-0.4.2
+  - tree-monad-0.3.1
+allow-different-user: true

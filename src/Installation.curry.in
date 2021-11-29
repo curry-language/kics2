@@ -1,0 +1,55 @@
+-- Make sure to edit Installation.curry.in, not Installation.curry,
+-- since the latter is auto-generated!
+module Installation where
+
+import System.Directory (doesDirectoryExist)
+import System.IO.Unsafe (unsafePerformIO)
+
+compilerName :: String
+compilerName = "kics2"
+
+majorVersion :: Int
+majorVersion = $MAJORVERSION
+
+minorVersion :: Int
+minorVersion = $MINORVERSION
+
+revisionVersion :: Int
+revisionVersion = $REVISIONVERSION
+
+fullVersion :: String
+fullVersion = "$VERSION"
+
+buildVersion :: Int
+buildVersion = $BUILDVERSION
+
+compilerDate :: String
+compilerDate = "$COMPILERDATE"
+
+installDate :: String
+installDate = "$INSTALLDATE"
+
+runtime :: String
+runtime = "ghc"
+
+runtimeMajor :: Int
+runtimeMajor = $GHC_MAJOR
+
+runtimeMinor :: Int
+runtimeMinor = $GHC_MINOR
+
+baseVersion :: String
+baseVersion = "$BASE_VERSION"
+
+-- GHC options for using local libraries and not cabal packages:
+ghcLocalOptions :: String
+ghcLocalOptions = "$GHC_OPTS"
+
+ghcOptions :: String
+ghcOptions = "$GHC_OPTS"
+
+ghcOptimizations :: String
+ghcOptimizations = "$GHC_OPTIMIZATIONS"
+
+withProfiling :: Bool
+withProfiling = False
