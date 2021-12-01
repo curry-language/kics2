@@ -392,13 +392,17 @@ $(DOTMKDIR):
 $(DISTROOTDIR):
 	mkdir -p $@
 
+# Creates the .stack directory.
+$(STACKROOT):
+	mkdir -p $@
+
 # Generates the local stack configuration.
 $(STACKYAML): $(STACKYAMLIN) | $(LIB) $(RUNTIME)
 	@$(ECHOINFO) "Generating local Stack config (stack.yaml)"
 	@envsubst < $< > $@
 
 # Generates the global stack configuration.
-$(STACKCONFIG): $(STACKCONFIGIN)
+$(STACKCONFIG): $(STACKCONFIGIN) | $(STACKROOT)
 	@$(ECHOINFO) "Generating global Stack config (config.yaml)"
 	@envsubst < $< > $@
 
