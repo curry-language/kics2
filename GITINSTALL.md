@@ -38,7 +38,9 @@ Currently, there are at least two options:
 
  1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
 
-    > Note that KiCS2 3.0.0 distributions are not available on the website yet, therefore you may have to use PAKCS for bootstrapping for now. Of course you can still bootstrap with KiCS2 if you have already built version 3 somewhere.
+    > Note that KiCS2 3.0.0 distributions are not available on the website yet,
+    therefore you may have to use PAKCS for bootstrapping for now. Of course you
+    can still bootstrap with KiCS2 if you have already built version 3 somewhere.
 
     Download and install the KiCS2 distribution from the
     [KiCS2 download site](http://www-ps.informatik.uni-kiel.de/kics2/download.html).
@@ -51,7 +53,7 @@ Currently, there are at least two options:
 
         make CURRY=/path/to/kics2/bin/kics2
 
-    in the directory `kics2`.
+    in this directory.
 
  2. Bootstrapping with PAKCS 3.0.0 or newer (the slower option)
 
@@ -62,7 +64,8 @@ Currently, there are at least two options:
 
         make CURRY=/path/to/pakcs/bin/pakcs
 
-    in the directory `kics2`. If `pakcs` is already on your `PATH`, simply running `make` without arguments will work too.
+    in this directory. If `pakcs` is already on your `PATH`, simply
+    running `make` without arguments will work too.
 
 Further information is available in the installation instructions
 of the KiCS2 distribution which can be found
