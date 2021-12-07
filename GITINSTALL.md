@@ -18,8 +18,7 @@ Go into this directory by
 
 and execute
 
-    git submodule init
-    git submodule update
+    git submodule update --init
 
 in order to obtain further files managed by git in other repositories,
 i.e., the frontend and the Curry system libraries shared by KiCS2 and PAKCS.
@@ -29,11 +28,6 @@ Then, each future update can be obtained by the executing
     git pull
     git submodule update
 
-You also need the profiling libraries of Haskell in order to
-install the GIT version of KiCS2. Hence, if you have not already done,
-install the packages `haskell-platform-prof` or `ghc-prof`
-which contain these profiling libraries.
-
 Due to the fact that the KiCS2 compiler and interactive environment
 is implemented in Curry, you need an executable Curry compiler
 to install KiCS2 via bootstrapping.
@@ -42,36 +36,33 @@ implementation on your machine in order to start the
 bootstrapping process.
 Currently, there are at least two options:
 
- 1. Bootstrapping with KiCS2 (the faster option)
+ 1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
+
+    > Note that KiCS2 3.0.0 distributions are not available on the website yet, therefore you may have to use PAKCS for bootstrapping for now. Of course you can still bootstrap with KiCS2 if you have already built version 3 somewhere.
 
     Download and install the KiCS2 distribution from the
     [KiCS2 download site](http://www-ps.informatik.uni-kiel.de/kics2/download.html).
-    Be sure to use a different directory than `kics2` for this installation,
+    Be sure to use a different directory than this one for this installation,
     e.g., install this in `/tmp/kics2`.
     If you successfully installed this distribution (note that you do not
     need the complete installation so that it is sufficient to install
     this distribution by `make kernel`), you can generate the initial
     KiCS2 compiler by the command
 
-        make bootstrap CURRY=/tmp/kics2/bin/kics2
+        make CURRY=/path/to/kics2/bin/kics2
 
     in the directory `kics2`.
 
- 2. Bootstrapping with PAKCS (the slower option)
+ 2. Bootstrapping with PAKCS 3.0.0 or newer (the slower option)
 
     Download and install the PAKCS implementation of Curry from the
     [PAKCS web site](http://www.informatik.uni-kiel.de/~pakcs).
-    If you successfully installed PAKCS, be sure to have the command
-    `pakcs` in your load path. Then you can generate the initial
+    If you successfully installed PAKCS, you can generate the initial
     KiCS2 compiler by the command
 
-        make bootstrap
+        make CURRY=/path/to/pakcs/bin/pakcs
 
-    in the directory `kics2`.
-
-Now you are ready to install KiCS2 with all its components by
-
-    make
+    in the directory `kics2`. If `pakcs` is already on your `PATH`, simply running `make` without arguments will work too.
 
 Further information is available in the installation instructions
 of the KiCS2 distribution which can be found
