@@ -39,8 +39,8 @@ Currently, there are at least two options:
  1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
 
     > Note that KiCS2 3.0.0 distributions are not available on the website yet,
-    therefore you may have to use PAKCS for bootstrapping for now. Of course you
-    can still bootstrap with KiCS2 if you have already built version 3 somewhere.
+      therefore you may have to use PAKCS for bootstrapping for now. Of course you
+      can still bootstrap with KiCS2 if you have already built version 3 somewhere.
 
     Download and install the KiCS2 distribution from the
     [KiCS2 download site](http://www-ps.informatik.uni-kiel.de/kics2/download.html).
@@ -48,7 +48,7 @@ Currently, there are at least two options:
     e.g., install this in `/tmp/kics2`.
     If you successfully installed this distribution (note that you do not
     need the complete installation so that it is sufficient to install
-    this distribution by `make kernel`), you can generate the initial
+    this distribution by `make kernel`), you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
         make CURRY=/path/to/kics2/bin/kics2
@@ -59,13 +59,27 @@ Currently, there are at least two options:
 
     Download and install the PAKCS implementation of Curry from the
     [PAKCS web site](http://www.informatik.uni-kiel.de/~pakcs).
-    If you successfully installed PAKCS, you can generate the initial
+    If you successfully installed PAKCS, you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
         make CURRY=/path/to/pakcs/bin/pakcs
 
     in this directory. If `pakcs` is already on your `PATH`, simply
     running `make` without arguments will work too.
+
+Once successfully built, you will have a fully bootstrapped KiCS2 compiler.
+For development you may wish to rebuild the compiler, which you can do with
+
+    make
+
+This will build KiCS2 using `bin/kics2` in this directory, i.e. use the
+bootstrapped compiler to rebuild itself.
+
+> Note that changes to the KiCS2 compiler may make it unable to compile itself.
+  Therefore it is advised to always specify which compiler you wish to
+  compile KiCS2 with, e.g. another instance of KiCS2:
+
+    make CURRY=/path/to/other/kics2/bin/kics2
 
 Further information is available in the installation instructions
 of the KiCS2 distribution which can be found
