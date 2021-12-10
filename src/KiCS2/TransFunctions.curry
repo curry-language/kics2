@@ -3,7 +3,7 @@
 --- the translation of function declarations from FlatCurry into Haskell.
 ---
 --- @author Bjoern Peemoeller, Fabian Skrlac
---- @version May 2014
+--- @version December 2021
 --- --------------------------------------------------------------------------
 module KiCS2.TransFunctions ( State (..), defaultState, trProg, runIOES ) where
 
@@ -284,32 +284,32 @@ isGlobalDecl (Func _ a _ _ r) = case r of
 
 isGlobalCall :: Expr -> Bool
 isGlobalCall e = case e of
-  Comb FuncCall fname [_, c] -> fname == globalGlobal
-                             && c     == Comb ConsCall globalTemporary []
-  _                          -> False
+  Comb FuncCall fname _ -> fname == globalGlobalT
+  _                     -> False
 
-globalGlobal :: QName
-globalGlobal = renameQName ("Global", "global")
+globalGlobalT :: QName
+globalGlobalT = renameQName ("Data.Global", "globalT")
 
-globalTemporary :: QName
-globalTemporary = renameQName ("Global", "Temporary")
-
---- Translate a global declaration of the form `fun = global val Temporary`.
+--- Translate a global declaration of the form `fun = globalT name val`
+--- used with the library `Data.Global` of package `global`.
 --- This will be translated into
 ---
 ---     d_C_fun _ _  = global_C_fun
----     global_C_fun = d_C_global (let x3500 = emptyCs
----                                    x3250 = initCover
----                               in  (tr val))
----                               C_Temporary emptyCs
+---     global_C_fun = d_C_globalT (tr name)
+---                                (let x3500 = emptyCs
+---                                     x3250 = initCover
+---                                in  (tr val))
+---                                initCover
+---                                emptyCs
 ---
 --- to make it a constant.
 trGlobalDecl :: FuncDecl -> M [AH.FuncDecl]
 trGlobalDecl (Func qn a v t r) = doInDetMode True $ case r of
-  (Rule _ (Comb _ _ [e, _]))  | a == 0  -> do
+  (Rule _ (Comb _ _ [name, e]))  | a == 0  -> do
+    name'   <- trCompleteExpr qn name
     e'      <- trCompleteExpr qn e
     qn'     <- renameFun qn
-    global' <- renameFun globalGlobal
+    global' <- renameFun globalGlobalT
     t'      <- trDetType 0 t
     tsig    <- toTypeSig <$> trHOTypeExpr AH.FuncType t
     return $
@@ -319,12 +319,12 @@ trGlobalDecl (Func qn a v t r) = doInDetMode True $ case r of
       , AH.Func "" (mkGlobalName qn) 0 AH.Private
         tsig
         (AHG.simpleRule [] (AHG.applyF global'
-              [ AHG.clet (map (uncurry AHG.declVar)
+              [ name'
+              , AHG.clet (map (uncurry AHG.declVar)
                             [ (constStoreName, emptyCs  )
                             , (coverName     , initCover)
                             ])
                        e'
-              , AH.Symbol globalTemporary
               , initCover
               , emptyCs
               ]))
