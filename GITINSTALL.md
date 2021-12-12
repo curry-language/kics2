@@ -51,7 +51,7 @@ Currently, there are at least two options:
     this distribution by `make kernel`), you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
-        make CURRY=/path/to/kics2/bin/kics2
+        make CURRY=[path/to/kics2]/bin/kics2
 
     in this directory.
 
@@ -62,7 +62,7 @@ Currently, there are at least two options:
     If you successfully installed PAKCS, you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
-        make CURRY=/path/to/pakcs/bin/pakcs
+        make CURRY=[path/to/pakcs]/bin/pakcs
 
     in this directory. If `pakcs` is already on your `PATH`, simply
     running `make` without arguments will work too.
@@ -79,7 +79,7 @@ bootstrapped compiler to rebuild itself.
   Therefore it is advised to always specify which compiler you wish to
   compile KiCS2 with, e.g. another instance of KiCS2:
 
-    make CURRY=/path/to/other/kics2/bin/kics2
+    make CURRY=[path/to/other/kics2]/bin/kics2
 
 Further information is available in the installation instructions
 of the KiCS2 distribution which can be found
