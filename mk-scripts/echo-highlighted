@@ -1,0 +1,18 @@
+#!/bin/bash
+# Output a colored message.
+
+color=$1
+shift
+
+if [ -z "$color" ]; then
+  echo "Usage: $0 [color code] [message]"
+  exit 1
+fi
+
+message="==> $@"
+
+if [ -t 1 ]; then
+  echo "$(tput bold)$(tput setaf $color)$message$(tput sgr0)"
+else
+  echo "$message"
+fi

@@ -2,13 +2,9 @@
   path = lib-trunk
   url = ROOT/lib-trunk
 
-[submodule "curry-base"]
-  path = frontend/curry-base
-  url = ROOT/frontend/curry-base
-
-[submodule "curry-frontend"]
-  path = frontend/curry-frontend
-  url = ROOT/frontend/curry-frontend
+[submodule "frontend"]
+  path = frontend
+  url = ROOT/frontend
 
 [submodule "currytools"]
   path = currytools

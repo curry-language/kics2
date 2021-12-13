@@ -1,0 +1,39 @@
+{
+    "name": "kics2",
+    "version": "3.0.0",
+    "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
+    "synopsis": "The Kiel Curry System (Version 2)",
+    "category": [ "Compilers", "Metaprogramming" ],
+    "license": "BSD-3-Clause",
+    "licenseFile": "LICENSE",
+    "dependencies": {
+        "abstract-curry"      : ">= 3.0.0, < 4.0.0",
+        "abstract-haskell"    : ">= 3.0.0, < 4.0.0",
+        "currypath"           : ">= 3.0.0, < 4.0.0",
+        "containers"          : ">= 3.0.0, < 4.0.0",
+        "directory"           : ">= 3.0.0, < 4.0.0",
+        "distribution"        : ">= 3.0.0, < 4.0.0",
+        "filepath"            : ">= 3.0.0, < 4.0.0",
+        "flatcurry"           : ">= 3.0.0, < 4.0.0",
+        "flatcurry-annotated" : ">= 3.3.0, < 4.0.0",
+        "io-extra"            : ">= 3.0.0, < 4.0.0",
+        "scc"                 : ">= 3.0.0, < 4.0.0",
+        "process"             : ">= 3.0.0, < 4.0.0",
+        "propertyfile"        : ">= 3.0.0, < 4.0.0",
+        "queue"               : ">= 3.0.0, < 4.0.0",
+        "redblacktree"        : ">= 3.0.0, < 4.0.0",
+        "time"                : ">= 3.0.0, < 4.0.0",
+        "transformers"        : ">= 3.0.0, < 4.0.0",
+        "wl-pprint"           : ">= 3.0.0, < 4.0.0"
+    },
+    "executables": [
+        {
+            "name": "kics2c",
+            "main": "KiCS2.Compile"
+        },
+        {
+            "name": "kics2i",
+            "main": "KiCS2.REPL"
+        }
+    ]
+}

@@ -4,6 +4,7 @@
 *.o
 *.o-boot
 *.icurry
+.cpm
 .curry
 Curry_Main_Goal.curry
 
@@ -34,12 +35,23 @@ src/Installation.curry
 *.log
 .kics2sc
 lib
+env
 runtime/dist
+runtime/dist-newstyle
 runtime/kics2-runtime.cabal
 docs/src/version.tex
 docs/src/tooldocs/casc/curry-style-guide.html
 cabal-dev/
 pkg/
+.mk
+.stack
+.stack-work
+/stack.yaml
+stack.yaml.lock
+TMPLIBOUT
+*.state
+KiCS2.Compile
+KiCS2.REPL
 
 # binaries
 benchmarks/Benchmarks
@@ -72,4 +84,8 @@ docs/markdown_syntax.html
 docs/src/markdown_syntax.tex
 
 # distribution
+dist/
 kics2*.tar.gz
+
+# editors
+.vscode
