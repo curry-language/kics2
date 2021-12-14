@@ -37,17 +37,9 @@ check_and_exec_tool() {
   fi
 }
 
-# check whether the real program name and the first argument is a tool
-# in the distribution and, if yes, exec the tool
-DISTTOOL=`realpath $0`-$1
-if [ -x "$DISTTOOL" ] ; then
-  shift
-  exec "$DISTTOOL" ${1+"$@"}
-fi
-
 # check whether a tool of the distribution should be executed
 case $1 in
-  cypm | frontend ) check_and_call_tool ${1+"$@"} ;;
+  cypm | frontend ) check_and_exec_tool ${1+"$@"} ;;
 esac
 
 # check whether we should call CPM to compute the correct load path:
@@ -66,7 +58,7 @@ for i in $* ; do
   case $i in
     --help | -h | -\? ) USECPM=no ;;
     --version | -V    ) USECPM=no ;;
-    --nocypm | --numeric-version | --compiler-name | --base-version ) USECPM=no ;;
+    --nocypm | -n | --numeric-version | --compiler-name | --base-version ) USECPM=no ;;
   esac
 done
 

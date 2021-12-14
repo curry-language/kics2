@@ -102,8 +102,8 @@ processArgsAndStart rst []
 processArgsAndStart rst (arg:args)
   -- ignore empty arguments which can be provided by single or double quotes
   | null      arg = processArgsAndStart rst args
-  -- ignore '--nocypm' or '--noreadline' (already processed by kics2 script)
-  | arg == "--nocypm" || arg == "--noreadline"
+  -- ignore '-n'/'--nocypm'/'--noreadline' (already processed by kics2 script)
+  | arg == "-n" || arg == "--nocypm" || arg == "--noreadline"
   = processArgsAndStart rst args
   | arg == "-V" || arg == "--version"
   = getBanner >>= putStrLn  >> processArgsAndStart rst { quit = True} args
@@ -143,7 +143,7 @@ printHelpOnInteractive = putStrLn $ unlines
   , "--compiler-name   : show the compiler name `kics2' and quit"
   , "--numeric-version : show the compiler version number and quit"
   , "--base-version    : show the version of the base libraries and quit"
-  , "--nocypm          : do not invoke `cypm' to compute package load path"
+  , "-n|--nocypm       : do not invoke `cypm' to compute package load path"
   , "--noreadline      : do not use input line editing via command `rlwrap'"
   , "-Dprop=val        : define kics2rc property `prop' as `val'"
   , "<commands>        : list of commands of the KiCS2 environment"
