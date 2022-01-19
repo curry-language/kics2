@@ -3,7 +3,7 @@
 --- It implements the Read-Eval-Print loop for KiCS2
 ---
 --- @author Michael Hanus, Bjoern Peemoeller, Finn Teegen
---- @version August 2019
+--- @version January 2022
 --- --------------------------------------------------------------------------
 module KiCS2.REPL where
 
@@ -446,11 +446,12 @@ insertFreeVarsInMainGoal rst goal (Just prog) = case prog of
 
 --- If the main goal is polymorphic, make it monomorphic by adding a type
 --- declaration where type variables are replaced by type "()". Before,
---- type variables with a numeric constraint like "Num"/"Integral" or
---- "Fractional" are defaulted to the types "Int" or "Float", respectively.
+--- type variables with a numeric constraint like `Num`/`Integral` or
+--- `Fractional`/`Floating` are defaulted to the types `Int` or `Float`,
+--- respectively.
 --- The type of the main goal is only allowed to contain numeric constraints.
---- If the main goal has type "IO t" where t is monomorphic, t /= (),
---- and t is not a function, then ">>= print" is added to the goal.
+--- If the main goal has type `IO t` where t is monomorphic, t /= (),
+--- and t is not a function, then `>>= print` is added to the goal.
 --- The result is False if the main goal contains some error.
 makeMainGoalMonomorphic :: ReplState -> CurryProg -> String -> IO Bool
 makeMainGoalMonomorphic rst prog goal = case prog of
@@ -483,27 +484,45 @@ makeMainGoalMonomorphic' rst qty@(CQualType _ ty) goal
                  then '(' : goal ++ ") Prelude.>>= Prelude.print"
                  else goal
 
--- Defaults type variables with a numeric constraint like "Num"/"Integeral" or
--- "Fractional" to the types "Int" or "Float", respectively. Moreover,
--- existing "Data", "Eq", "Ord", "Read", and "Show" constraints for the same
--- type variable are removed.
+-- Defaults type variables with a numeric constraint like `Num`/`Integral` or
+-- `Fractional`/`Floating` to the types `Int` or `Float`, respectively.
+-- Moreover, existing `Data`, `Eq`, `Ord`, `Read`, and `Show` constraints
+-- for the same type variable are removed.
+-- Finally, remaining type variables with `Data` and `Monad` constraints are
+-- defaulted to `Prelude.Bool` and `Prelude.IO`, respectively.
 defaultQualTypeExpr :: CQualTypeExpr -> CQualTypeExpr
-defaultQualTypeExpr (CQualType (CContext cs) ty) =
-  defaultQualTypeExpr' cs (CQualType (CContext []) ty)
-
-defaultQualTypeExpr' :: [CConstraint] -> CQualTypeExpr -> CQualTypeExpr
-defaultQualTypeExpr' [] qty = qty
-defaultQualTypeExpr' (c:cs) (CQualType (CContext cs2) ty) = case c of
-  (("Prelude", ptype), CTVar tv) ->
-    if ptype `elem` ["Num","Integral","Fractional"]
-      then let defptype = if ptype == "Fractional" then "Float" else "Int"
-           in defaultQualTypeExpr'
-                (removeConstraints tv defptype cs)
-                (CQualType (CContext (removeConstraints tv defptype cs2))
-                   (substTypeVar tv (CTCons ("Prelude", defptype)) ty))
-      else defaultQualTypeExpr' cs (CQualType (CContext (cs2 ++ [c])) ty)
-  _ -> defaultQualTypeExpr' cs (CQualType (CContext (cs2 ++ [c])) ty)
+defaultQualTypeExpr (CQualType (CContext ctxt) cty) =
+  defaultMonad $ defaultData $ defaultTExp ctxt (CQualType (CContext []) cty)
  where
+  defaultData qty@(CQualType (CContext dctxt) dcty) = case dctxt of
+    [] -> qty
+    (qtcons, CTVar tv) : cs | qtcons == pre "Data"
+      -> defaultData (CQualType (CContext cs)
+                        (substTypeVar tv (CTCons (pre "Bool")) dcty))
+    _ -> qty
+
+  defaultMonad qty@(CQualType (CContext dctxt) dcty) = case dctxt of
+    [] -> qty
+    (qtcons, CTVar tv) : cs | qtcons `elem` map pre ["Monad","MonadFail"]
+      -> defaultMonad (CQualType (CContext cs)
+                         (substTypeVar tv (CTCons (pre "IO")) dcty))
+    _ -> qty
+
+  defaultTExp :: [CConstraint] -> CQualTypeExpr -> CQualTypeExpr
+  defaultTExp [] qty = qty
+  defaultTExp (c:cs) (CQualType (CContext cs2) ty) = case c of
+    (("Prelude", ptype), CTVar tv) ->
+      if ptype `elem` ["Num", "Integral", "Fractional", "Floating"]
+        then let defptype = if ptype `elem` ["Fractional", "Floating"]
+                              then "Float"
+                              else "Int"
+             in defaultTExp
+                  (removeConstraints tv defptype cs)
+                  (CQualType (CContext (removeConstraints tv defptype cs2))
+                     (substTypeVar tv (CTCons ("Prelude", defptype)) ty))
+        else defaultTExp cs (CQualType (CContext (cs2 ++ [c])) ty)
+    _ -> defaultTExp cs (CQualType (CContext (cs2 ++ [c])) ty)
+
   removeConstraints _  _        []       = []
   removeConstraints tv dflttype (c3:cs3) = case c3 of
     (("Prelude", cls), CTVar tv2)
