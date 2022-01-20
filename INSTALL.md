@@ -44,16 +44,15 @@ Now you are ready to install KiCS2 with all its components by
 
     make
 
-The complete installation with all tools takes some time.
-If you do not want to wait so long and are interested
-only in a kernel system to run some simple Curry programs,
-you can install this kernel system by
+The complete installation with all tools, in particular,
+the Curry Package Manager, takes some time.
+If you want to install only in a kernel system to run
+some simple Curry programs, you can install the kernel system by
 
     make kernel
 
 This installs only the compiler and the interactive environment
-to execute Curry programs but no additional tools (like the
-Curry browser, unit tester, etc).
+to execute Curry programs.
 
 When the installation is finished, the commands to use KiCS2
 are installed in the local directory `bin`.

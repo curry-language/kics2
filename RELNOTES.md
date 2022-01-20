@@ -1,6 +1,66 @@
 Release Notes for KiCS2
 =======================
 
+Release notes for KiCS2 Version 3.0.0 (January 19, 2021)
+--------------------------------------------------------
+
+This version is a major rewrite where the compiler and REPL
+are written as Curry packages in order to re-use the current
+infrastructure for Curry. Moreover, the implementation uses
+[Haskell Stack](https://www.haskellstack.org/) to download
+and install the required Haskell compiler required for KiCS2.
+The other major changes concern the version of the base libraries
+and support for the standard class `Data`, as listed in the following.
+
+Changes to version 2.3.0:
+
+  * Top-level expressions with `Monad` context are specialized to `IO`.
+  * Top-level expressions with `Data` context are specialized to `Bool`.
+  * Top-level expressions with `Floating` context are specialized to `Float`.
+  * Desugaring of `newtype` declarations integrated into the compiler.
+    Thus, the FlatCurry files produced by the front end contain
+    `newtype` declarations which are eliminated before the Prolog code
+    is generated.
+  * New compilation scheme for type classes to avoid problems
+    with 0-ary non-deterministic definitions in instance declarations.
+    Dictionaries are now represented as functions in order to
+    enforce the evaluation of all instance operations.
+  * Prelude: operation `(/==)` added.
+  * The prelude operations `(=:=)` and `(=:<=)` changed from external
+    to defined operations that call the external operations
+    `constrEq` and `nonstrictEq`, respectively. This is meaningful
+    to keep the `Data` constraint for `(=:=)` and `(=:<=)` whereas
+    external operations have no class contexts.
+  * Type class `Data` with operations `(===)` (equality) and
+    `aValue` (non-deterministic value generator) added to the prelude.
+    For each `data` declaration, `Data` instances for the defined type
+    are automatically derived as long as the defined type is first-order
+    (i.e., does not contain functional types).
+    Free variable have type class constraint `Data`.
+    The motivation for this design and its advantages are described in a
+    [DECLARE/WFLP'19 paper](https://doi.org/10.1007/978-3-030-46714-2_15).
+  * The standard libraries has been changed in order to keep the names
+    and structure more closely with Haskell. Specialized functionality
+    is moved separate packages. There is a separate
+    [migration guide](https://git.ps.informatik.uni-kiel.de/curry/curry-libs/-/blob/master/MigrationGuide.md)
+    describing the changes.
+  * Libraries `FilePath`, `Directory`, `Distribution`, `Time`,
+    `IOExts`, `ReadShowTerm` removed
+    (now available in packages `filepath`, `directory`, `distribution`,
+    `time`, `io-extra` and `read-legacy`).
+  * Library `System` split into `System.Process`, `System.CPUTime`,
+    `System.Environment`. 
+    `System.Process` is available in package `process`.
+    The rest remains in the library.
+  * Implemented the "MonadFail-Proposal" for Curry
+    (see <https://wiki.haskell.org/MonadFail_Proposal>).
+  * Intermediate files are written into versioned directories, e.g.,
+    the FlatCurry representation of `lib/Prelude.curry` is written
+    to `lib/.curry/kics2-3.0.0/Prelude.fcy` (and similarly all
+    other intermediate files). This avoids inconsistencies
+    of intermediate files when different Curry systems are used.
+
+
 Release notes for KiCS2 Version 2.3.0 (October 12, 2020)
 --------------------------------------------------------
 
