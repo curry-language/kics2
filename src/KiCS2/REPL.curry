@@ -8,6 +8,7 @@
 module KiCS2.REPL where
 
 import AbstractCurry.Types hiding (preludeName)
+import AbstractCurry.Build       ( ioType, unitType )
 import AbstractCurry.Files
 import AbstractCurry.Select
 import Control.Applicative       ( when )
@@ -234,7 +235,7 @@ evalExpression rst expr = do
     if status==MainError || (useGhci rst' && not (interactive rst'))
     then return rst'
     else execMain rst' status expr
-  cleanMainGoalFile rst''
+  cleanMainExpFile rst''
   return rst''
 
 -- Check whether the main module import the module "Unsafe".
@@ -264,23 +265,23 @@ currentFrontendParams rst =
 -- Main goal file stuff
 -- ---------------------------------------------------------------------------
 
-writeSimpleMainGoalFile :: ReplState -> String -> IO ()
-writeSimpleMainGoalFile rst goal = writeMainGoalFile rst [] Nothing goal
+writeSimpleMainExpFile :: ReplState -> String -> IO ()
+writeSimpleMainExpFile rst goal = writeMainExpFile rst [] Nothing goal
 
 -- write the file with the main goal where necessary imports
 -- and possibly a type string is provided:
-writeMainGoalFile :: ReplState -> [String] -> Maybe String -> String -> IO ()
-writeMainGoalFile rst imports mtype goal = writeFile mainGoalFile $
+writeMainExpFile :: ReplState -> [String] -> Maybe String -> String -> IO ()
+writeMainExpFile rst imports mtype goal = writeFile mainGoalFile $
   unlines $ [noMissingSigs]
          ++ map ("import " ++) allImports
-         ++ maybe [] (\ts -> ["kics2MainGoal :: " ++ ts]) mtype
-         ++ ["kics2MainGoal = " ++ goal]
+         ++ maybe [] (\ts -> ["kics2MainExp :: " ++ ts]) mtype
+         ++ ["kics2MainExp = " ++ goal]
   where allImports    = nub $ mainMod rst : addMods rst ++ imports
         noMissingSigs = "{-# OPTIONS_CYMAKE -W no-missing-signatures #-}"
 
 -- Remove mainGoalFile and auxiliaries
-cleanMainGoalFile :: ReplState -> IO ()
-cleanMainGoalFile rst = unless keepfiles $ do
+cleanMainExpFile :: ReplState -> IO ()
+cleanMainExpFile rst = unless keepfiles $ do
   k2home <- kics2HomeDir
   system $ k2home </> "bin" </> "cleancurry " ++ mainGoalFile
   removeFileIfExists mainGoalFile
@@ -288,33 +289,33 @@ cleanMainGoalFile rst = unless keepfiles $ do
 
 -- Generate, read, and delete .acy file of main goal file.
 -- Return Nothing if some error occurred during parsing.
-getAcyOfMainGoal :: ReplState -> IO (Maybe CurryProg)
-getAcyOfMainGoal rst = do
+getAcyOfMainExp :: ReplState -> IO (Maybe CurryProg)
+getAcyOfMainExp rst = do
   let mainGoalProg    = stripCurrySuffix mainGoalFile
-      acyMainGoalFile = --abstractCurryFileName mainGoalProg
+      acyMainExpFile = --abstractCurryFileName mainGoalProg
                          inCurrySubdir (stripCurrySuffix mainGoalProg) ++ ".acy"
   frontendParams <- currentFrontendParams rst
   prog <- catch (callFrontendWithParams ACY frontendParams mainGoalProg >>
-                 tryReadACYFile acyMainGoalFile)
+                 tryReadACYFile acyMainExpFile)
                 (\_ -> return Nothing)
-  removeFileIfExists acyMainGoalFile
+  removeFileIfExists acyMainExpFile
   return prog
---   acyExists <- doesFileExist acyMainGoalFile
+--   acyExists <- doesFileExist acyMainExpFile
 --   if not acyExists
 --     then return Nothing
 --     else do
---       acySize <- fileSize acyMainGoalFile
+--       acySize <- fileSize acyMainExpFile
 --       if acySize == 0
 --         then return Nothing
 --         else do
---           prog <- tryReadACYFile acyMainGoalFile
---           removeFile acyMainGoalFile
+--           prog <- tryReadACYFile acyMainExpFile
+--           removeFile acyMainExpFile
 --           return prog
 
 getAcyOfExpr :: ReplState -> String -> IO (Maybe CurryProg)
 getAcyOfExpr rst expr = do
-  writeSimpleMainGoalFile rst expr
-  mbProg <- getAcyOfMainGoal rst
+  writeSimpleMainExpFile rst expr
+  mbProg <- getAcyOfMainExp rst
   removeFileIfExists mainGoalFile
   return mbProg
 
@@ -358,8 +359,8 @@ compileProgramWithGoal rst createExecutable goal =
     let infoFile = funcInfoFile (outputSubdir rst) mainModuleIdent mainGoalFile
     removeFileIfExists infoFile
     removeFileIfExists $ abstractCurryFileName mainGoalFile
-    writeSimpleMainGoalFile rst goal
-    goalstate <- getAcyOfMainGoal rst >>= insertFreeVarsInMainGoal rst goal
+    writeSimpleMainExpFile rst goal
+    goalstate <- getAcyOfMainExp rst >>= insertFreeVarsInMainExp rst goal
     if goalstate == GoalError
       then return (setExitStatus 1 rst, MainError)
       else do
@@ -368,7 +369,7 @@ compileProgramWithGoal rst createExecutable goal =
                 GoalWithBindings p n g -> (p, g   , Just n )
                 GoalWithoutBindings p  -> (p, goal, Nothing)
                 _                      -> error "REPL.compileProgramWithGoal"
-        typeok <- makeMainGoalMonomorphic rst newprog newgoal
+        typeok <- makeMainExpMonomorphic rst newprog newgoal
         if typeok
           then do
             status <- compileCurryProgram rst mainGoalFile
@@ -381,10 +382,10 @@ compileProgramWithGoal rst createExecutable goal =
 -- Insert free variables occurring in the main goal as components
 -- of the main goal so that their bindings are shown
 -- The status of the main goal is returned.
-insertFreeVarsInMainGoal :: ReplState -> String -> Maybe CurryProg
+insertFreeVarsInMainExp :: ReplState -> String -> Maybe CurryProg
                          -> IO GoalCompile
-insertFreeVarsInMainGoal _   _    Nothing     = return GoalError
-insertFreeVarsInMainGoal rst goal (Just prog) = case prog of
+insertFreeVarsInMainExp _   _    Nothing     = return GoalError
+insertFreeVarsInMainExp rst goal (Just prog) = case prog of
   CurryProg _ _ _ _ _ _ [mfunc@(CFunc _ _ _ (CQualType _ ty) _)] _ -> do
     let freevars           = freeVarsInFuncRule mfunc
         (exp, whereclause) = breakWhereFreeClause goal
@@ -408,19 +409,19 @@ insertFreeVarsInMainGoal rst goal (Just prog) = case prog of
             writeVerboseInfo rst 2 $
               "Adding printing of bindings for free variables: " ++
                 intercalate "," freevars
-            writeSimpleMainGoalFile rst newgoal
-            mbprog <- getAcyOfMainGoal rst
+            writeSimpleMainExpFile rst newgoal
+            mbprog <- getAcyOfMainExp rst
             return (maybe GoalError
                           (\p -> GoalWithBindings p (length freevars) newgoal)
                           mbprog)
-  _ -> error "REPL.insertFreeVarsInMainGoal"
+  _ -> error "REPL.insertFreeVarsInMainExp"
  where
   isPrtChoices c = case c of
     PrtChoices _ -> True
     _            -> False
   freeVarsInFuncRule f = case f of
     CFunc _ _ _ _ (CRule _ rhs : _) -> freeVarsInRhs rhs
-    _ -> error "REPL.insertFreeVarsInMainGoal.freeVarsInFuncRule"
+    _ -> error "REPL.insertFreeVarsInMainExp.freeVarsInFuncRule"
 
   freeVarsInRhs rhs = case rhs of
     CSimpleRhs  _ ldecls -> concatMap lvarName ldecls
@@ -429,60 +430,66 @@ insertFreeVarsInMainGoal rst goal (Just prog) = case prog of
   lvarName ldecl = case ldecl of CLocalVars vs -> map snd vs
                                  _             -> []
 
-  -- Breaks a main expression into an expression and a where...free clause.
-  -- If the where clause is not present, this part is empty.
-  breakWhereFreeClause mainexp =
-    let revmainexp = reverse mainexp
-     in if take 4 revmainexp == "eerf"
-        then let woWhere = findWhere (drop 4 revmainexp)
-              in if null woWhere
-                 then (mainexp,"")
-                 else (reverse woWhere, drop (length woWhere) mainexp)
-        else (mainexp,"")
-   where
-    findWhere [] = []
-    findWhere (c:cs) | isSpace c && take 6 cs == "erehw " = drop 6 cs
-                     | otherwise                          = findWhere cs
+-- Breaks a main expression into an expression and a where...free clause.
+-- If the where clause is not present, this part is empty.
+breakWhereFreeClause :: String -> (String,String)
+breakWhereFreeClause mainexp =
+  let revmainexp = reverse mainexp
+   in if take 4 revmainexp == "eerf"
+      then let woWhere = findWhere (drop 4 revmainexp)
+            in if null woWhere
+               then (mainexp,"")
+               else (reverse woWhere, drop (length woWhere) mainexp)
+      else (mainexp,"")
+ where
+  findWhere [] = []
+  findWhere (c:cs) | isSpace c && take 6 cs == "erehw " = drop 6 cs
+                   | otherwise                          = findWhere cs
 
---- If the main goal is polymorphic, make it monomorphic by adding a type
+--- If the main expression is polymorphic, make it monomorphic by adding a type
 --- declaration where type variables are replaced by type "()". Before,
 --- type variables with a numeric constraint like `Num`/`Integral` or
 --- `Fractional`/`Floating` are defaulted to the types `Int` or `Float`,
 --- respectively.
---- The type of the main goal is only allowed to contain numeric constraints.
---- If the main goal has type `IO t` where t is monomorphic, t /= (),
---- and t is not a function, then `>>= print` is added to the goal.
+--- The type of the main exp is only allowed to contain numeric constraints.
+--- If the main expression has type `IO t` where t is monomorphic, t /= (), and
+--- t is not a function, then `>>= Prelude.print` is added to the expression.
 --- The result is False if the main goal contains some error.
-makeMainGoalMonomorphic :: ReplState -> CurryProg -> String -> IO Bool
-makeMainGoalMonomorphic rst prog goal = case prog of
-  CurryProg _ _ _ _ _ _ [CFunc _ _ _ qty _] _ ->
-    makeMainGoalMonomorphic' rst qty goal
-  _ -> error "REPL.makeMainGoalMonomorphic"
-
-makeMainGoalMonomorphic' :: ReplState -> CQualTypeExpr -> String -> IO Bool
-makeMainGoalMonomorphic' rst qty@(CQualType _ ty) goal
-  | isFunctionalType ty = do
-    writeErrorMsg "expression is of functional type"
-    return False
-  | isPolyType ty = case defaultQualTypeExpr qty of
-    CQualType (CContext []) defTy -> do
-      when (defTy /= ty) $ writeVerboseInfo rst 2 $
-        "Defaulted type of main expression: " ++ showMonoTypeExpr False defTy
-      writeMainGoalFile rst (modsOfType defTy)
-                        (Just $ showMonoTypeExpr True defTy) goal
-      when (isPolyType defTy) $ writeVerboseInfo rst 2 $
-        "Type of main expression \"" ++ showMonoTypeExpr False defTy
-        ++ "\" made monomorphic by replacing type variables by \"()\""
-      return True
-    _ -> do
-      writeErrorMsg "cannot handle arbitrary overloaded top-level expressions"
+makeMainExpMonomorphic :: ReplState -> CurryProg -> String -> IO Bool
+makeMainExpMonomorphic rst prog exp = case prog of
+  CurryProg _ _ _ _ _ _ [CFunc _ _ _ qty _] _ -> makeMonoType qty
+  _ -> error "REPL.makeMainExpMonomorphic"
+ where
+  makeMonoType qty@(CQualType _ ty)
+    | isFunctionalType ty = do
+      writeErrorMsg "expression is of functional type"
       return False
-  | otherwise = do
-    unless (newgoal == goal) $ writeSimpleMainGoalFile rst newgoal
-    return True
- where newgoal = if isIOReturnType ty
-                 then '(' : goal ++ ") Prelude.>>= Prelude.print"
-                 else goal
+    | isPolyType ty = case defaultQualTypeExpr qty of
+      CQualType (CContext []) defTy -> do
+        when (defTy /= ty) $ writeVerboseInfo rst 2 $
+          "Defaulted type of main expression: " ++ showMonoTypeExpr False defTy
+        let (nwexp, whereclause) = breakWhereFreeClause exp
+            (nwexpP,pdefTy)      = addPrint nwexp defTy
+            mtype                = showMonoTypeExpr True pdefTy
+            mexp  = "(" ++ nwexpP ++ " :: " ++ mtype ++ ") " ++ whereclause
+        writeMainExpFile rst (modsOfType pdefTy)
+                          (Just $ showMonoTypeExpr True pdefTy) mexp
+        when (isPolyType defTy) $ writeVerboseInfo rst 2 $
+          "Type of main expression \"" ++ showMonoTypeExpr False pdefTy
+          ++ "\" made monomorphic by replacing type variables by \"()\""
+        return True
+      _ -> do
+        writeErrorMsg "cannot handle arbitrary overloaded top-level expressions"
+        return False
+    | otherwise = do
+      let (newexp,_) = addPrint exp ty
+      unless (newexp == exp) $ writeSimpleMainExpFile rst newexp
+      return True
+
+  addPrint e te = if isIOReturnType te
+                    then ("(" ++ e ++ ") Prelude.>>= Prelude.print",
+                          ioType unitType)
+                    else (e, te)
 
 -- Defaults type variables with a numeric constraint like `Num`/`Integral` or
 -- `Fractional`/`Floating` to the types `Int` or `Float`, respectively.
@@ -825,7 +832,7 @@ processSave rst args
     unless (status == MainError) $ do
       renameFile ("." </> outputSubdir rst' </> "Main") (mainMod rst')
       writeVerboseInfo rst' 1 ("Executable saved in '" ++ mainMod rst' ++ "'")
-    cleanMainGoalFile rst'
+    cleanMainExpFile rst'
     return (Just rst')
 
 processFork :: ReplState -> String -> IO (Maybe ReplState)
@@ -841,7 +848,7 @@ processFork rst args
       writeVerboseInfo rst' 3 ("Starting executable '" ++ execname ++ "'...")
       void $ system ("( "++execname++" && rm -f "++execname++ ") "++
               "> /dev/null 2> /dev/null &")
-    cleanMainGoalFile rst'
+    cleanMainExpFile rst'
     return (Just rst')
 
 -- Process setting of an option

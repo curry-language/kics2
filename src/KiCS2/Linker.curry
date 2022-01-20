@@ -4,7 +4,7 @@
 --- and compiling this main file together with all compiled Curry modules.
 ---
 --- @author Michael Hanus, Bjoern Peemoeller
---- @version February 2017
+--- @version January 2022
 --- --------------------------------------------------------------------------
 module KiCS2.Linker
   ( ReplState (..), NonDetMode (..), MainCompile (..), loadPaths
@@ -141,10 +141,10 @@ getGoalInfo :: ReplState -> IO (Bool, Bool)
 getGoalInfo rst = do
   infos <- readInfoFile rst
   --print infos
-  let isdet = notNull (filter (\i -> (snd (fst i)) == "d_C_kics2MainGoal")
+  let isdet = notNull (filter (\i -> (snd (fst i)) == "d_C_kics2MainExp")
                                 infos)
       isio  = snd (head (filter (\i -> snd (fst i) ==
-                           (if isdet then "d" else "nd") ++ "_C_kics2MainGoal")
+                           (if isdet then "d" else "nd") ++ "_C_kics2MainExp")
                         infos))
   writeVerboseInfo rst 2 $ "Initial goal is " ++
                 (if isdet then "" else "non-") ++ "deterministic and " ++
@@ -281,7 +281,7 @@ mainModule rst isdet isio isTF mbBindings = unlines
       else "import Curry_" ++ dropExtension mainGoalFile
   , ""
   , "main :: IO ()"
-  , mainExpr "kics2MainGoal" isdet isio isTF (ndMode rst) evalMode mbBindings
+  , mainExpr "kics2MainExp" isdet isio isTF (ndMode rst) evalMode mbBindings
   ]
  where
   evalMode
