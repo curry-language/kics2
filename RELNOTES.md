@@ -17,10 +17,6 @@ Changes to version 2.3.0:
   * Top-level expressions with `Monad` context are specialized to `IO`.
   * Top-level expressions with `Data` context are specialized to `Bool`.
   * Top-level expressions with `Floating` context are specialized to `Float`.
-  * Desugaring of `newtype` declarations integrated into the compiler.
-    Thus, the FlatCurry files produced by the front end contain
-    `newtype` declarations which are eliminated before the Prolog code
-    is generated.
   * New compilation scheme for type classes to avoid problems
     with 0-ary non-deterministic definitions in instance declarations.
     Dictionaries are now represented as functions in order to
