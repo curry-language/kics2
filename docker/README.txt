@@ -40,7 +40,7 @@ Log into the Docker Hub from command line, tag and push the local image:
     > docker tag kics2 caups/kics2:<version>
     > docker push caups/kics2:<version>
 
-where <version> should be something like "2.3.0"
+where <version> should be something like "3.0.0"
 or "latest" to update the latest version.
 
 

@@ -1,1 +1,1 @@
-Dockerfile-kics2-2.3.0-ubuntu-18.04
+Dockerfile-kics2-3.0.0-debian-10

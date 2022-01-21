@@ -14,25 +14,15 @@ has been successfully tested on a Windows 7 together with
 [MinGW] (see below for detailed instructions).
 
 If you want to install and run the complete system
-on your computer, you need a Haskell implementation,
-in particular the [Glasgow Haskell Compiler] and [Cabal],
-a Haskell package management system. They are both shipped with the
-[Haskell Platform], a ready-to-use Haskell ecosystem.
+on your computer, a Haskell implementation is required,
+which will be download by [Haskell Stack](https://www.haskellstack.org/)
+during the installation process. Thus, this build tool
+should be on your system.
 
 For instance, if you run Ubuntu Linux, you can easily install
 these packages by
 
-    sudo apt-get install haskell-platform
-
-Alternatively, you can easily install the [Glasgow Haskell Compiler]
-and [Cabal] by
-
-    sudo apt-get install ghc cabal-install
-
-If you want to use profiling (see the manual for more details),
-then you also need to install the packages
-`haskell-platform-prof` or `ghc-prof`
-which contain additional profiling libraries.
+    sudo apt-get install haskell-stack
 
 After unpacking the distribution file, go into the main directory
 of the distribution (which is denoted by `kics2home` in the following):
