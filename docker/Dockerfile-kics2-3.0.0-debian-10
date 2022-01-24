@@ -10,7 +10,7 @@ RUN apt-get --assume-yes install git zip unzip sqlite3
 # required for KiCS2
 RUN apt-get --assume-yes install haskell-stack python3 rlwrap
 RUN apt-get --assume-yes install gettext # for command envsubst
-RUN apt-get --assume-yes install libtinfo6 # for library libtinfo
+RUN apt-get --assume-yes install libtinfo-dev # for library libtinfo
     
 RUN apt-get --assume-yes install time
 
