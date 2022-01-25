@@ -7,5 +7,7 @@ stages:
 
 make_kernel:
   stage: make
+  tags:
+    - docker2
   script:
     - make CURRY=kics2 kernel
