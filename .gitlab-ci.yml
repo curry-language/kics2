@@ -1,0 +1,11 @@
+image:
+  name: "caups/kics2:3.0.0"
+  entrypoint: [""]
+
+stages:
+  - make
+
+make_kernel:
+  stage: make
+  script:
+    - make CURRY=kics2 kernel
