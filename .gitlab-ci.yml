@@ -1,0 +1,17 @@
+image:
+  name: "caups/kics2:3.0.0"
+  entrypoint: [""]
+
+variables:
+  # Make sure that submodules are checked out
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - make
+
+make_kernel:
+  stage: make
+  tags:
+    - docker2
+  script:
+    - make CURRY=kics2 kernel
