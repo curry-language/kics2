@@ -336,8 +336,8 @@ cleanfrontend:
 # Cleans up build files (not from the frontend, however!)
 .PHONY: cleankics2
 cleankics2: cleanlib cleanruntime cleanutils cleanbin cleandist
-	rm -rf $(DOTCPMDIR) \
-	       $(DOTSTACKWORKDIR) \
+	rm -rf $(DOTCPMDIR) $(CPMDEPS) \
+	       $(DOTSTACKWORKDIR) $(STACKPKGS) \
 	       $(STACKYAML) \
 	       $(STACKYAMLLOCK) \
 	       $(ROOT)/.curry \
