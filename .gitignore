@@ -89,3 +89,6 @@ kics2*.tar.gz
 
 # editors
 .vscode
+
+# os-specific
+.DS_Store
