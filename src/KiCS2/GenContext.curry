@@ -53,10 +53,6 @@ genContext bvs = snd . toTypeSig' bvs
     elemFst []         _ = False
     elemFst ((x,_):xs) e = x == e || elemFst xs e
 
-    isTypeVar ty = case ty of
-      AH.TVar _ -> True
-      _         -> False
-
 -- The Curry contexts are generated based on the type variable's
 -- kind by using the QuantifiedConstraints language extension.
 -- Consider the following examples (with simplified type variable names):
