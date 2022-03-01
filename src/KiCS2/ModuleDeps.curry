@@ -32,18 +32,14 @@ import KiCS2.System.FrontendExec   ( defaultParams, setDefinitions, setOutDir
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )
 
-import FlatCurry.Annotated.Types
 import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import KiCS2.CompilerOpts
 import KiCS2.System.CurryPath      ( inCurrySubdirModule, stripCurrySuffix )
 import KiCS2.InstallationPaths     ( kics2HomeDir )
-import KiCS2.Message               ( showStatus,showAnalysis )
+import KiCS2.Message               ( showStatus )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
-import KiCS2.RCFile                ( rcValue )
-import Installation                ( compilerName
-                                   , majorVersion, minorVersion, fullVersion
-                                   )
+import Installation                ( compilerName, majorVersion, minorVersion )
 
 type ModuleIdent = String
 type Errors      = [String]
@@ -143,11 +139,11 @@ hReadUntil h isBreakChar = do
 readAfcyModuleHeader :: FilePath -> IO String
 readAfcyModuleHeader afcyFile = do
   h <- openFile afcyFile ReadMode
-  hReadUntil h $ not . isSpace -- leading spaces
-  hReadUntil h isSpace          -- AProg
-  hReadUntil h $ not . isSpace -- spaces
+  _ <- hReadUntil h $ not . isSpace -- leading spaces
+  _ <- hReadUntil h isSpace         -- AProg
+  _ <- hReadUntil h $ not . isSpace -- spaces
   modId  <- hReadUntil h $ isSpace
-  hReadUntil h (== '[')          -- spaces
+  _ <- hReadUntil h (== '[')        -- spaces
   modIds <- hReadUntil h (== ']')
   hClose h
   return $ '"' : modId ++ "[" ++ modIds
