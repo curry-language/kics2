@@ -38,7 +38,7 @@ genContext bvs = snd . toTypeSig' bvs
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just kind -> ([(t, kind)], t)
       Nothing   -> ([],          t)
-    toTypeSig' vs t@(AH.TCons qname tys) =
+    toTypeSig' vs (AH.TCons qname tys) =
       let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
       in (concat ctys, AH.TCons qname tys')
 
