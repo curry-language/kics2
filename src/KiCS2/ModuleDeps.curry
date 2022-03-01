@@ -19,7 +19,7 @@ import System.IO                   ( Handle, IOMode(ReadMode), hClose
                                    , hGetChar, hIsEOF, openFile
                                    )
 import System.Process              ( system )
-import System.FilePath             ( FilePath, dropExtension, takeExtension
+import System.FilePath             ( dropExtension, takeExtension
                                    , takeBaseName, dropTrailingPathSeparator
                                    , (</>), (<.>), normalise
                                    )

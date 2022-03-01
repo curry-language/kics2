@@ -30,7 +30,7 @@ import System.Directory    ( doesFileExist, getCurrentDirectory
                            , getHomeDirectory, setCurrentDirectory )
 import System.Environment  ( getEnv )
 import System.Process      ( system )
-import System.FilePath     ( FilePath, (</>), (<.>), addTrailingPathSeparator
+import System.FilePath     ( (</>), (<.>), addTrailingPathSeparator
                            , dropFileName, joinPath, splitDirectories
                            , splitExtension, splitFileName, splitPath
                            , splitSearchPath

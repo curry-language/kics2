@@ -12,7 +12,7 @@ import Data.List                   ( intercalate, isPrefixOf )
 import Data.Map                    ( union )
 import Control.Monad               ( when, foldM )
 import System.Directory            ( doesFileExist )
-import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
+import System.FilePath             ( (</>), dropExtension, normalise )
 import System.IOExts               ( readCompleteFile )
 import System.Environment          ( getArgs )
 
