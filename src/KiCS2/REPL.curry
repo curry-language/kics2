@@ -13,7 +13,7 @@ import AbstractCurry.Files
 import AbstractCurry.Select
 import Control.Applicative       ( when )
 import Control.Monad             ( foldM, void, unless )
-import Language.Curry.Distribution ( baseVersion, installDir )
+import Language.Curry.Distribution ( baseVersion )
 import System.Directory
 import System.FilePath           ( (</>), (<.>)
                                  , splitSearchPath, splitFileName, splitExtension
@@ -22,9 +22,8 @@ import System.Environment        ( getArgs, getEnv )
 import System.Process            ( system, exitWith, getPID )
 import System.IO
 import System.IOExts
-import Data.Char                 ( isAlpha, isAlphaNum, isDigit, isSpace, toLower )
+import Data.Char                 ( toLower )
 import Data.List                 ( intercalate, intersperse, isPrefixOf, nub, sort )
-import Data.Time
 import Numeric                   ( readNat )
 
 import qualified Installation as Inst
@@ -214,8 +213,8 @@ calcPrompt rst = subst (prompt rst)
 -- Clean resources of REPL and terminate it with exit status.
 cleanUpAndExitRepl :: ReplState -> IO ()
 cleanUpAndExitRepl rst = do
-  terminateSourceProgGUIs rst
-  exitWith (exitStatus rst)
+  rst' <- terminateSourceProgGUIs rst
+  exitWith (exitStatus rst')
 
 processInput :: ReplState -> String -> IO ()
 processInput rst g
@@ -283,7 +282,7 @@ writeMainExpFile rst imports mtype goal = writeFile mainGoalFile $
 cleanMainExpFile :: ReplState -> IO ()
 cleanMainExpFile rst = unless keepfiles $ do
   k2home <- kics2HomeDir
-  system $ k2home </> "bin" </> "cleancurry " ++ mainGoalFile
+  _ <- system $ k2home </> "bin" </> "cleancurry " ++ mainGoalFile
   removeFileIfExists mainGoalFile
  where keepfiles = rcValue (rcvars rst) "keepfiles" == "yes"
 
@@ -799,7 +798,7 @@ processShow rst args = do
           showprog  = if not (null rcshowcmd)
                         then rcshowcmd
                         else (if null pager then "cat" else pager)
-      system $ showprog ++ ' ' : fn
+      _ <- system $ showprog ++ ' ' : fn
       putStrLn ""
       return (Just rst)
 

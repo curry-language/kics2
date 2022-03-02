@@ -14,11 +14,8 @@ module KiCS2.Linker
   , getTimeCmd
   ) where
 
-import Control.Applicative  (when)
 import Control.Monad        (unless)
-import System.Environment
 import System.Process
-import System.Directory
 import System.FilePath      ((</>), dropExtension, searchPathSeparator)
 import System.IO            (Handle, hFlush, hGetContents, hClose, stdout)
 import System.IOExts        (execCmd)
