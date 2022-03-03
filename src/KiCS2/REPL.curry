@@ -20,7 +20,8 @@ import System.FilePath           ( (</>), (<.>)
                                  , searchPathSeparator)
 import System.FrontendExec       ( FrontendTarget (..), FrontendParams (..)
                                  , callFrontendWithParams, defaultParams
-                                 , setQuiet, setOverlapWarn, setFullPath, setExtended, setSpecials, setFrontendPath
+                                 , setQuiet, setOverlapWarn, setFullPath, setExtended, setSpecials
+                                 , setFrontendPath, setOutDir
                                  )
 import System.Environment        ( getArgs, getEnv )
 import System.Process            ( system, exitWith, getPID )
@@ -33,7 +34,7 @@ import Numeric                   ( readNat )
 
 import qualified Installation as Inst
 import KiCS2.System.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
-                                 , sysLibPath )
+                                 , sysLibPath, currySubdir )
 import KiCS2.Files               ( removeFileIfExists )
 import KiCS2.GhciComm            ( stopGhciComm )
 import KiCS2.InstallationPaths   ( kics2HomeDir )
@@ -262,6 +263,7 @@ currentFrontendParams rst =
   .  setOverlapWarn  (rcValue (rcvars rst) "warnoverlapping" /= "no")
   .  setSpecials     (parseOpts rst)
   .  setFrontendPath (kics2Home rst </> "bin" </> "kics2-frontend")
+  .  setOutDir       currySubdir
   $  defaultParams
 
 -- ---------------------------------------------------------------------------
