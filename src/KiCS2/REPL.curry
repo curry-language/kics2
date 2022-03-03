@@ -38,7 +38,10 @@ import KiCS2.RCFile
 import KiCS2.Utils               ( showMonoTypeExpr, showMonoQualTypeExpr
                                  , notNull, strip )
 
-import KiCS2.System.FrontendExec
+import KiCS2.System.FrontendExec ( FrontendTarget (..), FrontendParams (..)
+                                 , callFrontendWithParams, defaultParams
+                                 , setQuiet, setOverlapWarn, setFullPath, setExtended, setSpecials, setFrontendPath
+                                 )
 
 import KiCS2.Linker
 
@@ -254,11 +257,12 @@ importUnsafeModule rst =
 -- Compute the front-end parameters for the current state:
 currentFrontendParams :: ReplState -> IO FrontendParams
 currentFrontendParams rst =
-     setQuiet       True
-  .  setFullPath    (loadPaths rst)
-  .  setExtended    (rcValue (rcvars rst) "curryextensions" /= "no")
-  .  setOverlapWarn (rcValue (rcvars rst) "warnoverlapping" /= "no")
-  .  setSpecials    (parseOpts rst)
+     setQuiet        True
+  .  setFullPath     (loadPaths rst)
+  .  setExtended     (rcValue (rcvars rst) "curryextensions" /= "no")
+  .  setOverlapWarn  (rcValue (rcvars rst) "warnoverlapping" /= "no")
+  .  setSpecials     (parseOpts rst)
+  .  setFrontendPath (kics2Home rst </> "bin" </> "kics2-frontend")
  <$> defaultParams
 
 -- ---------------------------------------------------------------------------
