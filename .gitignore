@@ -38,7 +38,6 @@ lib
 env
 runtime/dist
 runtime/dist-newstyle
-runtime/kics2-runtime.cabal
 docs/src/version.tex
 docs/src/tooldocs/casc/curry-style-guide.html
 cabal-dev/

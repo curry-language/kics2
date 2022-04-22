@@ -1,0 +1,20 @@
+name:           kics2-runtime
+version:        3.0.0
+description:    The runtime environment for KiCS2
+license:        OtherLicense
+author:         The KiCS2 Team
+maintainer:     kics2@curry-lang.org
+build-type:     Simple
+cabal-version:  >= 1.9.2
+
+library
+  build-depends: base, containers, ghc, mtl, parallel-tree-search, tree-monad, directory
+  exposed-modules:
+      Basics, CurryException, KiCS2Debug, FailInfo
+    , FailTrace, IDSupply, Installation
+    , MonadList, MonadSearch, PrimTypes, SafeExec
+  other-modules:
+      ConstStore, ID, Search, Solver
+    , Strategies, Types
+  hs-source-dirs: ., idsupplyioref
+  ghc-options: 
