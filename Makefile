@@ -139,17 +139,7 @@ export CYPM  = $(CURRY) cypm
 export RUNTIMEDEPS = base containers ghc mtl parallel-tree-search tree-monad directory
 # KiCS2 library dependencies (Cabal packages)
 export LIBDEPS     = base directory network network-bsd old-time parallel-tree-search time# process (seems to cause a duplicate install)
-# Custom runtime dependencies (Cabal packages)
-export CUSTOMDEPS  = kics2-runtime kics2-libraries
-# System dependencies (TODO: Windows)
-export SYSTEMDEPS  = unix
-# All dependencies, with duplicates removed (see 'sort')
-export ALLDEPS = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS) $(CUSTOMDEPS))
 
-# Libraries installed with GHC
-GHC_LIBS          = $(shell $(STACK) exec ghc-pkg -- list --global --simple-output --names-only)
-# Packages used by the compiler
-GHC_PKGS          = $(foreach pkg,$(ALLDEPS),-package $(pkg))
 # The compilation of some libraries does not terminate with -O2
 # on GHC > 8.0.1, e.g. FiniteMap, therefore we disable this stage.
 export GHC_OPTIMIZATIONS = -O2 -fno-strictness -fno-liberate-case
