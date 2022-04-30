@@ -18,8 +18,7 @@ RUNTIME_CABAL_DEPS  = $(call comma_sep,$(RUNTIMEDEPS))
 RUNTIME_GHC_OPTS = $(RUNTIME_FLAGS:%=-D%)
 
 export RUNTIME = $(RUNTIME_CABAL)
-export RUNTIME_ARTIFACTS = $(RUNTIME_CABAL) \
-                           $(RUNTIMEDIR)/dist \
+export RUNTIME_ARTIFACTS = $(RUNTIMEDIR)/dist \
                            $(RUNTIMEDIR)/dist-newstyle \
                            $(RUNTIMEDIR)/.stack-work \
                            $(RUNTIMEDIR)/**/*.hi \
