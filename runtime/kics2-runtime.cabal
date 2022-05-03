@@ -1,14 +1,47 @@
+cabal-version:  2.2
 name:           kics2-runtime
 version:        3.0.0
 description:    The runtime environment for KiCS2
-license:        OtherLicense
+license:        BSD-3-Clause
 author:         The KiCS2 Team
 maintainer:     kics2@curry-lang.org
 build-type:     Simple
-cabal-version:  >= 1.9.2
+
+-- The idsupply* flags are used to choose an IDSupply implementation.
+-- Setting one of these flags is mandatory, otherwise the build will fail
+-- due to the missing IDSupply module.
+
+flag idsupplyghc
+  description: IDSupply implementation based on GHC's UniqSupply
+  default:     False
+  manual:      True
+
+flag idsupplygiants
+  description: IDSupply implementation using giant number representation by Paul Tarau
+  default:     False
+  manual:      True
+
+flag idsupplyinteger
+  description: IDSupply implementation using Integer
+  default:     False
+  manual:      True
+
+flag idsupplyioref
+  description: IDSupply implementation using IORefs and GHC's UniqSupply
+  default:     False
+  manual:      True
+
+flag idsupplypureio
+  description: IDSupply implementation using only IORefs
+  default:     False
+  manual:      True
 
 library
-  build-depends: base, containers, ghc, mtl, parallel-tree-search, tree-monad, directory
+  if flag(idsupplyghc) || flag(idsupplypureio)
+    build-depends: base, containers, mtl, directory, parallel-tree-search, tree-monad, ghc
+  else
+    build-depends: base, containers, mtl, directory, parallel-tree-search, tree-monad
+
   exposed-modules:
       Basics, CurryException, KiCS2Debug, FailInfo
     , FailTrace, IDSupply, Installation
@@ -16,5 +49,17 @@ library
   other-modules:
       ConstStore, ID, Search, Solver
     , Strategies, Types
-  hs-source-dirs: ., idsupplyioref
+
+  if flag(idsupplyghc)
+    hs-source-dirs: ., idsupplyghc
+  elif flag(idsupplygiants)
+    hs-source-dirs: ., idsupplygiants
+  elif flag(idsupplyinteger)
+    hs-source-dirs: ., idsupplyinteger
+  elif flag(idsupplyioref)
+    hs-source-dirs: ., idsupplyioref
+  elif flag(idsupplypureio)
+    hs-source-dirs: ., idsupplypureio
+
+  default-language: Haskell98
   ghc-options: 
