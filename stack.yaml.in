@@ -1,6 +1,3 @@
-# Make sure to edit stack.yaml.in, not stack.yaml,
-# since the latter is auto-generated!
-
 resolver: $STACKRESOLVER
 packages:
   - lib/

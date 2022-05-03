@@ -1,5 +1,3 @@
--- Make sure to edit Installation.curry.in, not Installation.curry,
--- since the latter is auto-generated!
 module Installation where
 
 import System.Directory (doesDirectoryExist)
