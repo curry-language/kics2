@@ -1,4 +1,5 @@
 cabal-version:  2.2
+
 name:           kics2-runtime
 version:        $VERSION
 description:    The runtime environment for KiCS2
