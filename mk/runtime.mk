@@ -4,8 +4,10 @@
 RUNTIME_PACKAGE = kics2-runtime
 # Name of the cabal file
 RUNTIME_CABAL = $(RUNTIMEDIR)/$(RUNTIME_PACKAGE).cabal
-# idsupply directory to use
-RUNTIME_IDSUPPLYDIR  = idsupplyioref
+# Name of the cabal template
+RUNTIME_CABAL_IN = $(RUNTIME_CABAL).in
+# IDSupply implementation to use (see kics2-runtime.cabal for a list)
+export RUNTIME_IDSUPPLY = idsupplyinteger
 # Additional flags for compilation of the runtime
 RUNTIME_FLAGS =
 
@@ -26,27 +28,5 @@ export RUNTIME_ARTIFACTS = $(RUNTIMEDIR)/dist \
                            $(RUNTIMEDIR)/**/*.o \
                            $(RUNTIMEDIR)/**/*.o-boot
 
-$(RUNTIME_CABAL): $(INSTALLHS)
-ifndef VERSION
-	$(error VERSION is not defined. Please use 'make' on top-level)
-endif
-	@echo "name:           $(RUNTIME_PACKAGE)"                >  $@
-	@echo "version:        $(VERSION)"                        >> $@
-	@echo "description:    The runtime environment for KiCS2" >> $@
-	@echo "license:        OtherLicense"                      >> $@
-	@echo "author:         The KiCS2 Team"                    >> $@
-	@echo "maintainer:     kics2@curry-lang.org"              >> $@
-	@echo "build-type:     Simple"                            >> $@
-	@echo "cabal-version:  >= 1.9.2"                          >> $@
-	@echo ""                                                  >> $@
-	@echo "library"                                           >> $@
-	@echo "  build-depends: $(RUNTIME_CABAL_DEPS)"            >> $@
-	@echo "  exposed-modules:"                                >> $@
-	@echo "      Basics, CurryException, KiCS2Debug, FailInfo">> $@
-	@echo "    , FailTrace, IDSupply, Installation"           >> $@
-	@echo "    , MonadList, MonadSearch, PrimTypes, SafeExec" >> $@
-	@echo "  other-modules:"                                  >> $@
-	@echo "      ConstStore, ID, Search, Solver"              >> $@
-	@echo "    , Strategies, Types"                           >> $@
-	@echo "  hs-source-dirs: ., $(RUNTIME_IDSUPPLYDIR)"       >> $@
-	@echo "  ghc-options: $(RUNTIME_GHC_OPTS)"                >> $@
+$(RUNTIME_CABAL): $(RUNTIME_CABAL_IN) $(INSTALLHS) $(PACKAGEJSON)
+	@envsubst < $< > $@

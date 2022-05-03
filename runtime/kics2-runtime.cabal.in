@@ -1,6 +1,6 @@
 cabal-version:  2.2
 name:           kics2-runtime
-version:        3.0.0
+version:        $VERSION
 description:    The runtime environment for KiCS2
 license:        BSD-3-Clause
 author:         The KiCS2 Team
