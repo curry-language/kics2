@@ -40,7 +40,7 @@ LIB_TRACE_CABAL = $(LIBDIR)/$(PACKAGE_TRACE).cabal
 LIB_CABAL_DEPS  = $(call comma_sep,$(LIBDEPS))
 
 # Executable of CurryDoc:
-CURRYDOC := $(shell which curry-doc)
+CURRYDOC := $(shell command -v curry-doc 2>/dev/null)
 
 export LIB = $(LIB_CABAL) $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) $(LIBDIR)/$(ALLLIBS).curry # hstrace
 export LIB_ARTIFACTS = $(LIBDIR)/.curry \

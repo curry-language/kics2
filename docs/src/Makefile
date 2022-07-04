@@ -7,10 +7,10 @@ HTMLFILES = $(DOCDIR)/markdown_syntax.html $(DOCDIR)/INSTALL.html \
 MANUAL = $(DOCDIR)/Manual.pdf
 
 # Executable of CurryDoc:
-CURRYDOC := $(shell which curry-doc)
+CURRYDOC := $(shell command -v curry-doc 2>/dev/null)
 
 # Executable of the markdown translator:
-MD2PDF := $(shell which md2pdf)
+MD2PDF := $(shell command -v md2pdf 2>/dev/null)
 
 .PHONY: pdf
 pdf : manual.pdf
