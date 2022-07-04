@@ -3,8 +3,8 @@
 ########################################################################
 
 # Essential system dependencies
-PYTHON3 := $(shell which python3)
-STACKBIN := $(shell which stack)
+PYTHON3 := $(shell command -v python3 2>/dev/null)
+STACKBIN := $(shell command -v stack 2>/dev/null)
 
 ifeq ($(PYTHON3),)
 $(error Please make sure that 'python3' is on your PATH or specify it explicitly by passing 'make PYTHON3=...')
@@ -14,23 +14,30 @@ ifeq ($(STACKBIN),)
 $(error Please make sure that 'stack' (The Haskell Stack build tool) is on your PATH or specify it explicitly by passing 'make STACKBIN=...')
 endif
 
-# The built KiCS2
-BUILT_KICS2 = $(CURDIR)/bin/kics2
-BUILT_CYPM = $(CURDIR)/bin/cypm
+INSTALLED_KICS2 := $(shell command -v kics2 2>/dev/null)
+INSTALLED_PAKCS := $(shell command -v pakcs 2>/dev/null)
+INSTALLED_CURRY := $(shell command -v curry 2>/dev/null)
 
-# 1 if true, 0 otherwise
-BUILT_KICS2_AVAILABLE := $(shell ! test -x "$(BUILT_KICS2)" -a -x "$(BUILT_CYPM)"; echo $$?)
-
-# The compiler to compile KiCS2 with. By default this
-# is `kics2` if a built version exists, otherwise PAKCS.
-# Note that this also determines which CPM to use. You
-# can also pass this variable explicitly to `make`:
+# The compiler to compile KiCS2 with. By default this is `kics2`,
+# `pakcs` or `curry` (in that order of precedence) from your `PATH`.
+# Note that the Curry compiler has to be of version >= 3.0.0 due
+# to large changes in the standard library between Curry 2 and 3.
+#
+# To use another Curry compiler (e.g. PAKCS for bootstrapping),
+# pass this variable explicitly to `make`:
 #
 #     make CURRY=/path/to/curry
-ifeq ($(BUILT_KICS2_AVAILABLE),1)
-export CURRY = $(BUILT_KICS2)
+#
+# Note that this also determines the version of CPM to use (which
+# is required, since KiCS2 depends on a number of CPM packages).
+ifneq ($(INSTALLED_KICS2),)
+export CURRY = $(INSTALLED_KICS2)
+else ifneq ($(INSTALLED_PAKCS),)
+export CURRY = $(INSTALLED_PAKCS)
+else ifneq ($(INSTALLED_CURRY),)
+export CURRY = $(INSTALLED_CURRY)
 else
-export CURRY = pakcs
+$(error Please make sure that a Curry 3 compiler ('kics2', 'pakcs' or 'curry') is on your PATH or specify it explicitly by passing 'make CURRY=...')
 endif
 
 # Optionally a custom installation directory that KiCS2
