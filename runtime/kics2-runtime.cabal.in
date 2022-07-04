@@ -38,7 +38,7 @@ flag idsupplypureio
   manual:      True
 
 library
-  if flag(idsupplyghc) || flag(idsupplypureio)
+  if flag(idsupplyghc) || flag(idsupplyioref)
     build-depends: base, containers, mtl, directory, parallel-tree-search, tree-monad, ghc
   else
     build-depends: base, containers, mtl, directory, parallel-tree-search, tree-monad
