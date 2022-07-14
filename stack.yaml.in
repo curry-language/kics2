@@ -4,7 +4,7 @@ packages:
   - runtime/
 extra-deps:
   - parallel-tree-search-0.4.2
-  - tree-monad-0.3.1
+  - tree-monad-0.3.2
 allow-different-user: true
 flags:
   kics2-runtime:
