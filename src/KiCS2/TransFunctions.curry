@@ -582,8 +582,10 @@ consBranches qn' vs v typeName =
 
       -- pattern matching on guards will combine the new constraints
       -- with the given constraint store
+      -- Note: We need to eta-expand due to GHC 9.2's lack of deep skolemisation,
+      -- see https://git.ps.informatik.uni-kiel.de/curry/kics2/-/merge_requests/18 for details
       guardCall = strictCall
-        (funcCall qn' $ concat [vars1, AH.Var e : vars2, mbSuppVar, [coverVar]])
+        (etaExpand (funcCall qn' $ concat [vars1, AH.Var e : vars2, mbSuppVar, [coverVar]]))
         (funcCall addCs [AH.Var c, constStoreVar])
 
       lambdaExpr = AH.Lambda [AH.PVar z] $ AHG.applyF qn' $ concat
@@ -907,6 +909,10 @@ pair2ac (e1, e2) = AH.Tuple [e1, e2]
 
 seqCall :: AH.Expr -> AH.Expr -> AH.Expr
 seqCall e1 e2 = AH.InfixApply e1 (prelude, "seq") e2
+
+etaExpand :: AH.Expr -> AH.Expr
+etaExpand f = AH.Lambda [AH.PVar v] (AH.Apply f (AH.Var v))
+  where v = (1, "x")
 
 strictCall :: AH.Expr -> AH.Expr -> AH.Expr
 strictCall f e = AH.InfixApply f (prelude, "$!") e
