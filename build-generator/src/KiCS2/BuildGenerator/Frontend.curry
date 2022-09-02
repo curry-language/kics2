@@ -14,9 +14,9 @@ import System.FilePath ( (</>) )
 frontendNinja :: Options -> NinjaBuilder ()
 frontendNinja o = do
   let srcDirs    = (optFrontendDir o </>) <$> ["src", "app"]
-      buildFiles = (optFrontendDir o </>) <$> ["package.yaml", "curry-frontend.cabal"]
+      buildFiles = (optFrontendDir o </>) <$> ["curry-frontend.cabal"]
       stackYaml  = optFrontendDir o </> "stack.yaml"
 
   srcs <- liftIO $ join <$> mapM (findWithSuffix ".hs") srcDirs
 
-  build ([frontendBin o] :. ("stack", [stackYaml]) |. buildFiles ++ srcs)
+  build $ [frontendBin o] :. ("stack", [stackYaml]) |. buildFiles ++ srcs
