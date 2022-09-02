@@ -7,6 +7,7 @@
     "dependencies": {
         "directory":    ">= 3.0.0, < 4.0.0",
         "filepath":     ">= 3.0.0, < 4.0.0",
+        "opt-parse":    ">= 3.0.0, < 4.0.0",
         "process":      ">= 3.0.0, < 4.0.0",
         "transformers": ">= 3.0.0, < 4.0.0"
     },
