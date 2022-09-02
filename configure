@@ -22,4 +22,4 @@ mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
 
 echo "==> Running build generator..."
 cd "$ROOT"
-"$GENERATOR_PATH" "$@"
+"$GENERATOR_PATH" --curry "$CURRY" "$@"
