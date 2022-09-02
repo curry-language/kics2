@@ -2,25 +2,34 @@ module Language.Ninja.Pretty
   ( ppNinja, ppRule, ppBuild
   ) where
 
-import Data.Maybe ( catMaybes )
+import Data.Maybe ( mapMaybe, catMaybes )
 import Language.Ninja.Types
+
+-- | Pretty-prints a generic statement.
+ppStmt :: String -> String -> [(String, String)] -> String
+ppStmt keyword args vars = unlines $ unwords [keyword, args] : (indent . ppVar <$> vars)
+  where
+    ppVar (key, value) = key ++ " = " ++ value
 
 -- | Pretty-prints a rule.
 ppRule :: Rule -> String
-ppRule r = unlines $
-  [ "rule " ++ ruleName r
-  ] ++ map indent
-    [ "command = " ++ ruleCommand r
-    ]
+ppRule r = ppStmt "rule" (ruleName r) $ catMaybeValues
+  [ ("command", ruleCommand r)
+  , ("description", ruleDescription r)
+  ]
 
 -- | Pretty-prints a build statement.
 ppBuild :: Build -> String
-ppBuild b = "build " ++ unwords (buildOutputs b)
-  ++ ": " ++ unwords (buildRule b : buildExplicitDeps b)
-  ++ (unwords . catMaybes)
-    [ (" | "  ++) . unwords <$> nothingIfEmpty (buildImplicitDeps  b)
-    , (" || " ++) . unwords <$> nothingIfEmpty (buildOrderOnlyDeps b)
-    ] 
+ppBuild b = ppStmt "build" line vars
+  where
+    line = unwords (buildOutputs b)
+      ++ ": "
+      ++ unwords (buildRule b : buildExplicitDeps b)
+      ++ (unwords . catMaybes)
+        [ (" | "  ++) . unwords <$> nothingIfEmpty (buildImplicitDeps  b)
+        , (" || " ++) . unwords <$> nothingIfEmpty (buildOrderOnlyDeps b)
+        ]
+    vars = buildVariables b
 
 -- | Pretty-prints a Ninja file.
 ppNinja :: Ninja -> String
@@ -38,3 +47,6 @@ nothingIfEmpty xs = case xs of
 indent :: String -> String
 indent = ("  " ++)
 
+-- | Compacts a key-value table by filtering entries Just values.
+catMaybeValues :: [(k, Maybe v)] -> [(k, v)]
+catMaybeValues = mapMaybe $ \(k, maybeV) -> (\v -> (k, v)) <$> maybeV

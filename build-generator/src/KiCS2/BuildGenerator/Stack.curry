@@ -10,13 +10,13 @@ import System.FilePath ( (</>) )
 -- | The Ninja source containing rules for building Stack projects.
 stackNinja :: Options -> NinjaBuilder ()
 stackNinja o = do
-  rule Rule
-    { ruleName = "stack"
-    , ruleCommand = unwords
+  rule (emptyRule "stack")
+    { ruleCommand = Just $ unwords
         [ "stack build"
-        , "$stackflags"
+        , "$stackpkgs"
         , "--stack-yaml", "$in"
         , "--copy-bins"
         , "--local-bin-path", "$$(dirname $$(realpath $out))"
         ]
+    , ruleDescription = Just "Building $out with Stack..."
     }

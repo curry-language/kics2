@@ -1,24 +1,27 @@
 module Language.Ninja.Types
   ( Ninja (..), Rule (..), Build (..)
   , (:.), (|.), (||.)
+  , emptyRule
   ) where
 
 data Ninja = Ninja
-  { ninjaRules :: [Rule]
+  { ninjaRules  :: [Rule]
   , ninjaBuilds :: [Build]
   }
 
 data Rule = Rule
-  { ruleName :: String
-  , ruleCommand :: String
+  { ruleName        :: String
+  , ruleCommand     :: Maybe String
+  , ruleDescription :: Maybe String
   }
 
 data Build = Build
-  { buildOutputs :: [String]
-  , buildRule :: String
-  , buildExplicitDeps :: [String]
-  , buildImplicitDeps :: [String]
+  { buildOutputs       :: [String]
+  , buildRule          :: String
+  , buildExplicitDeps  :: [String]
+  , buildImplicitDeps  :: [String]
   , buildOrderOnlyDeps :: [String]
+  , buildVariables     :: [(String, String)]
   }
 
 instance Monoid Ninja where
@@ -41,6 +44,7 @@ outs :. (r, deps) = Build
   , buildExplicitDeps = deps
   , buildImplicitDeps = []
   , buildOrderOnlyDeps = []
+  , buildVariables = []
   }
 
 -- | Attaches implicit dependencies to a build.
@@ -50,3 +54,11 @@ b |. deps = b { buildImplicitDeps = deps }
 -- | Attaches order-only dependencies to a build.
 (||.) :: Build -> [String] -> Build
 b ||. deps = b { buildOrderOnlyDeps = deps }
+
+-- | An empty rule with the given name.
+emptyRule :: String -> Rule
+emptyRule name = Rule
+  { ruleName = name
+  , ruleCommand = Nothing
+  , ruleDescription = Nothing
+  }
