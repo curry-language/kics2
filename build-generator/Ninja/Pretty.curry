@@ -25,8 +25,8 @@ ppBuild b = "build " ++ unwords (buildOutputs b)
 -- | Pretty-prints a Ninja file.
 ppNinja :: Ninja -> String
 ppNinja ninja = unlines $
-     (ppBuild <$> ninjaBuilds ninja)
-  ++ (ppRule  <$> ninjaRules  ninja)
+     (ppRule  <$> ninjaRules  ninja)
+  ++ (ppBuild <$> ninjaBuilds ninja)
 
 -- | Nothing if the list is empty, otherwise the list wrapped in Just.
 nothingIfEmpty :: [a] -> Maybe [a]
