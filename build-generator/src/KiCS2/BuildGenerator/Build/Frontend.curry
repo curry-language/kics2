@@ -1,4 +1,4 @@
-module KiCS2.BuildGenerator.Frontend
+module KiCS2.BuildGenerator.Build.Frontend
   ( frontendNinja
   ) where
 

@@ -1,4 +1,4 @@
-module KiCS2.BuildGenerator.Stack
+module KiCS2.BuildGenerator.Rule.Stack
   ( stackNinja
   ) where
 
