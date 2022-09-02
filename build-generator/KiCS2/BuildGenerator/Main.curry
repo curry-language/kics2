@@ -2,13 +2,19 @@ module KiCS2.BuildGenerator.Main
   ( main
   ) where
 
-import Ninja.Builder ( execNinjaBuilder, build, rule )
+import KiCS2.BuildGenerator.Frontend ( frontendNinja )
+import KiCS2.BuildGenerator.Stack ( stackNinja )
+import KiCS2.BuildGenerator.Options ( Options, defaultOptions)
+import Ninja.Builder ( NinjaBuilder, execNinjaBuilder, build, rule )
 import Ninja.Pretty ( ppNinja )
-import Ninja.Types
 
--- TODO: Add actual rules
+topLevelNinja :: Options -> NinjaBuilder ()
+topLevelNinja o = do
+  stackNinja o
+  frontendNinja o
 
 main :: IO ()
-main = writeFile "build.ninja" $ ppNinja $ execNinjaBuilder $ do
-  build $ ["a"] :. ("b", [])
-  build $ ["test"] :. ("demo", ["a"]) ||. ["order-only"]
+main = do
+  let opts = defaultOptions
+      ninja = execNinjaBuilder $ topLevelNinja opts
+  writeFile "build.ninja" $ ppNinja ninja
