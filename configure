@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+cd "$(dirname $0)"
+
+ROOT=$(pwd)
+GENERATOR_DIR="$ROOT/build-generator"
+GENERATOR_MAIN="KiCS2.BuildGenerator.Main"
+GENERATOR_BINDIR="$GENERATOR_DIR/bin"
+GENERATOR_PATH="$GENERATOR_BINDIR/generate-build"
+
+if [ -z "$CURRY" ]; then
+  echo "Please point CURRY to a Curry compiler binary (e.g. kics2 or pakcs)!"
+  exit 1
+fi
+
+echo "==> Compiling build generator..."
+cd "$GENERATOR_DIR"
+"$CURRY" :load "$GENERATOR_MAIN" :save main :quit
+mkdir -p "$GENERATOR_BINDIR"
+mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
+
+echo "==> Running build generator..."
+cd "$ROOT"
+"$GENERATOR_PATH" "$@"

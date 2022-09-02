@@ -89,3 +89,8 @@ kics2*.tar.gz
 
 # editors
 .vscode
+
+# ninja
+build.ninja
+.ninja_deps
+.ninja_log
