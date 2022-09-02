@@ -2,7 +2,9 @@ module KiCS2.BuildGenerator.Main
   ( main
   ) where
 
-import KiCS2.BuildGenerator.Ninja
+import Ninja.Builder ( execNinjaBuilder, build, rule )
+import Ninja.Pretty ( ppNinja )
+import Ninja.Types
 
 -- TODO: Add actual rules
 
