@@ -1,9 +1,9 @@
-module Ninja.Pretty
+module Language.Ninja.Pretty
   ( ppNinja, ppRule, ppBuild
   ) where
 
 import Data.Maybe ( catMaybes )
-import Ninja.Types
+import Language.Ninja.Types
 
 -- | Pretty-prints a rule.
 ppRule :: Rule -> String

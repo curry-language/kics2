@@ -1,4 +1,4 @@
-module Ninja.Types
+module Language.Ninja.Types
   ( Ninja (..), Rule (..), Build (..)
   , (:.), (|.), (||.)
   ) where

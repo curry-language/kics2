@@ -3,8 +3,8 @@ module KiCS2.BuildGenerator.Stack
   ) where
 
 import KiCS2.BuildGenerator.Options ( Options (..) )
-import Ninja.Types
-import Ninja.Builder ( NinjaBuilder, build, rule )
+import Language.Ninja.Types
+import Language.Ninja.Builder ( NinjaBuilder, build, rule )
 import System.FilePath ( (</>) )
 
 -- | The Ninja source containing rules for building Stack projects.

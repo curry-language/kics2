@@ -1,0 +1,19 @@
+{
+    "name": "kics2-build-generator",
+    "version": "3.0.0",
+    "author": "The KiCS2 authors",
+    "synopsis": "The KiCS2 build file generator",
+    "license": "BSD-3-Clause",
+    "dependencies": {
+        "directory":    ">= 3.0.0, < 4.0.0",
+        "filepath":     ">= 3.0.0, < 4.0.0",
+        "process":      ">= 3.0.0, < 4.0.0",
+        "transformers": ">= 3.0.0, < 4.0.0"
+    },
+    "executables": [
+        {
+            "name": "generate-build",
+            "main": "KiCS2.BuildGenerator.Main"
+        }
+    ]
+}

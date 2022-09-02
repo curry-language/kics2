@@ -5,8 +5,8 @@ module KiCS2.BuildGenerator.Main
 import KiCS2.BuildGenerator.Frontend ( frontendNinja )
 import KiCS2.BuildGenerator.Stack ( stackNinja )
 import KiCS2.BuildGenerator.Options ( Options, defaultOptions)
-import Ninja.Builder ( NinjaBuilder, execNinjaBuilder, build, rule )
-import Ninja.Pretty ( ppNinja )
+import Language.Ninja.Builder ( NinjaBuilder, execNinjaBuilder, build, rule )
+import Language.Ninja.Pretty ( ppNinja )
 
 topLevelNinja :: Options -> NinjaBuilder ()
 topLevelNinja o = do
@@ -16,5 +16,5 @@ topLevelNinja o = do
 main :: IO ()
 main = do
   let opts = defaultOptions
-      ninja = execNinjaBuilder $ topLevelNinja opts
+  ninja <- execNinjaBuilder $ topLevelNinja opts
   writeFile "build.ninja" $ ppNinja ninja
