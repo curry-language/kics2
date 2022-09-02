@@ -9,7 +9,7 @@ import System.FilePath ( FilePath, (</>) )
 
 -- | Recursively finds all files with the given suffix in the directory.
 findWithSuffix :: String -> FilePath -> IO [FilePath]
-findWithSuffix suffix = walk (suffix `isSuffixOf`)
+findWithSuffix suffix = (filter (suffix `isSuffixOf`) <$>) . walk (const True)
 
 -- | Recursively finds all files matching the given predicate in the directory.
 walk :: (FilePath -> Bool) -> FilePath -> IO [FilePath]
