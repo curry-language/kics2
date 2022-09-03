@@ -2,17 +2,19 @@ module KiCS2.BuildGenerator.Options
   ( Options (..)
   , defaultOptions, optFrontendDir, optFrontendBin, optBinDir, optLibDir, optSrcDir
   , optBootDir, optLocalBinDir, optKics2cBin, optKics2iBin, optDotCpmDir, optPackageJson
-  , optionsNinja
+  , optionVars, optionsNinja
   , parseOptions
   ) where
 
+import Data.Char ( toLower )
 import OptParse ( ParseSpec, optParser
                 , option, long, short, metavar, help, optional
                 , (<.>), (<>), parse
                 )
-import System.FilePath ( FilePath, (</>) )
+import KiCS2.BuildGenerator.Utils ( forM_ )
 import Language.Ninja.Builder ( NinjaBuilder, var )
 import Language.Ninja.Types ( (=.) )
+import System.FilePath ( FilePath, (</>) )
 
 data Options = Options
   { optCurry           :: String
@@ -58,9 +60,9 @@ optionsParser = optParser $
         <> help "The Haskell Stack binary to use."
         <> optional)
   <.> option (\rootDir o -> o { optRootDir = rootDir })
-        (  long "root-dir"
+        (  long "root"
         <> short "r"
-        <> metavar "ROOT-DIR"
+        <> metavar "ROOT"
         <> help "The 'kics2' root directory (i.e. this cloned repository)."
         <> optional
         )
@@ -86,18 +88,23 @@ optionsParser = optParser $
         <> optional
         )
 
+-- | Fetches the variables to be substituted into 'configured' (.in) files.
+optionVars :: Options -> [(String, String)]
+optionVars o =
+  [ ("CURRY", optCurry o)
+  , ("VERSION", optVersion o)
+  , ("STACK", optStack o)
+  , ("RESOLVER", optStackResolver o)
+  , ("IDSUPPLY", optRuntimeIdSupply o)
+  , ("GHCOPTS", optGhcOpts o)
+  , ("GHC", optStack o ++ " exec -- ghc")
+  , ("CYPM", optCurry o ++ " cypm")
+  ]
+
 -- | The Ninja source declaring non-path-related options as variables.
 optionsNinja :: Options -> NinjaBuilder ()
-optionsNinja o = do
-  var $ "curry" =. optCurry o
-  var $ "version" =. optVersion o
-  var $ "stack" =. optStack o
-  var $ "resolver" =. optStackResolver o
-  var $ "idsupply" =. optRuntimeIdSupply o
-  var $ "ghcopts" =. optGhcOpts o
-
-  var $ "ghc" =. optStack o ++ " exec -- ghc"
-  var $ "cypm" =. optCurry o ++ " cypm"
+optionsNinja o = forM_ (optionVars o) $ \(name, value) ->
+  var $ (toLower <$> name) =. value
 
 -- | The path to the directory for built binaries.
 optBinDir :: Options -> FilePath

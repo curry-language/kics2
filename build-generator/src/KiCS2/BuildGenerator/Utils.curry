@@ -1,10 +1,11 @@
 module KiCS2.BuildGenerator.Utils
-  ( concatMapM, forM_, findWithSuffix, walk, listDir, replace
+  ( concatMapM, forM_, findWithSuffix, walk, listDir
+  , replaceSingle, replace
   ) where
 
 import Control.Monad ( join )
 import Control.Monad.IO.Class ( MonadIO (..) )
-import Data.List ( isSuffixOf )
+import Data.List ( isSuffixOf, splitOn, intercalate )
 import System.Directory ( getDirectoryContents, doesDirectoryExist )
 import System.FilePath ( FilePath, (</>) )
 
@@ -36,5 +37,9 @@ listDir :: MonadIO m => FilePath -> m [FilePath]
 listDir path = liftIO $ map (path </>) . filter (not . flip elem [".", ".."]) <$> getDirectoryContents path
 
 -- | Replaces a value in a Functor.
-replace :: (Functor f, Eq a) => a -> a -> f a -> f a
-replace x y = fmap $ \x' -> if x == x' then y else x'
+replaceSingle :: (Functor f, Eq a) => a -> a -> f a -> f a
+replaceSingle x y = fmap $ \x' -> if x == x' then y else x'
+
+-- | Replaces a list of values.
+replace :: Eq a => [a] -> [a] -> [a] -> [a]
+replace old new = intercalate new . splitOn old

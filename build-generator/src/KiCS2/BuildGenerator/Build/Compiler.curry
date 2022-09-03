@@ -7,7 +7,7 @@ import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, 
                                     , optKics2cBin, optKics2iBin, optLocalBinDir, optLibDir
                                     , optVersion, optSrcDir, optBootDir
                                     )
-import KiCS2.BuildGenerator.Utils ( findWithSuffix, concatMapM, forM_, listDir, replace )
+import KiCS2.BuildGenerator.Utils ( findWithSuffix, concatMapM, forM_, listDir, replaceSingle )
 import Language.Ninja.Types
 import Language.Ninja.Builder ( NinjaBuilder, build, rule )
 import System.FilePath ( (</>), (<.>), makeRelative, dropExtension, pathSeparator )
@@ -57,7 +57,7 @@ compilerNinja o = do
     let description = "Building stage " ++ show i ++ " compiler"
 
     let outDir = stageDir i </> ".curry" </> "kics2-" ++ optVersion o
-        srcPath = (srcDir </>) . (<.> "curry") . replace '.' pathSeparator
+        srcPath = (srcDir </>) . (<.> "curry") . replaceSingle '.' pathSeparator
         compileMainSrc = srcPath compileMain
         hsPath = (outDir </>) . (<.> "hs") . dropExtension . makeRelative srcDir
         hsSrcs = hsPath <$> srcs
