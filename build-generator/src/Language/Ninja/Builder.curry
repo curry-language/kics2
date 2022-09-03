@@ -10,13 +10,16 @@ import Language.Ninja.Types
 type NinjaBuilder = WriterT Ninja IO
 
 build :: Build -> NinjaBuilder ()
-build b = tell $ mempty { ninjaBuilds = [b] }
+build b = tell $ Ninja [BuildStmt b]
 
 rule :: Rule -> NinjaBuilder ()
-rule r = tell $ mempty { ninjaRules = [r] }
+rule r = tell $ Ninja [RuleStmt r]
 
 var :: Var String -> NinjaBuilder ()
-var v = tell $ mempty { ninjaVars = [v] }
+var v = tell $ Ninja [VarStmt v]
+
+comment :: String -> NinjaBuilder ()
+comment c = tell $ Ninja [CommentStmt c]
 
 execNinjaBuilder :: NinjaBuilder a -> IO Ninja
 execNinjaBuilder = execWriterT

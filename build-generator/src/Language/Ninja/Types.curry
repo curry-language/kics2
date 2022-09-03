@@ -1,14 +1,15 @@
 module Language.Ninja.Types
-  ( Ninja (..), Var (..), Rule (..), Build (..)
+  ( Ninja (..), Stmt (..), Var (..), Rule (..), Build (..)
   , (:.), (|.), (||.), (=.)
   , emptyRule
   ) where
 
-data Ninja = Ninja
-  { ninjaVars   :: [Var String]
-  , ninjaRules  :: [Rule]
-  , ninjaBuilds :: [Build]
-  }
+newtype Ninja = Ninja [Stmt]
+
+data Stmt = VarStmt (Var String)
+          | RuleStmt Rule
+          | BuildStmt Build
+          | CommentStmt String
 
 data Var a = Var
   { varName  :: String
@@ -31,16 +32,8 @@ data Build = Build
   }
 
 instance Monoid Ninja where
-  mempty = Ninja
-    { ninjaVars   = []
-    , ninjaRules  = []
-    , ninjaBuilds = []
-    }
-  mappend n1 n2 = Ninja
-    { ninjaVars   = ninjaVars   n1 ++ ninjaVars   n2
-    , ninjaRules  = ninjaRules  n1 ++ ninjaRules  n2
-    , ninjaBuilds = ninjaBuilds n1 ++ ninjaBuilds n2
-    }
+  mempty = Ninja []
+  mappend (Ninja s1) (Ninja s2) = Ninja $ s1 ++ s2
 
 infixl 1 :., |., ||., =.
 

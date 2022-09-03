@@ -6,8 +6,8 @@ import Data.Maybe ( mapMaybe, catMaybes )
 import Language.Ninja.Types
 
 -- | Pretty-prints a generic statement.
-ppStmt :: String -> String -> [Var String] -> String
-ppStmt keyword args vars = unlines $ unwords [keyword, args] : (indent . ppVar <$> vars)
+ppKeywordStmt :: String -> String -> [Var String] -> String
+ppKeywordStmt keyword args vars = unlines $ unwords [keyword, args] : (indent . ppVar <$> vars)
   where
 
 -- | Pretty-prints a variable declaration.
@@ -16,14 +16,14 @@ ppVar (Var name value) = name ++ " = " ++ value
 
 -- | Pretty-prints a rule.
 ppRule :: Rule -> String
-ppRule r = ppStmt "rule" (ruleName r) $ catMaybeVars
+ppRule r = ppKeywordStmt "rule" (ruleName r) $ catMaybeVars
   [ "command" =. ruleCommand r
   , "description" =. ruleDescription r
   ]
 
 -- | Pretty-prints a build statement.
 ppBuild :: Build -> String
-ppBuild b = ppStmt "build" line vars
+ppBuild b = ppKeywordStmt "build" line vars
   where
     line = unwords (buildOutputs b)
       ++ ": "
@@ -34,12 +34,21 @@ ppBuild b = ppStmt "build" line vars
         ]
     vars = buildVariables b
 
+-- | Pretty-prints a comment.
+ppComment :: String -> String
+ppComment c = "# " ++ c
+
+-- | Pretty-prints a Ninja statement.
+ppStmt :: Stmt -> String
+ppStmt stmt = case stmt of
+  BuildStmt b   -> ppBuild b
+  RuleStmt r    -> ppRule r
+  VarStmt v     -> ppVar v
+  CommentStmt c -> ppComment c
+
 -- | Pretty-prints a Ninja file.
 ppNinja :: Ninja -> String
-ppNinja ninja = unlines $
-     (ppVar   <$> ninjaVars   ninja)
-  ++ (ppRule  <$> ninjaRules  ninja)
-  ++ (ppBuild <$> ninjaBuilds ninja)
+ppNinja (Ninja stmts) = unlines $ ppStmt <$> stmts
 
 -- | Nothing if the list is empty, otherwise the list wrapped in Just.
 nothingIfEmpty :: [a] -> Maybe [a]
