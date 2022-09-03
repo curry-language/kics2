@@ -21,6 +21,6 @@ frontendNinja o = do
 
   build $ ([frontendBin o] :. ("stack", [stackYaml]) |. buildFiles ++ srcs)
     { buildVariables =
-        [ "pkgs" =. "curry-frontend"
+        [ "pkg" =. "curry-frontend"
         ]
     }
