@@ -1,6 +1,6 @@
 module Language.Ninja.Builder
   ( NinjaBuilder
-  , build, rule
+  , build, rule, var
   , execNinjaBuilder
   ) where
 
@@ -14,6 +14,9 @@ build b = tell $ mempty { ninjaBuilds = [b] }
 
 rule :: Rule -> NinjaBuilder ()
 rule r = tell $ mempty { ninjaRules = [r] }
+
+var :: Var String -> NinjaBuilder ()
+var v = tell $ mempty { ninjaVars = [v] }
 
 execNinjaBuilder :: NinjaBuilder a -> IO Ninja
 execNinjaBuilder = execWriterT

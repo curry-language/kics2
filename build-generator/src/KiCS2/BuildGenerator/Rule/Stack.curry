@@ -9,10 +9,11 @@ import System.FilePath ( (</>) )
 
 -- | The Ninja source containing rules for building Stack projects.
 stackNinja :: Options -> NinjaBuilder ()
-stackNinja o = do
+stackNinja _ = do
+  -- TODO: Create tmpdirs or copy from stack's install location
   rule (emptyRule "stack")
     { ruleCommand = Just $ unwords
-        [ "stack build $pkgs --stack-yaml $in --copy-bins --local-bin-path $$(dirname $$(realpath $out))"
+        [ "$stack build $pkgs --stack-yaml $in --copy-bins --local-bin-path $$(dirname $$(realpath $out))"
         , "&&"
         , "for pkg in $pkgs; do mv $$(dirname $$(realpath $out))/$pkgs $out; done"
         ]

@@ -1,12 +1,18 @@
 module Language.Ninja.Types
-  ( Ninja (..), Rule (..), Build (..)
-  , (:.), (|.), (||.)
+  ( Ninja (..), Var (..), Rule (..), Build (..)
+  , (:.), (|.), (||.), (=.)
   , emptyRule
   ) where
 
 data Ninja = Ninja
-  { ninjaRules  :: [Rule]
+  { ninjaVars   :: [Var String]
+  , ninjaRules  :: [Rule]
   , ninjaBuilds :: [Build]
+  }
+
+data Var a = Var
+  { varName  :: String
+  , varValue :: a
   }
 
 data Rule = Rule
@@ -21,20 +27,22 @@ data Build = Build
   , buildExplicitDeps  :: [String]
   , buildImplicitDeps  :: [String]
   , buildOrderOnlyDeps :: [String]
-  , buildVariables     :: [(String, String)]
+  , buildVariables     :: [Var String]
   }
 
 instance Monoid Ninja where
   mempty = Ninja
-    { ninjaRules  = []
+    { ninjaVars   = []
+    , ninjaRules  = []
     , ninjaBuilds = []
     }
   mappend n1 n2 = Ninja
-    { ninjaRules  = ninjaRules  n1 ++ ninjaRules  n2
+    { ninjaVars   = ninjaVars   n1 ++ ninjaVars   n2
+    , ninjaRules  = ninjaRules  n1 ++ ninjaRules  n2
     , ninjaBuilds = ninjaBuilds n1 ++ ninjaBuilds n2
     }
 
-infixl 1 :., |., ||.
+infixl 1 :., |., ||., =.
 
 -- | Creates a build statement.
 (:.) :: [String] -> (String, [String]) -> Build
@@ -54,6 +62,10 @@ b |. deps = b { buildImplicitDeps = deps }
 -- | Attaches order-only dependencies to a build.
 (||.) :: Build -> [String] -> Build
 b ||. deps = b { buildOrderOnlyDeps = deps }
+
+-- | Creates a variable.
+(=.) :: String -> a -> Var a
+(=.) = Var
 
 -- | An empty rule with the given name.
 emptyRule :: String -> Rule

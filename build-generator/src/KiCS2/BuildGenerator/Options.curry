@@ -1,6 +1,7 @@
 module KiCS2.BuildGenerator.Options
   ( Options (..)
-  , defaultOptions, binDir, frontendDir, frontendBin
+  , defaultOptions, frontendDir, frontendBin, binDir
+  , optionsNinja
   , parseOptions
   ) where
 
@@ -9,9 +10,12 @@ import OptParse ( ParseSpec, optParser
                 , (<.>), (<>), parse
                 )
 import System.FilePath ( FilePath, (</>) )
+import Language.Ninja.Builder ( NinjaBuilder, var )
+import Language.Ninja.Types ( (=.) )
 
 data Options = Options
   { optCurry           :: String
+  , optStack           :: String
   , optRootDir         :: FilePath
   , optStackResolver   :: String
   , optRuntimeIdSupply :: String
@@ -21,6 +25,7 @@ data Options = Options
 defaultOptions :: Options
 defaultOptions = Options
   { optCurry = "curry"
+  , optStack = "stack"
   , optRootDir = "."
   , optStackResolver = "ghc-9.2.4"
   , optRuntimeIdSupply = "idsupplyinteger"
@@ -36,6 +41,11 @@ optionsParser = optParser $
         <> help "The Curry compiler to bootstrap with."
         <> optional
         )
+  <.> option (\stack o -> o { optStack = stack })
+        (  long "stack"
+        <> metavar "STACK"
+        <> help "The Haskell Stack binary to use."
+        <> optional)
   <.> option (\rootDir o -> o { optRootDir = rootDir })
         (  long "root-dir"
         <> short "r"
@@ -58,11 +68,19 @@ optionsParser = optParser $
         <> optional
         )
 
--- ] The path to the directory for built binaries.
+-- | The Ninja source declaring non-path-related options as variables.
+optionsNinja :: Options -> NinjaBuilder ()
+optionsNinja o = do
+  var $ "curry" =. optCurry o
+  var $ "stack" =. optStack o
+  var $ "resolver" =. optStackResolver o
+  var $ "idsupply" =. optRuntimeIdSupply o
+
+-- | The path to the directory for built binaries.
 binDir :: Options -> FilePath
 binDir o = optRootDir o </> "bin"
 
--- ] The path to the frontend submodule.
+-- | The path to the frontend submodule.
 frontendDir :: Options -> FilePath
 frontendDir o = optRootDir o </> "frontend"
 

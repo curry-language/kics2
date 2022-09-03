@@ -6,16 +6,19 @@ import Data.Maybe ( mapMaybe, catMaybes )
 import Language.Ninja.Types
 
 -- | Pretty-prints a generic statement.
-ppStmt :: String -> String -> [(String, String)] -> String
+ppStmt :: String -> String -> [Var String] -> String
 ppStmt keyword args vars = unlines $ unwords [keyword, args] : (indent . ppVar <$> vars)
   where
-    ppVar (key, value) = key ++ " = " ++ value
+
+-- | Pretty-prints a variable declaration.
+ppVar :: Var String -> String
+ppVar (Var name value) = name ++ " = " ++ value
 
 -- | Pretty-prints a rule.
 ppRule :: Rule -> String
-ppRule r = ppStmt "rule" (ruleName r) $ catMaybeValues
-  [ ("command", ruleCommand r)
-  , ("description", ruleDescription r)
+ppRule r = ppStmt "rule" (ruleName r) $ catMaybeVars
+  [ "command" =. ruleCommand r
+  , "description" =. ruleDescription r
   ]
 
 -- | Pretty-prints a build statement.
@@ -34,7 +37,8 @@ ppBuild b = ppStmt "build" line vars
 -- | Pretty-prints a Ninja file.
 ppNinja :: Ninja -> String
 ppNinja ninja = unlines $
-     (ppRule  <$> ninjaRules  ninja)
+     (ppVar   <$> ninjaVars   ninja)
+  ++ (ppRule  <$> ninjaRules  ninja)
   ++ (ppBuild <$> ninjaBuilds ninja)
 
 -- | Nothing if the list is empty, otherwise the list wrapped in Just.
@@ -47,6 +51,6 @@ nothingIfEmpty xs = case xs of
 indent :: String -> String
 indent = ("  " ++)
 
--- | Compacts a key-value table by filtering entries Just values.
-catMaybeValues :: [(k, Maybe v)] -> [(k, v)]
-catMaybeValues = mapMaybe $ \(k, maybeV) -> (\v -> (k, v)) <$> maybeV
+-- | Compacts a variable list by filtering entries Just values.
+catMaybeVars :: [Var (Maybe a)] -> [Var a]
+catMaybeVars = mapMaybe $ \(Var n maybeV) -> Var n <$> maybeV
