@@ -1,7 +1,7 @@
 module KiCS2.BuildGenerator.Options
   ( Options (..)
-  , defaultOptions, optFrontendDir, optFrontendBin, optBinDir
-  , optLocalBinDir, optKics2cBin, optKics2iBin, optDotCpmDir, optPackageJson
+  , defaultOptions, optFrontendDir, optFrontendBin, optBinDir, optLibDir, optSrcDir
+  , optBootDir, optLocalBinDir, optKics2cBin, optKics2iBin, optDotCpmDir, optPackageJson
   , optionsNinja
   , parseOptions
   ) where
@@ -16,20 +16,24 @@ import Language.Ninja.Types ( (=.) )
 
 data Options = Options
   { optCurry           :: String
+  , optVersion         :: String
   , optStack           :: String
   , optRootDir         :: FilePath
   , optStackResolver   :: String
   , optRuntimeIdSupply :: String
+  , optGhcOpts         :: String
   }
 
 -- | The default options for building KiCS2.
 defaultOptions :: Options
 defaultOptions = Options
   { optCurry = "curry"
+  , optVersion = "3.0.0"
   , optStack = "stack"
   , optRootDir = "."
   , optStackResolver = "ghc-9.2.4"
   , optRuntimeIdSupply = "idsupplyinteger"
+  , optGhcOpts = "-O2 -fno-strictness -fno-liberate-case"
   }
 
 -- | An OptParse options parser.
@@ -42,6 +46,12 @@ optionsParser = optParser $
         <> help "The Curry compiler to bootstrap with."
         <> optional
         )
+  <.> option (\version o -> o { optVersion = version })
+        (  long "version"
+        <> short "v"
+        <> metavar "VERSION"
+        <> help "The KiCS2 version."
+        <> optional)
   <.> option (\stack o -> o { optStack = stack })
         (  long "stack"
         <> metavar "STACK"
@@ -68,18 +78,42 @@ optionsParser = optParser $
         <> help "The id supply to use in the KiCS2 runtime. Some implementations have a dependency on GHC's UniqSupply and thus require a dependency on 'ghc' too (which in turn adds shared library dependencies on libtinfo etc.)"
         <> optional
         )
+  <.> option (\ghcopts o -> o { optGhcOpts = ghcopts })
+        (  long "ghcopts"
+        <> short "g"
+        <> metavar "OPTS"
+        <> help "GHC options to use. By default this includes optimizations."
+        <> optional
+        )
 
 -- | The Ninja source declaring non-path-related options as variables.
 optionsNinja :: Options -> NinjaBuilder ()
 optionsNinja o = do
   var $ "curry" =. optCurry o
+  var $ "version" =. optVersion o
   var $ "stack" =. optStack o
   var $ "resolver" =. optStackResolver o
   var $ "idsupply" =. optRuntimeIdSupply o
+  var $ "ghcopts" =. optGhcOpts o
+
+  var $ "ghc" =. optStack o ++ " exec -- ghc"
+  var $ "cypm" =. optCurry o ++ " cypm"
 
 -- | The path to the directory for built binaries.
 optBinDir :: Options -> FilePath
 optBinDir o = optRootDir o </> "bin"
+
+-- | The path to the directory for the KiCS2 standard libraries.
+optLibDir :: Options -> FilePath
+optLibDir o = optRootDir o </> "lib"
+
+-- | The path to the directory for the KiCS2 sources.
+optSrcDir :: Options -> FilePath
+optSrcDir o = optRootDir o </> "src"
+
+-- | The path to the directory for the KiCS2 bootstrapping sources.
+optBootDir :: Options -> FilePath
+optBootDir o = optRootDir o </> "boot"
 
 -- | The path to the directory for built local binaries.
 optLocalBinDir :: Options -> FilePath

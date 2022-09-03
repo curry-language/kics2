@@ -21,4 +21,8 @@ curryNinja _ = do
         ]
     , ruleDescription = Just "Building $main executable with $curry..."
     }
+  
+  rule (emptyRule "kics2c")
+    { ruleCommand = Just "$kics2c $kics2copts $in"
+    }
 

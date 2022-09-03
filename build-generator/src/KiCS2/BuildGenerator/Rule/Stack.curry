@@ -20,3 +20,7 @@ stackNinja _ = do
         ]
     , ruleDescription = Just "Building $pkg executable with Stack..."
     }
+  
+  rule (emptyRule "ghc")
+    { ruleCommand = Just "$ghc $ghcopts -o $out $in"
+    }

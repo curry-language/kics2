@@ -3,16 +3,25 @@
 set -e
 cd "$(dirname $0)"
 
+if [ -z "$CURRY" ]; then
+  echo "Please point CURRY to a Curry compiler binary (e.g. kics2 or pakcs)!"
+  exit 1
+fi
+
+if ! command -v python3 &> /dev/null; then
+  echo "Please make sure that 'python3' is on your PATH!"
+  exit 1
+fi
+
 ROOT=$(pwd)
 GENERATOR_DIR="$ROOT/build-generator"
 GENERATOR_MAIN="KiCS2.BuildGenerator.Main"
 GENERATOR_BINDIR="$GENERATOR_DIR/bin"
 GENERATOR_PATH="$GENERATOR_BINDIR/generate-build"
+PACKAGEJSON="$ROOT/package.json"
+VERSION=$(cat $PACKAGEJSON | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])")
 
-if [ -z "$CURRY" ]; then
-  echo "Please point CURRY to a Curry compiler binary (e.g. kics2 or pakcs)!"
-  exit 1
-fi
+echo "==> Configuring KiCS2 $VERSION"
 
 echo "==> Compiling build generator..."
 cd "$GENERATOR_DIR"
@@ -22,4 +31,7 @@ mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
 
 echo "==> Running build generator..."
 cd "$ROOT"
-"$GENERATOR_PATH" --curry "$CURRY" "$@"
+"$GENERATOR_PATH" \
+  --version "$VERSION" \
+  --curry "$CURRY" \
+  "$@"

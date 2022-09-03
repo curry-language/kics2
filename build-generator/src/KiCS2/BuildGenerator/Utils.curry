@@ -1,5 +1,5 @@
 module KiCS2.BuildGenerator.Utils
-  ( concatMapM, forM_, findWithSuffix, walk
+  ( concatMapM, forM_, findWithSuffix, walk, listDir, replace
   ) where
 
 import Control.Monad ( join )
@@ -27,6 +27,14 @@ walk f path | not (f path) = return [path]
   isDir <- doesDirectoryExist path
   if isDir
     then do
-      childs <- map (path </>) . filter (not . flip elem [".", ".."]) <$> getDirectoryContents path
+      childs <- listDir path
       concatMapM (walk f) childs
     else return [path]
+
+-- | Lists the files in a directory.
+listDir :: MonadIO m => FilePath -> m [FilePath]
+listDir path = liftIO $ map (path </>) . filter (not . flip elem [".", ".."]) <$> getDirectoryContents path
+
+-- | Replaces a value in a Functor.
+replace :: (Functor f, Eq a) => a -> a -> f a -> f a
+replace x y = fmap $ \x' -> if x == x' then y else x'

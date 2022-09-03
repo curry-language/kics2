@@ -6,6 +6,7 @@ import KiCS2.BuildGenerator.Build.Compiler ( compilerNinja )
 import KiCS2.BuildGenerator.Build.Frontend ( frontendNinja )
 import KiCS2.BuildGenerator.Rule.Curry ( curryNinja )
 import KiCS2.BuildGenerator.Rule.Stack ( stackNinja )
+import KiCS2.BuildGenerator.Rule.Utils ( utilsNinja )
 import KiCS2.BuildGenerator.Options ( Options, defaultOptions, parseOptions, optionsNinja )
 import Language.Ninja.Builder ( NinjaBuilder, execNinjaBuilder, comment, whitespace )
 import Language.Ninja.Pretty ( ppNinja )
@@ -18,6 +19,7 @@ topLevelNinja o = do
   whitespace
 
   comment "Rules"
+  utilsNinja o
   curryNinja o
   stackNinja o
   whitespace
