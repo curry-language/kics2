@@ -12,11 +12,9 @@ stackNinja :: Options -> NinjaBuilder ()
 stackNinja o = do
   rule (emptyRule "stack")
     { ruleCommand = Just $ unwords
-        [ "stack build"
-        , "$stackpkgs"
-        , "--stack-yaml", "$in"
-        , "--copy-bins"
-        , "--local-bin-path", "$$(dirname $$(realpath $out))"
+        [ "stack build $pkgs --stack-yaml $in --copy-bins --local-bin-path $$(dirname $$(realpath $out))"
+        , "&&"
+        , "for pkg in $pkgs; do mv $$(dirname $$(realpath $out))/$pkgs $out; done"
         ]
-    , ruleDescription = Just "Building $out with Stack..."
+    , ruleDescription = Just "Building $pkgs with Stack..."
     }

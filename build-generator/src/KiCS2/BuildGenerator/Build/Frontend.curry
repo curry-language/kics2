@@ -19,4 +19,8 @@ frontendNinja o = do
 
   srcs <- liftIO $ join <$> mapM (findWithSuffix ".hs") srcDirs
 
-  build $ [frontendBin o] :. ("stack", [stackYaml]) |. buildFiles ++ srcs
+  build $ ([frontendBin o] :. ("stack", [stackYaml]) |. buildFiles ++ srcs)
+    { buildVariables =
+        [ ("pkgs", "curry-frontend")
+        ]
+    }
