@@ -1,6 +1,6 @@
 module KiCS2.BuildGenerator.Options
   ( Options (..)
-  , defaultOptions, frontendDir, frontendBin, binDir
+  , defaultOptions, frontendDir, frontendBin, binDir, packageJson
   , optionsNinja
   , parseOptions
   ) where
@@ -87,6 +87,10 @@ frontendDir o = optRootDir o </> "frontend"
 -- | The path to the (to-be) built frontend binary.
 frontendBin :: Options -> FilePath
 frontendBin o = binDir o </> "kics2-frontend"
+
+-- | The path to the KiCS2 CPM package manifest.
+packageJson :: Options -> FilePath
+packageJson o = optRootDir o </> "package.json"
 
 -- | Parses options from arguments.
 parseOptions :: String -> [String] -> Either String Options

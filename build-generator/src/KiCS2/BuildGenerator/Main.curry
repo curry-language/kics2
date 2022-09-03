@@ -2,6 +2,7 @@ module KiCS2.BuildGenerator.Main
   ( main
   ) where
 
+import KiCS2.BuildGenerator.Build.Compiler ( compilerNinja )
 import KiCS2.BuildGenerator.Build.Frontend ( frontendNinja )
 import KiCS2.BuildGenerator.Rule.Curry ( curryNinja )
 import KiCS2.BuildGenerator.Rule.Stack ( stackNinja )
@@ -23,6 +24,7 @@ topLevelNinja o = do
 
   comment "Builds"
   frontendNinja o
+  compilerNinja o
 
 main :: IO ()
 main = do

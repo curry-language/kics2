@@ -1,23 +1,28 @@
 module KiCS2.BuildGenerator.Utils
-  ( findWithSuffix, walk
+  ( concatMapM, findWithSuffix, walk
   ) where
 
 import Control.Monad ( join )
+import Control.Monad.IO.Class ( MonadIO (..) )
 import Data.List ( isSuffixOf )
 import System.Directory ( getDirectoryContents, doesDirectoryExist )
 import System.FilePath ( FilePath, (</>) )
 
+-- | Flattening map, but over monads.
+concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
+concatMapM f = (join <$>) . mapM f
+
 -- | Recursively finds all files with the given suffix in the directory.
-findWithSuffix :: String -> FilePath -> IO [FilePath]
+findWithSuffix :: MonadIO m => String -> FilePath -> m [FilePath]
 findWithSuffix suffix = (filter (suffix `isSuffixOf`) <$>) . walk (const True)
 
 -- | Recursively finds all files matching the given predicate in the directory.
-walk :: (FilePath -> Bool) -> FilePath -> IO [FilePath]
+walk :: MonadIO m => (FilePath -> Bool) -> FilePath -> m [FilePath]
 walk f path | not (f path) = return [path]
-            | otherwise    = do
+            | otherwise    = liftIO $ do
   isDir <- doesDirectoryExist path
   if isDir
     then do
       childs <- map (path </>) . filter (not . flip elem [".", ".."]) <$> getDirectoryContents path
-      join <$> mapM (walk f) childs
+      concatMapM (walk f) childs
     else return [path]
