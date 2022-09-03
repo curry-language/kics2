@@ -29,6 +29,10 @@ cd "$GENERATOR_DIR"
 mkdir -p "$GENERATOR_BINDIR"
 mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
 
+echo "==> Installing dependencies..."
+cd "$ROOT"
+"$CURRY" cypm install --noexec
+
 echo "==> Running build generator..."
 cd "$ROOT"
 "$GENERATOR_PATH" \
