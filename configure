@@ -20,12 +20,19 @@ GENERATOR_BINDIR="$GENERATOR_DIR/bin"
 GENERATOR_PATH="$GENERATOR_BINDIR/generate-build"
 PACKAGEJSON="$ROOT/package.json"
 VERSION=$(cat $PACKAGEJSON | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])")
+BASE_VERSION=$(cat lib-trunk/VERSION)
+COMPILERDATE=$(date '+%Y-%m-%d') # TODO: Use Git date when available?
+INSTALLDATE=$(date '+%Y-%m-%d')
 
-echo "==> Configuring KiCS2 $VERSION"
+echo "==> Configuring KiCS2 with"
+echo "Curry: $CURRY"
+echo "Version: $VERSION"
+echo "Compiler date: $COMPILERDATE"
+echo "Install date: $INSTALLDATE"
 
 echo "==> Compiling build generator..."
 cd "$GENERATOR_DIR"
-"$CURRY" :load "$GENERATOR_MAIN" :save main :quit
+"$CURRY" :set v0 :load "$GENERATOR_MAIN" :save main :quit
 mkdir -p "$GENERATOR_BINDIR"
 mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
 
@@ -37,5 +44,9 @@ echo "==> Running build generator..."
 cd "$ROOT"
 "$GENERATOR_PATH" \
   --version "$VERSION" \
+  --build-version "2" \
+  --compiler-date "$COMPILERDATE" \
+  --install-date "$INSTALLDATE" \
+  --base-version "$BASE_VERSION" \
   --curry "$CURRY" \
   "$@"

@@ -7,6 +7,7 @@ module KiCS2.BuildGenerator.Options
   ) where
 
 import Data.Char ( toLower )
+import Data.List ( splitOn )
 import OptParse ( ParseSpec, optParser
                 , option, long, short, metavar, help, optional
                 , (<.>), (<>), parse
@@ -17,26 +18,40 @@ import Language.Ninja.Types ( (=.) )
 import System.FilePath ( FilePath, (</>) )
 
 data Options = Options
-  { optCurry           :: String
-  , optVersion         :: String
-  , optStack           :: String
-  , optRootDir         :: FilePath
-  , optStackResolver   :: String
-  , optRuntimeIdSupply :: String
-  , optGhcOpts         :: String
+  { optCurry            :: String
+  , optVersion          :: String
+  , optBuildVersion     :: String
+  , optCompilerDate     :: String
+  , optInstallDate      :: String
+  , optBaseVersion      :: String
+  , optStack            :: String
+  , optRootDir          :: FilePath
+  , optStackResolver    :: String
+  , optGhcVersion       :: String
+  , optRuntimeIdSupply  :: String
+  , optGhcOpts          :: String
+  , optGhcOptimizations :: String
   }
 
 -- | The default options for building KiCS2.
 defaultOptions :: Options
 defaultOptions = Options
   { optCurry = "curry"
-  , optVersion = "3.0.0"
+  , optVersion = ".."
+  , optBuildVersion = ""
+  , optCompilerDate = ""
+  , optInstallDate = ""
+  , optBaseVersion = ""
   , optStack = "stack"
   , optRootDir = "."
-  , optStackResolver = "ghc-9.2.4"
+  , optStackResolver = "ghc-" ++ ghcVersion
+  , optGhcVersion = ghcVersion
   , optRuntimeIdSupply = "idsupplyinteger"
-  , optGhcOpts = "-O2 -fno-strictness -fno-liberate-case"
+  , optGhcOpts = "-fno-strictness -fno-liberate-case"
+  , optGhcOptimizations = "-O2"
   }
+  where
+    ghcVersion = "9.2.4"
 
 -- | An OptParse options parser.
 optionsParser :: ParseSpec (Options -> Options)
@@ -53,12 +68,40 @@ optionsParser = optParser $
         <> short "v"
         <> metavar "VERSION"
         <> help "The KiCS2 version."
-        <> optional)
+        <> optional
+        )
+  <.> option (\build o -> o { optBuildVersion = build })
+        (  long "build-version"
+        <> short "b"
+        <> metavar "BUILDVERSION"
+        <> help "The KiCS2 build version. >0 if this is a pre-release."
+        <> optional
+        )
+  <.> option (\date o -> o { optCompilerDate = date })
+        (  long "compiler-date"
+        <> short "d"
+        <> metavar "COMPILERDATE"
+        <> help "The date of the compiler version."
+        <> optional
+        )
+  <.> option (\date o -> o { optInstallDate = date })
+        (  long "install-date"
+        <> metavar "INSTALLDATE"
+        <> help "The date of the installation."
+        <> optional
+        )
+  <.> option (\version o -> o { optBaseVersion = version })
+        (  long "base-version"
+        <> metavar "VERSION"
+        <> help "The base libraries version."
+        <> optional
+        )
   <.> option (\stack o -> o { optStack = stack })
         (  long "stack"
         <> metavar "STACK"
         <> help "The Haskell Stack binary to use."
-        <> optional)
+        <> optional
+        )
   <.> option (\rootDir o -> o { optRootDir = rootDir })
         (  long "root"
         <> short "r"
@@ -81,10 +124,16 @@ optionsParser = optParser $
         <> optional
         )
   <.> option (\ghcopts o -> o { optGhcOpts = ghcopts })
-        (  long "ghcopts"
+        (  long "ghc-opts"
         <> short "g"
         <> metavar "OPTS"
-        <> help "GHC options to use. By default this includes optimizations."
+        <> help "Additional GHC options to use."
+        <> optional
+        )
+  <.> option (\ghcopts o -> o { optGhcOptimizations = ghcopts })
+        (  long "ghc-optimizations"
+        <> metavar "OPTS"
+        <> help "GHC optimization options to use. By default this includes -O2."
         <> optional
         )
 
@@ -92,14 +141,36 @@ optionsParser = optParser $
 optionVars :: Options -> [(String, String)]
 optionVars o =
   [ ("CURRY", optCurry o)
-  , ("VERSION", optVersion o)
+  , ("VERSION", version)
+  , ("MAJORVERSION", major)
+  , ("MINORVERSION", minor)
+  , ("REVISIONVERSION", rev)
+  , ("BUILDVERSION", optBuildVersion o)
+  , ("COMPILERDATE", optCompilerDate o)
+  , ("INSTALLDATE", optInstallDate o)
+  , ("BASE_VERSION", optBaseVersion o)
+  , ("GHC_VERSION", ghcVersion)
+  , ("GHC_MAJOR", ghcMajor)
+  , ("GHC_MINOR", ghcMinor)
   , ("STACK", optStack o)
   , ("STACKRESOLVER", optStackResolver o)
   , ("RUNTIME_IDSUPPLY", optRuntimeIdSupply o)
-  , ("GHCOPTS", optGhcOpts o)
+  , ("GHC_OPTS", optGhcOpts o)
+  , ("GHC_OPTIMIZATIONS", optGhcOptimizations o)
   , ("GHC", optStack o ++ " exec -- ghc")
   , ("CYPM", optCurry o ++ " cypm")
   ]
+  where
+    version    = optVersion o
+    ghcVersion = optGhcVersion o
+    (major, minor, rev)     = parseVersion version
+    (ghcMajor, ghcMinor, _) = parseVersion ghcVersion
+
+parseVersion :: String -> (String, String, String)
+parseVersion version =  case splitOn "." version of
+  [m, n]    -> (m, n, "")
+  [m, n, r] -> (m, n, r)
+  _         -> error $ "Invalid version: " ++ version
 
 -- | The Ninja source declaring non-path-related options as variables.
 optionsNinja :: Options -> NinjaBuilder ()

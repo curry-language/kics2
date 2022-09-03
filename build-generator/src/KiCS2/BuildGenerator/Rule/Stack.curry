@@ -22,5 +22,5 @@ stackNinja _ = do
     }
   
   rule (emptyRule "ghc")
-    { ruleCommand = Just "$ghc $ghcopts -o $out $in"
+    { ruleCommand = Just "$ghc $ghc_opts -o $out $in"
     }

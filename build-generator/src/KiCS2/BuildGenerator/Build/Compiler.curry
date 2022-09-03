@@ -20,20 +20,14 @@ compilerNinja o = do
       pkgJson         = optPackageJson o
       compileMain     = "KiCS2.Compile"
       replMain        = "KiCS2.REPL"
-      installationGen = srcDir </> "Installation.curry"
-      installationIn  = installationGen <.> "in"
-      generatedSrcs   = [installationGen]
       bins            =
         [ (compileMain, "compiler", optKics2cBin o)
         , (replMain,    "REPL",     optKics2iBin o)
         ]
 
-  baseSrcs <- filter (not . (`elem` generatedSrcs)) <$> concatMapM (findWithSuffix ".curry") [srcDir, depsDir]
-  let srcs = baseSrcs ++ generatedSrcs
+  srcs <- concatMapM (findWithSuffix ".curry") [srcDir, depsDir]
 
   -- Compiling kics2c/i directly using $curry
-
-  build $ ([installationGen] :. ("configure", [installationIn]))
 
   forM_ bins $ \(main, description, bin) -> do
     build $ ([bin] :. ("curry", [pkgJson]) |. srcs)
@@ -70,7 +64,7 @@ compilerNinja o = do
       { buildDescription = Just $ description ++ " (Curry -> Haskell)"
       , buildVariables =
           [ "kics2c" =. stageBin (i - 1)
-          , "kics2copts" =. "-v2 --parse-options=-Wall -o" ++ outDir ++ " -i" ++ currypath
+          , "kics2c_opts" =. "-v2 --parse-options=-Wall -o" ++ outDir ++ " -i" ++ currypath
           ]
       }
 
@@ -80,6 +74,6 @@ compilerNinja o = do
     build $ ([stageBin i] :. ("ghc", [compileBootHsSrc]) |. hsSrcs)
       { buildDescription = Just $ description ++ " (Haskell -> Native)"
       , buildVariables =
-          [ "ghcopts" =. "$ghcopts --make -v1 -cpp"
+          [ "ghc_opts" =. "$ghc_opts --make -v1 -cpp"
           ]
       }
