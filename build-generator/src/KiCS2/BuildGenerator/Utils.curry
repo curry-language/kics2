@@ -1,10 +1,12 @@
 module KiCS2.BuildGenerator.Utils
   ( concatMapM, forM_, findWithSuffix, walk, listDir
-  , replaceSingle, replace
+  , replaceSingle, replace, takeIdentifier, isIdentifierChar
+  , mapTail
   ) where
 
 import Control.Monad ( join )
 import Control.Monad.IO.Class ( MonadIO (..) )
+import Data.Char ( isAlphaNum )
 import Data.List ( isSuffixOf, splitOn, intercalate )
 import System.Directory ( getDirectoryContents, doesDirectoryExist )
 import System.FilePath ( FilePath, (</>) )
@@ -43,3 +45,17 @@ replaceSingle x y = fmap $ \x' -> if x == x' then y else x'
 -- | Replaces a list of values.
 replace :: Eq a => [a] -> [a] -> [a] -> [a]
 replace old new = intercalate new . splitOn old
+
+-- | Whether this is a character valid for use in an identifier.
+isIdentifierChar :: Char -> Bool
+isIdentifierChar c = isAlphaNum c || c == '_'
+
+-- | Extract an identifier prefix.
+takeIdentifier :: String -> String
+takeIdentifier = takeWhile isIdentifierChar
+
+-- | Maps over the tail of a list.
+mapTail :: (a -> a) -> [a] -> [a]
+mapTail f xs = case xs of
+  []     -> []
+  (v:vs) -> v : (f <$> vs)
