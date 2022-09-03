@@ -14,3 +14,18 @@ utilsNinja _ = do
   rule (emptyRule "cp")
     { ruleCommand = Just "cp $in $out"
     }
+  
+  let envVars = unwords $ (\(k, v) -> k ++ "=\"" ++ v ++ "\"") <$>
+        [ ("CURRY", "$curry")
+        , ("VERSION", "$version")
+        , ("STACK", "$stack")
+        , ("RESOLVER", "$resolver")
+        , ("IDSUPPLY", "$idsupply")
+        , ("GHCOPTS", "$ghcopts")
+        , ("GHC", "$ghc")
+        , ("CYPM", "$cypm")
+        ]
+
+  rule (emptyRule "configure")
+    { ruleCommand = Just $ unwords [envVars, "envsubst < $in > $out"]
+    }

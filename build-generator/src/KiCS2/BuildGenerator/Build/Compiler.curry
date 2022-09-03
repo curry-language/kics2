@@ -15,19 +15,25 @@ import System.FilePath ( (</>), (<.>), makeRelative, dropExtension, pathSeparato
 -- | The Ninja source for building the compiler.
 compilerNinja :: Options -> NinjaBuilder ()
 compilerNinja o = do
-  let srcDir      = optSrcDir o
-      depsDir     = optDotCpmDir o </> "packages"
-      pkgJson     = optPackageJson o
-      compileMain = "KiCS2.Compile"
-      replMain    = "KiCS2.REPL"
-      bins        =
+  let srcDir          = optSrcDir o
+      depsDir         = optDotCpmDir o </> "packages"
+      pkgJson         = optPackageJson o
+      compileMain     = "KiCS2.Compile"
+      replMain        = "KiCS2.REPL"
+      installationGen = srcDir </> "Installation.curry"
+      installationIn  = installationGen <.> "in"
+      generatedSrcs   = [installationGen]
+      bins            =
         [ (compileMain, "compiler", optKics2cBin o)
         , (replMain,    "REPL",     optKics2iBin o)
         ]
 
-  srcs <- concatMapM (findWithSuffix ".curry") [srcDir, depsDir]
+  baseSrcs <- filter (not . (`elem` generatedSrcs)) <$> concatMapM (findWithSuffix ".curry") [srcDir, depsDir]
+  let srcs = baseSrcs ++ generatedSrcs
 
   -- Compiling kics2c/i directly using $curry
+
+  build $ ([installationGen] :. ("configure", [installationIn]))
 
   forM_ bins $ \(main, description, bin) -> do
     build $ ([bin] :. ("curry", [pkgJson]) |. srcs)
