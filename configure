@@ -30,15 +30,19 @@ echo "Version: $VERSION"
 echo "Compiler date: $COMPILERDATE"
 echo "Install date: $INSTALLDATE"
 
+echo "==> Installing dependencies..."
+cd "$ROOT"
+"$CURRY" cypm install --noexec
+
+echo "==> Installing build generator dependencies..."
+cd "$GENERATOR_DIR"
+"$CURRY" cypm install --noexec
+
 echo "==> Compiling build generator..."
 cd "$GENERATOR_DIR"
 "$CURRY" :set v0 :load "$GENERATOR_MAIN" :save main :quit
 mkdir -p "$GENERATOR_BINDIR"
 mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
-
-echo "==> Installing dependencies..."
-cd "$ROOT"
-"$CURRY" cypm install --noexec
 
 echo "==> Running build generator..."
 cd "$ROOT"
