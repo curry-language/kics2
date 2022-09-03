@@ -1,6 +1,6 @@
 module Language.Ninja.Builder
   ( NinjaBuilder
-  , build, rule, var
+  , build, rule, var, comment, whitespace
   , execNinjaBuilder
   ) where
 
@@ -20,6 +20,9 @@ var v = tell $ Ninja [VarStmt v]
 
 comment :: String -> NinjaBuilder ()
 comment c = tell $ Ninja [CommentStmt c]
+
+whitespace :: NinjaBuilder ()
+whitespace = tell $ Ninja [WhitespaceStmt]
 
 execNinjaBuilder :: NinjaBuilder a -> IO Ninja
 execNinjaBuilder = execWriterT

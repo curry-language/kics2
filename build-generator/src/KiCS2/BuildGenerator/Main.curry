@@ -6,19 +6,22 @@ import KiCS2.BuildGenerator.Build.Frontend ( frontendNinja )
 import KiCS2.BuildGenerator.Rule.Curry ( curryNinja )
 import KiCS2.BuildGenerator.Rule.Stack ( stackNinja )
 import KiCS2.BuildGenerator.Options ( Options, defaultOptions, parseOptions, optionsNinja )
-import Language.Ninja.Builder ( NinjaBuilder, execNinjaBuilder, build, rule )
+import Language.Ninja.Builder ( NinjaBuilder, execNinjaBuilder, comment, whitespace )
 import Language.Ninja.Pretty ( ppNinja )
 import System.Environment ( getArgs )
 
 topLevelNinja :: Options -> NinjaBuilder ()
 topLevelNinja o = do
+  comment "Options"
   optionsNinja o
+  whitespace
 
-  -- Rules
+  comment "Rules"
   curryNinja o
   stackNinja o
+  whitespace
 
-  -- Builds
+  comment "Builds"
   frontendNinja o
 
 main :: IO ()

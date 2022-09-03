@@ -3,11 +3,12 @@ module Language.Ninja.Pretty
   ) where
 
 import Data.Maybe ( mapMaybe, catMaybes )
+import Data.List ( intercalate )
 import Language.Ninja.Types
 
 -- | Pretty-prints a generic statement.
 ppKeywordStmt :: String -> String -> [Var String] -> String
-ppKeywordStmt keyword args vars = unlines $ unwords [keyword, args] : (indent . ppVar <$> vars)
+ppKeywordStmt keyword args vars = intercalate "\n" $ unwords [keyword, args] : (indent . ppVar <$> vars)
   where
 
 -- | Pretty-prints a variable declaration.
@@ -38,13 +39,18 @@ ppBuild b = ppKeywordStmt "build" line vars
 ppComment :: String -> String
 ppComment c = "# " ++ c
 
+-- | Pretty-prints an empty line.
+ppWhitespace :: String
+ppWhitespace = ""
+
 -- | Pretty-prints a Ninja statement.
 ppStmt :: Stmt -> String
 ppStmt stmt = case stmt of
-  BuildStmt b   -> ppBuild b
-  RuleStmt r    -> ppRule r
-  VarStmt v     -> ppVar v
-  CommentStmt c -> ppComment c
+  BuildStmt b    -> ppBuild b
+  RuleStmt r     -> ppRule r
+  VarStmt v      -> ppVar v
+  CommentStmt c  -> ppComment c
+  WhitespaceStmt -> ppWhitespace
 
 -- | Pretty-prints a Ninja file.
 ppNinja :: Ninja -> String

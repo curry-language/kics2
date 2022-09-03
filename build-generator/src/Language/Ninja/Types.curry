@@ -10,6 +10,7 @@ data Stmt = VarStmt (Var String)
           | RuleStmt Rule
           | BuildStmt Build
           | CommentStmt String
+          | WhitespaceStmt
 
 data Var a = Var
   { varName  :: String
