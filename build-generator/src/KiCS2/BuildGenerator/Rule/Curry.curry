@@ -15,7 +15,8 @@ curryNinja _ = do
     { ruleCommand = Just $ unwords $ intersperse "&&"
         [ "tmpdir=\"$$(mktemp -d)\""
         , "trap 'rm -rf \"$$tmpdir\"' EXIT"
-        , "$curry :set v2 :load $main :cd $$tmpdir :save :quit"
+        , "cd \"$$(dirname $in)\""
+        , "$curry :set v2 :load $main :cd \"$$tmpdir\" :save :quit"
         , "mv \"$$tmpdir/$main\" $out"
         ]
     , ruleDescription = Just "Building $main executable with $curry..."

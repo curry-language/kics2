@@ -1,6 +1,7 @@
 module KiCS2.BuildGenerator.Options
   ( Options (..)
-  , defaultOptions, frontendDir, frontendBin, binDir, packageJson
+  , defaultOptions, optFrontendDir, optFrontendBin, optBinDir
+  , optLocalBinDir, optKics2cBin, optKics2iBin, optDotCpmDir, optPackageJson
   , optionsNinja
   , parseOptions
   ) where
@@ -77,20 +78,36 @@ optionsNinja o = do
   var $ "idsupply" =. optRuntimeIdSupply o
 
 -- | The path to the directory for built binaries.
-binDir :: Options -> FilePath
-binDir o = optRootDir o </> "bin"
+optBinDir :: Options -> FilePath
+optBinDir o = optRootDir o </> "bin"
+
+-- | The path to the directory for built local binaries.
+optLocalBinDir :: Options -> FilePath
+optLocalBinDir o = optBinDir o </> ".local"
+
+-- | The path to the built 'kics2c' compiler binary.
+optKics2cBin :: Options -> FilePath
+optKics2cBin o = optLocalBinDir o </> "kics2c"
+
+-- | The path to the built 'kics2i' REPL binary.
+optKics2iBin :: Options -> FilePath
+optKics2iBin o = optLocalBinDir o </> "kics2i"
+
+-- | The path to the KiCS2 .cpm directory.
+optDotCpmDir :: Options -> FilePath
+optDotCpmDir o = optRootDir o </> ".cpm"
 
 -- | The path to the frontend submodule.
-frontendDir :: Options -> FilePath
-frontendDir o = optRootDir o </> "frontend"
+optFrontendDir :: Options -> FilePath
+optFrontendDir o = optRootDir o </> "frontend"
 
 -- | The path to the (to-be) built frontend binary.
-frontendBin :: Options -> FilePath
-frontendBin o = binDir o </> "kics2-frontend"
+optFrontendBin :: Options -> FilePath
+optFrontendBin o = optBinDir o </> "kics2-frontend"
 
 -- | The path to the KiCS2 CPM package manifest.
-packageJson :: Options -> FilePath
-packageJson o = optRootDir o </> "package.json"
+optPackageJson :: Options -> FilePath
+optPackageJson o = optRootDir o </> "package.json"
 
 -- | Parses options from arguments.
 parseOptions :: String -> [String] -> Either String Options

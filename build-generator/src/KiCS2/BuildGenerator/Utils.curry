@@ -1,5 +1,5 @@
 module KiCS2.BuildGenerator.Utils
-  ( concatMapM, findWithSuffix, walk
+  ( concatMapM, forM_, findWithSuffix, walk
   ) where
 
 import Control.Monad ( join )
@@ -11,6 +11,10 @@ import System.FilePath ( FilePath, (</>) )
 -- | Flattening map, but over monads.
 concatMapM :: Monad m => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = (join <$>) . mapM f
+
+-- | Flipped mapM_.
+forM_ :: Monad m => [a] -> (a -> m b) -> m ()
+forM_ = flip mapM_
 
 -- | Recursively finds all files with the given suffix in the directory.
 findWithSuffix :: MonadIO m => String -> FilePath -> m [FilePath]
