@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ ! -f build.ninja ]; then
+  CURRY=kics2 ./configure
+fi
+
+NINJA_STATUS="[%f/%t][%es] " ninja
