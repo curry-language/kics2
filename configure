@@ -74,6 +74,8 @@ def main():
     parser.add_argument('--curry', default='kics2', help='The Curry compiler to bootstrap with.')
     parser.add_argument('--compiler-date', default=None, help='The compiler date to configure the build with. By default this is the commit date of HEAD.')
     parser.add_argument('--install-date', default=None, help='The installation date to configure the build with.')
+    parser.add_argument('--skip-deps', action='store_true', help='Skips installing dependencies. Only useful for a fast development feedback loop since installed dependencies are generally a noop already.')
+    parser.add_argument('--skip-recompile', action='store_true', help='Skips recompiling the build generator.')
 
     args = parser.parse_args()
     root = args.root
@@ -81,20 +83,24 @@ def main():
     cpm = [*curry, 'cypm']
     compiler_date = args.compiler_date or default_compiler_date(root)
     install_date = args.install_date or default_install_date()
+    skip_deps = args.skip_deps
+    skip_recompile = args.skip_recompile
 
     generator_main = 'KiCS2.BuildGenerator.Main'
     generator_dir = root / 'build-generator'
     generator_bindir = generator_dir / 'bin'
     generator_bin = generator_bindir / 'generate-build'
 
-    print('==> Installing dependencies...')
-    install_cpm_dependencies(cpm, root)
+    if not skip_deps:
+        print('==> Installing dependencies...')
+        install_cpm_dependencies(cpm, root)
 
-    print('==> Installing build generator dependencies...')
-    install_cpm_dependencies(cpm, generator_dir)
+        print('==> Installing build generator dependencies...')
+        install_cpm_dependencies(cpm, generator_dir)
 
-    print('==> Compiling build generator...')
-    compile_cpm_executable(curry, generator_dir, generator_main, generator_bin)
+    if not skip_recompile:
+        print('==> Compiling build generator...')
+        compile_cpm_executable(curry, generator_dir, generator_main, generator_bin)
 
     print('==> Running build generator...')
     subprocess.run([
