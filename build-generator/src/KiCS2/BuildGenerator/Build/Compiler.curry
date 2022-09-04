@@ -56,17 +56,16 @@ compilerNinja o = do
         toHsName = (<.> "hs") . ("Curry_" ++) . dropExtension
         hsPath = (outDir </>) . (\n -> replaceFileName n $ toHsName $ takeFileName n) . relativizeToSrc
         hsSrcs = hsPath <$> srcs
-        rootDir = optRootDir o
         libDir = optLibDir o
-        currypath = intercalate ":" $ libDir : depSrcDirs
+        kics2cIncludes = intercalate ":" $ libDir : depSrcDirs
+        ghcIncludes = "TODO" -- TODO
 
     build $ (hsSrcs :. ("kics2c", []) |. stageBin (i - 1) : srcs)
       { buildDescription = Just $ description ++ " (Curry -> Haskell)"
       , buildVariables =
           [ "mod" =. compileMain
           , "kics2c" =. stageBin (i - 1)
-          , "kics2_home" =. rootDir
-          , "kics2c_opts" =. "-v2 --parse-options=-Wall -o" ++ outDir ++ " -i" ++ currypath
+          , "kics2c_opts" =. "$kics2c_opts -o" ++ outDir ++ " -i" ++ kics2cIncludes
           ]
       }
 
@@ -76,6 +75,6 @@ compilerNinja o = do
     build $ ([stageBin i] :. ("ghc", [compileBootHsSrc]) |. hsSrcs)
       { buildDescription = Just $ description ++ " (Haskell -> Native)"
       , buildVariables =
-          [ "ghc_opts" =. "$ghc_opts --make -v1 -cpp"
+          [ "ghc_opts" =. "$ghc_opts --make -i" ++ ghcIncludes
           ]
       }

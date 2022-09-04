@@ -1,5 +1,5 @@
-module KiCS2.BuildGenerator.Rule.Stack
-  ( stackNinja
+module KiCS2.BuildGenerator.Rule.Haskell
+  ( haskellNinja
   ) where
 
 import Data.List ( intersperse )
@@ -8,9 +8,9 @@ import Language.Ninja.Types
 import Language.Ninja.Builder ( NinjaBuilder, build, rule )
 import System.FilePath ( (</>) )
 
--- | The Ninja source containing rules for building Stack projects.
-stackNinja :: Options -> NinjaBuilder ()
-stackNinja _ = do
+-- | The Ninja source containing rules for building Haskell code.
+haskellNinja :: Options -> NinjaBuilder ()
+haskellNinja _ = do
   rule (emptyRule "stack")
     { ruleCommand = Just $ unwords $ intersperse "&&"
         [ "tmpdir=\"$$(mktemp -d)\""
@@ -22,5 +22,6 @@ stackNinja _ = do
     }
   
   rule (emptyRule "ghc")
-    { ruleCommand = Just "$ghc $ghc_opts -o $out $in"
+    { ruleCommand = Just "$ghc $ghc_opts $ghc_optimizations -o $out $in"
+    , ruleDescription = Just "Compiling $in with GHC..."
     }

@@ -31,6 +31,7 @@ data Options = Options
   , optRuntimeIdSupply  :: String
   , optGhcOpts          :: String
   , optGhcOptimizations :: String
+  , optKics2cOpts       :: String
   }
 
 -- | The default options for building KiCS2.
@@ -47,8 +48,9 @@ defaultOptions = Options
   , optStackResolver = "ghc-" ++ ghcVersion
   , optGhcVersion = ghcVersion
   , optRuntimeIdSupply = "idsupplyinteger"
-  , optGhcOpts = "-fno-strictness -fno-liberate-case"
+  , optGhcOpts = "-v1 -cpp -fno-strictness -fno-liberate-case"
   , optGhcOptimizations = "-O2"
+  , optKics2cOpts = "-v2 --parse-options=-Wall"
   }
   where
     ghcVersion = "9.2.4"
@@ -123,17 +125,23 @@ optionsParser = optParser $
         <> help "The id supply to use in the KiCS2 runtime. Some implementations have a dependency on GHC's UniqSupply and thus require a dependency on 'ghc' too (which in turn adds shared library dependencies on libtinfo etc.)"
         <> optional
         )
-  <.> option (\ghcopts o -> o { optGhcOpts = ghcopts })
+  <.> option (\opts o -> o { optGhcOpts = opts })
         (  long "ghc-opts"
         <> short "g"
         <> metavar "OPTS"
         <> help "Additional GHC options to use."
         <> optional
         )
-  <.> option (\ghcopts o -> o { optGhcOptimizations = ghcopts })
+  <.> option (\opts o -> o { optGhcOptimizations = opts })
         (  long "ghc-optimizations"
         <> metavar "OPTS"
         <> help "GHC optimization options to use. By default this includes -O2."
+        <> optional
+        )
+  <.> option (\opts o -> o { optKics2cOpts = opts })
+        (  long "kics2c-opts"
+        <> metavar "OPTS"
+        <> help "Additional kics2c options to use."
         <> optional
         )
 
@@ -159,6 +167,8 @@ optionVars o =
   , ("GHC_OPTIMIZATIONS", optGhcOptimizations o)
   , ("GHC", optStack o ++ " exec -- ghc")
   , ("CYPM", optCurry o ++ " cypm")
+  , ("KICS2HOME", optRootDir o)
+  , ("KICS2C_OPTS", optKics2cOpts o)
   ]
   where
     version    = optVersion o

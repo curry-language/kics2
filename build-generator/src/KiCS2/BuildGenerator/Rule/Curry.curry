@@ -8,7 +8,7 @@ import Language.Ninja.Types
 import Language.Ninja.Builder ( NinjaBuilder, build, rule )
 import System.FilePath ( (</>) )
 
--- | The Ninja source containing rules for building Curry projects.
+-- | The Ninja source containing rules for building Curry code.
 curryNinja :: Options -> NinjaBuilder ()
 curryNinja _ = do
   rule (emptyRule "curry")
@@ -23,6 +23,7 @@ curryNinja _ = do
     }
   
   rule (emptyRule "kics2c")
-    { ruleCommand = Just $ "KICS2HOME=$kics2_home $kics2c $kics2c_opts $mod"
+    { ruleCommand = Just $ "KICS2HOME=$kics2home $kics2c $kics2c_opts $mod"
+    , ruleDescription = Just "Compiling $mod with kics2c..."
     }
 

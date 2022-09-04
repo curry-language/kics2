@@ -6,7 +6,7 @@ import KiCS2.BuildGenerator.Build.Compiler ( compilerNinja )
 import KiCS2.BuildGenerator.Build.Frontend ( frontendNinja )
 import KiCS2.BuildGenerator.Configure ( configureFile )
 import KiCS2.BuildGenerator.Rule.Curry ( curryNinja )
-import KiCS2.BuildGenerator.Rule.Stack ( stackNinja )
+import KiCS2.BuildGenerator.Rule.Haskell ( haskellNinja )
 import KiCS2.BuildGenerator.Rule.Utils ( utilsNinja )
 import KiCS2.BuildGenerator.Options ( Options (..), defaultOptions, parseOptions, optionsNinja )
 import KiCS2.BuildGenerator.Utils ( findWithSuffix, forM_ )
@@ -23,7 +23,7 @@ topLevelNinja o = do
   comment "Rules"
   utilsNinja o
   curryNinja o
-  stackNinja o
+  haskellNinja o
   whitespace
 
   comment "Builds"
