@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+cd "$(dirname $0)"
+
 if [ ! -f build.ninja ]; then
   CURRY=kics2 ./configure
 fi
