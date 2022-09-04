@@ -47,7 +47,7 @@ compilerNinja o = do
       stageDir i = optLocalBinDir o </> stage i
       stageBin i = stageDir i </> "kics2c"
   
-  build $ ([stageBin 1] :. ("cp", [optKics2cBin o]))
+  build $ [stageBin 1] :. ("cp", [optKics2cBin o])
   
   forM_ [2..3] $ \i -> do
     let description = "Building stage " ++ show i ++ " compiler"

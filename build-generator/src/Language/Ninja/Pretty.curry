@@ -33,7 +33,10 @@ ppBuild b = ppKeywordStmt "build" line vars
         [ (" | "  ++) . unwords <$> nothingIfEmpty (buildImplicitDeps  b)
         , (" || " ++) . unwords <$> nothingIfEmpty (buildOrderOnlyDeps b)
         ]
-    vars = buildVariables b
+    vars = buildVariables b ++ catMaybeVars
+      [ "description" =. buildDescription b
+      , "generator" =. if buildGenerator b then Just "1" else Nothing
+      ]
 
 -- | Pretty-prints a comment.
 ppComment :: String -> String

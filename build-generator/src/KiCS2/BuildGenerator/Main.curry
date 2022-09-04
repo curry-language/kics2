@@ -4,6 +4,7 @@ module KiCS2.BuildGenerator.Main
 
 import KiCS2.BuildGenerator.Build.Compiler ( compilerNinja )
 import KiCS2.BuildGenerator.Build.Frontend ( frontendNinja )
+import KiCS2.BuildGenerator.Build.Meta ( metaNinja )
 import KiCS2.BuildGenerator.Configure ( configureFile )
 import KiCS2.BuildGenerator.Rule.Curry ( curryNinja )
 import KiCS2.BuildGenerator.Rule.Haskell ( haskellNinja )
@@ -30,6 +31,7 @@ topLevelNinja o = do
   comment "Builds"
   frontendNinja o
   compilerNinja o
+  metaNinja o
 
 -- | Applies `.in` templates and generates the `build.ninja` file.
 main :: IO ()

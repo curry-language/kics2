@@ -14,3 +14,7 @@ utilsNinja _ = do
   rule (emptyRule "cp")
     { ruleCommand = Just "cp $in $out"
     }
+
+  rule (emptyRule "run")
+    { ruleCommand = Just "$in"
+    }

@@ -80,7 +80,7 @@ def main():
     compiler_date = args.compiler_date or default_compiler_date(root)
     install_date = args.install_date or default_install_date()
 
-    generator_mod = 'KiCS2.BuildGenerator.Main'
+    generator_main = 'KiCS2.BuildGenerator.Main'
     generator_dir = root / 'build-generator'
     generator_bindir = generator_dir / 'bin'
     generator_bin = generator_bindir / 'generate-build'
@@ -92,7 +92,7 @@ def main():
     install_cpm_dependencies(cpm, generator_dir)
 
     print('==> Compiling build generator...')
-    compile_cpm_executable(curry, generator_dir, generator_mod, generator_bin)
+    compile_cpm_executable(curry, generator_dir, generator_main, generator_bin)
 
     print('==> Running build generator...')
     subprocess.run([

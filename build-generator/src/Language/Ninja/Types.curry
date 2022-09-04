@@ -31,6 +31,7 @@ data Build = Build
   , buildOrderOnlyDeps :: [String]
   , buildVariables     :: [Var String]
   , buildDescription   :: Maybe String
+  , buildGenerator     :: Bool
   }
 
 instance Monoid Ninja where
@@ -49,6 +50,7 @@ outs :. (r, deps) = Build
   , buildOrderOnlyDeps = []
   , buildVariables = []
   , buildDescription = Nothing
+  , buildGenerator = False
   }
 
 -- | Attaches implicit dependencies to a build.
