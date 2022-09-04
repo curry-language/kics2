@@ -14,6 +14,7 @@ import Language.Ninja.Builder ( NinjaBuilder, execNinjaBuilder, comment, whitesp
 import Language.Ninja.Pretty ( ppNinja )
 import System.Environment ( getArgs )
 
+-- | The source for the generated `build.ninja` file.
 topLevelNinja :: Options -> NinjaBuilder ()
 topLevelNinja o = do
   comment "Options"
@@ -30,6 +31,7 @@ topLevelNinja o = do
   frontendNinja o
   compilerNinja o
 
+-- | Applies `.in` templates and generates the `build.ninja` file.
 main :: IO ()
 main = do
   args <- getArgs
