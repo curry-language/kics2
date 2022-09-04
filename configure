@@ -1,56 +1,108 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-set -e
-cd "$(dirname $0)"
+import argparse
+import json
+import subprocess
+import sys
 
-if [ -z "$CURRY" ]; then
-  echo "Please point CURRY to a Curry compiler binary (e.g. kics2 or pakcs)!"
-  exit 1
-fi
+from datetime import datetime
+from pathlib import Path
 
-if ! command -v python3 &> /dev/null; then
-  echo "Please make sure that 'python3' is on your PATH!"
-  exit 1
-fi
+if sys.version_info < (3, 9):
+    print('Please make sure to point python3 to Python >= 3.9!')
+    sys.exit(1)
 
-ROOT=$(pwd)
-GENERATOR_DIR="$ROOT/build-generator"
-GENERATOR_MAIN="KiCS2.BuildGenerator.Main"
-GENERATOR_BINDIR="$GENERATOR_DIR/bin"
-GENERATOR_PATH="$GENERATOR_BINDIR/generate-build"
-PACKAGEJSON="$ROOT/package.json"
-VERSION=$(cat $PACKAGEJSON | python3 -c "import sys,json;print(json.load(sys.stdin)['version'])")
-BASE_VERSION=$(cat lib-trunk/VERSION)
-COMPILERDATE=$(date '+%Y-%m-%d') # TODO: Use Git date when available?
-INSTALLDATE=$(date '+%Y-%m-%d')
+# Helpers
 
-echo "==> Configuring KiCS2 with"
-echo "Curry: $CURRY"
-echo "Version: $VERSION"
-echo "Compiler date: $COMPILERDATE"
-echo "Install date: $INSTALLDATE"
+def current_date() -> str:
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-echo "==> Installing dependencies..."
-cd "$ROOT"
-"$CURRY" cypm install --noexec
+def commit_date(root: Path) -> str:
+    result = subprocess.run(
+        ['git', 'show', '-s', '--format=%ci', 'HEAD'],
+        cwd=root,
+        capture_output=True,
+        check=True,
+        encoding='utf8',
+    )
+    return result.stdout.strip()
 
-echo "==> Installing build generator dependencies..."
-cd "$GENERATOR_DIR"
-"$CURRY" cypm install --noexec
+def default_compiler_date(root: Path) -> str:
+    if (root / '.git').exists():
+        return commit_date(root)
+    else:
+        return current_date()
 
-echo "==> Compiling build generator..."
-cd "$GENERATOR_DIR"
-"$CURRY" :set v0 :load "$GENERATOR_MAIN" :save main :quit
-mkdir -p "$GENERATOR_BINDIR"
-mv "$GENERATOR_MAIN" "$GENERATOR_PATH"
+def default_install_date() -> str:
+    return current_date()
 
-echo "==> Running build generator..."
-cd "$ROOT"
-"$GENERATOR_PATH" \
-  --version "$VERSION" \
-  --build-version "2" \
-  --compiler-date "$COMPILERDATE" \
-  --install-date "$INSTALLDATE" \
-  --base-version "$BASE_VERSION" \
-  --curry "$CURRY" \
-  "$@"
+def compiler_version(root: Path) -> str:
+    with open(root / 'package.json', 'r') as f:
+        package = json.loads(f.read())
+        return package['version']
+
+def base_version(root: Path) -> str:
+    with open(root / 'lib-trunk' / 'VERSION', 'r') as f:
+        return f.read().strip()
+
+def install_cpm_dependencies(cpm: list[str], pkg_path: Path):
+    subprocess.run([*cpm, 'install', '--noexec'], cwd=pkg_path, check=True)
+
+def compile_cpm_executable(curry: list[str], pkg_path: Path, main_mod: str, dest_path: Path):
+    dest_dir = dest_path.parent
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    subprocess.run([
+        *curry,
+        ':set', 'v0',
+        ':load', main_mod,
+        ':cd', str(dest_dir),
+        ':save', 'main',
+        ':quit',
+    ], cwd=pkg_path, check=True)
+
+    saved_path = dest_dir / main_mod
+    saved_path.rename(dest_path)
+
+# Main
+
+def main():
+    parser = argparse.ArgumentParser(description='Configures and generates the build files for KiCS2.')
+    parser.add_argument('--root', default=Path(__file__).parent, help='The path to the KiCS2 repository.')
+    parser.add_argument('--curry', default='kics2', help='The Curry compiler to bootstrap with.')
+    parser.add_argument('--compiler-date', default=None, help='The compiler date to configure the build with. By default this is the commit date of HEAD.')
+    parser.add_argument('--install-date', default=None, help='The installation date to configure the build with.')
+
+    args = parser.parse_args()
+    root = args.root
+    curry = [args.curry]
+    cpm = [*curry, 'cypm']
+    compiler_date = args.compiler_date or default_compiler_date(root)
+    install_date = args.install_date or default_install_date()
+
+    generator_mod = 'KiCS2.BuildGenerator.Main'
+    generator_dir = root / 'build-generator'
+    generator_bindir = generator_dir / 'bin'
+    generator_bin = generator_bindir / 'generate-build'
+
+    print('==> Installing dependencies...')
+    install_cpm_dependencies(cpm, root)
+
+    print('==> Installing build generator dependencies...')
+    install_cpm_dependencies(cpm, generator_dir)
+
+    print('==> Compiling build generator...')
+    compile_cpm_executable(curry, generator_dir, generator_mod, generator_bin)
+
+    print('==> Running build generator...')
+    subprocess.run([
+        generator_bin,
+        '--version', compiler_version(root),
+        '--base-version', base_version(root),
+        '--build-version', '2',
+        '--compiler-date', compiler_date,
+        '--install-date', install_date,
+    ], check=True)
+
+if __name__ == '__main__':
+    main()
