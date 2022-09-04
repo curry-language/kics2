@@ -8,17 +8,22 @@ import Data.List ( splitOn )
 import KiCS2.BuildGenerator.Options ( Options (..), optionVars )
 import KiCS2.BuildGenerator.Utils ( replace, mapTail, takeIdentifier )
 import System.FilePath ( dropExtension )
+import System.Directory ( doesFileExist )
 
 -- | Substitutes the options into a .in file (though only if something changed).
 configureFile :: MonadIO m => Options -> FilePath -> m ()
 configureFile o inPath = liftIO $ do
-  s <- readFile inPath
+  template <- readFile inPath
 
   let outPath = dropExtension inPath
-      s' = configureString o s
+      configured = configureString o template
+  
+  exists <- doesFileExist outPath
+  existing <- if exists then Just <$> readFile outPath
+                        else return Nothing
 
-  unless (s == s') $
-    writeFile outPath s'
+  unless (Just configured == existing) $
+    writeFile outPath configured
   
 -- | Substitutes the options into a string.
 configureString :: Options -> String -> String
