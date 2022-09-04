@@ -61,7 +61,7 @@ compilerNinja o = do
     build $ (hsSrcs :. ("kics2c", []) |. stageBin (i - 1) : srcs)
       { buildDescription = Just $ description ++ " (Curry -> Haskell)"
       , buildVariables =
-          [ "mod" =. compileMain
+          [ "mods" =. compileMain
           , "kics2c" =. stageBin (i - 1)
           , "kics2c_opts" =. "$kics2c_opts -o" ++ outDir ++ " -i" ++ kics2cIncludes
           ]

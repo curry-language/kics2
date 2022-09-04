@@ -25,7 +25,7 @@ curryNinja _ = do
     }
   
   rule (emptyRule "kics2c")
-    { ruleCommand = Just $ "KICS2HOME=$kics2home $kics2c $kics2c_opts $mod"
-    , ruleDescription = Just "Compiling $mod with kics2c..."
+    { ruleCommand = Just $ "KICS2HOME=$kics2home $kics2c $kics2c_opts $mods"
+    , ruleDescription = Just "Compiling $mods with kics2c..."
     }
 

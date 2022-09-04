@@ -1,6 +1,6 @@
 module KiCS2.BuildGenerator.Options
   ( Options (..)
-  , defaultOptions, optFrontendDir, optFrontendBin, optBinDir, optLibDir, optSrcDir
+  , defaultOptions, optFrontendDir, optFrontendBin, optBinDir, optLibDir, optLibSrcDir, optSrcDir
   , optBootDir, optLocalBinDir, optKics2cBin, optKics2iBin, optDotCpmDir, optPackageJson
   , optionVars, optionsNinja
   , parseOptions
@@ -194,6 +194,10 @@ optBinDir o = optRootDir o </> "bin"
 -- | The path to the directory for the KiCS2 standard libraries.
 optLibDir :: Options -> FilePath
 optLibDir o = optRootDir o </> "lib"
+
+-- | The path to the source directory for the KiCS2 standard libraries.
+optLibSrcDir :: Options -> FilePath
+optLibSrcDir o = optRootDir o </> "lib-trunk"
 
 -- | The path to the directory for the KiCS2 sources.
 optSrcDir :: Options -> FilePath
