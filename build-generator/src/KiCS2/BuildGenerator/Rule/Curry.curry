@@ -23,6 +23,6 @@ curryNinja _ = do
     }
   
   rule (emptyRule "kics2c")
-    { ruleCommand = Just "$kics2c $kics2c_opts $in"
+    { ruleCommand = Just $ "KICS2HOME=$kics2_home $kics2c $kics2c_opts $mod"
     }
 

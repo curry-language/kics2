@@ -2,7 +2,7 @@ module KiCS2.BuildGenerator.Build.Compiler
   ( compilerNinja
   ) where
 
-import Data.List ( intercalate )
+import Data.List ( intercalate, splitOn )
 import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, optDotCpmDir
                                     , optKics2cBin, optKics2iBin, optLocalBinDir, optLibDir
                                     , optVersion, optSrcDir, optBootDir
@@ -10,7 +10,7 @@ import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, 
 import KiCS2.BuildGenerator.Utils ( findWithSuffix, concatMapM, forM_, listDir, replaceSingle )
 import Language.Ninja.Types
 import Language.Ninja.Builder ( NinjaBuilder, build, rule )
-import System.FilePath ( (</>), (<.>), makeRelative, dropExtension, pathSeparator )
+import System.FilePath ( (</>), (<.>), makeRelative, dropExtension, pathSeparator, replaceFileName, takeFileName )
 
 -- | The Ninja source for building the compiler.
 compilerNinja :: Options -> NinjaBuilder ()
@@ -25,7 +25,10 @@ compilerNinja o = do
         , (replMain,    "REPL",     optKics2iBin o)
         ]
 
-  srcs <- concatMapM (findWithSuffix ".curry") [srcDir, depsDir]
+  depNames <- listDir depsDir
+  let depSrcDirs = (</> "src") <$> depNames
+
+  srcs <- concatMapM (findWithSuffix ".curry") $ srcDir : depSrcDirs
 
   -- Compiling kics2c/i directly using $curry
 
@@ -39,8 +42,6 @@ compilerNinja o = do
 
   -- Bootstrapping
 
-  depNames <- listDir depsDir
-
   let stage i = "stage" ++ show i
       stageDir i = optLocalBinDir o </> stage i
       stageBin i = stageDir i </> "kics2c"
@@ -51,19 +52,20 @@ compilerNinja o = do
     let description = "Building stage " ++ show i ++ " compiler"
 
     let outDir = stageDir i </> ".curry" </> "kics2-" ++ optVersion o
-        srcPath = (srcDir </>) . (<.> "curry") . replaceSingle '.' pathSeparator
-        compileMainSrc = srcPath compileMain
-        hsPath = (outDir </>) . (<.> "hs") . dropExtension . makeRelative srcDir
+        relativizeToSrc = intercalate [pathSeparator] . reverse . takeWhile (/= "src") . reverse . splitOn [pathSeparator]
+        toHsName = (<.> "hs") . ("Curry_" ++) . dropExtension
+        hsPath = (outDir </>) . (\n -> replaceFileName n $ toHsName $ takeFileName n) . relativizeToSrc
         hsSrcs = hsPath <$> srcs
-
-    let depSrcDirs = (</> "src") <$> depNames
+        rootDir = optRootDir o
         libDir = optLibDir o
         currypath = intercalate ":" $ libDir : depSrcDirs
 
-    build $ (hsSrcs :. ("kics2c", [compileMainSrc]) |. [stageBin (i - 1)])
+    build $ (hsSrcs :. ("kics2c", []) |. stageBin (i - 1) : srcs)
       { buildDescription = Just $ description ++ " (Curry -> Haskell)"
       , buildVariables =
-          [ "kics2c" =. stageBin (i - 1)
+          [ "mod" =. compileMain
+          , "kics2c" =. stageBin (i - 1)
+          , "kics2_home" =. rootDir
           , "kics2c_opts" =. "-v2 --parse-options=-Wall -o" ++ outDir ++ " -i" ++ currypath
           ]
       }
