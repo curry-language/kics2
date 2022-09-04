@@ -28,9 +28,15 @@ topLevelNinja o = do
   haskellNinja o
   whitespace
 
-  comment "Builds"
+  comment "Frontend"
   frontendNinja o
+  whitespace
+
+  comment "Libraries"
   librariesNinja o
+  whitespace
+
+  comment "Compiler"
   compilerNinja o
 
 -- | Applies `.in` templates and generates the `build.ninja` file.
