@@ -12,6 +12,11 @@ import System.FilePath ( (</>) )
 curryNinja :: Options -> NinjaBuilder ()
 curryNinja _ = do
   rule (emptyRule "curry")
+    { ruleCommand = Just "$curry :set v2 :compile $module :quit"
+    , ruleDescription = Just "Compiling $module with $curry..."
+    }
+
+  rule (emptyRule "curryexe")
     { ruleCommand = Just $ unwords $ intersperse "&&"
         [ "tmpdir=\"$$(mktemp -d)\""
         , "prevdir=\"$$(pwd)\""
@@ -23,9 +28,8 @@ curryNinja _ = do
         ]
     , ruleDescription = Just "Building $main executable with $curry..."
     }
-  
+
   rule (emptyRule "kics2c")
-    { ruleCommand = Just $ "KICS2HOME=$kics2home $kics2c $kics2c_opts $mods"
+    { ruleCommand = Just "KICS2HOME=$kics2home $kics2c $kics2c_opts $mods"
     , ruleDescription = Just "Compiling $mods with kics2c..."
     }
-

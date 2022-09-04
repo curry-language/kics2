@@ -19,10 +19,7 @@ configureFile o inPath = liftIO $ do
       configured = configureString o template
   
   exists <- doesFileExist outPath
-  existing <- if exists then Just <$> readFile outPath
-                        else return Nothing
-
-  unless (Just configured == existing) $
+  unless exists $
     writeFile outPath configured
   
 -- | Substitutes the options into a string.

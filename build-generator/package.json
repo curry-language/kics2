@@ -5,6 +5,7 @@
     "synopsis": "The KiCS2 build file generator",
     "license": "BSD-3-Clause",
     "dependencies": {
+        "containers":   ">= 3.0.0, < 4.0.0",
         "directory":    ">= 3.0.0, < 4.0.0",
         "filepath":     ">= 3.0.0, < 4.0.0",
         "opt-parse":    ">= 3.0.0, < 4.0.0",

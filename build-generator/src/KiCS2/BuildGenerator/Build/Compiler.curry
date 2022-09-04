@@ -3,10 +3,13 @@ module KiCS2.BuildGenerator.Build.Compiler
   ) where
 
 import Data.List ( intercalate, splitOn )
-import KiCS2.BuildGenerator.Names ( curryToHsFilePath )
+import qualified Data.Map as M
+import Data.Maybe ( mapMaybe, fromJust )
+import KiCS2.BuildGenerator.Names ( curryToHsFilePath, curryFilePathToMod, curryToHsFileName )
+import KiCS2.BuildGenerator.Imports ( readImports )
 import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, optDotCpmDir
                                     , optKics2cBin, optKics2iBin, optLocalBinDir, optLibDir
-                                    , optVersion, optSrcDir, optBootDir
+                                    , optVersion, optSrcDir, optBootDir, optCurry
                                     )
 import KiCS2.BuildGenerator.Utils ( findWithSuffix, concatMapM, forM_, listDir, replaceSingle )
 import Language.Ninja.Types
@@ -29,12 +32,38 @@ compilerNinja o = do
   depNames <- listDir depsDir
   let depSrcDirs = (</> "src") <$> depNames
 
-  srcs <- concatMapM (findWithSuffix ".curry") $ srcDir : depSrcDirs
+  kics2Srcs <- findWithSuffix ".curry" srcDir
+  depSrcs <- concatMapM (findWithSuffix ".curry") depSrcDirs
+  let srcs = kics2Srcs ++ depSrcs
+      mods = curryFilePathToMod <$> srcs
+      modMap = M.fromList $ zip mods srcs
 
   -- Compiling kics2c/i directly using $curry
 
+  -- TODO: Custom monad with an Options reader + some queried state (e.g. the $curry version)
+
+  -- FIXME: Instead of hardcoding paths we should query $curry for its version
+  --        and, depending on whether it's kics2 or pakcs, use its hs/pl files as outputs.
+  --        We currently assume to always be compiling with $curry = kics2.
+  let outDir = srcDir </> ".curry" </> "kics2-3.0.0"
+
+  forM_ (zip mods srcs) $ \(mod, src) -> do
+    let hsPath = curryToHsFilePath outDir src
+
+    imports <- readImports src
+    let importSrcs = mapMaybe (flip M.lookup modMap) imports
+
+    build $ ([hsPath] :. ("curry", []) |. src : importSrcs)
+      { buildVariables =
+          [ "module" =. mod
+          ]
+      }
+
   forM_ bins $ \(main, description, bin) -> do
-    build $ ([bin] :. ("curry", [pkgJson]) |. srcs)
+    let src = fromJust $ M.lookup main modMap
+        hsPath = curryToHsFilePath outDir src
+
+    build $ ([bin] :. ("curryexe", [pkgJson]) |. [hsPath])
       { buildVariables =
           [ "main" =. main
           ]
