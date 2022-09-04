@@ -12,14 +12,16 @@ if sys.version_info < (3, 9):
     print('Please make sure to point python3 to Python >= 3.9!')
     sys.exit(1)
 
+DATE_FORMAT = '%Y-%m-%d'
+
 # Helpers
 
 def current_date() -> str:
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now().strftime(DATE_FORMAT)
 
 def commit_date(root: Path) -> str:
     result = subprocess.run(
-        ['git', 'show', '-s', '--format=%ci', 'HEAD'],
+        ['git', 'show', '-s', '--format=%cd', f'--date=format:{DATE_FORMAT}', 'HEAD'],
         cwd=root,
         capture_output=True,
         check=True,
