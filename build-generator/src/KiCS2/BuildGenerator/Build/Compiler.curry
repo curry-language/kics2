@@ -3,6 +3,7 @@ module KiCS2.BuildGenerator.Build.Compiler
   ) where
 
 import Data.List ( intercalate, splitOn )
+import KiCS2.BuildGenerator.Names ( curryToHsFilePath )
 import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, optDotCpmDir
                                     , optKics2cBin, optKics2iBin, optLocalBinDir, optLibDir
                                     , optVersion, optSrcDir, optBootDir
@@ -52,10 +53,7 @@ compilerNinja o = do
     let description = "Building stage " ++ show i ++ " compiler"
 
     let outDir = stageDir i </> ".curry" </> "kics2-" ++ optVersion o
-        relativizeToSrc = intercalate [pathSeparator] . reverse . takeWhile (/= "src") . reverse . splitOn [pathSeparator]
-        toHsName = (<.> "hs") . ("Curry_" ++) . dropExtension
-        hsPath = (outDir </>) . (\n -> replaceFileName n $ toHsName $ takeFileName n) . relativizeToSrc
-        hsSrcs = hsPath <$> srcs
+        hsSrcs = curryToHsFilePath outDir <$> srcs
         libDir = optLibDir o
         kics2cIncludes = intercalate ":" $ libDir : depSrcDirs
         ghcIncludes = "TODO" -- TODO
