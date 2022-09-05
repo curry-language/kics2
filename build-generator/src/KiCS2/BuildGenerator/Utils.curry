@@ -1,7 +1,7 @@
 module KiCS2.BuildGenerator.Utils
   ( concatMapM, forM_, findWithSuffix, walk, listDir
   , replaceSingle, replace, takeIdentifier, isIdentifierChar
-  , mapTail
+  , mapTail, withReverse
   ) where
 
 import Control.Monad ( join )
@@ -59,3 +59,7 @@ mapTail :: (a -> a) -> [a] -> [a]
 mapTail f xs = case xs of
   []     -> []
   (v:vs) -> v : (f <$> vs)
+
+-- | Performs an operation on the reversed list.
+withReverse :: ([a] -> [a]) -> [a] -> [a]
+withReverse f = reverse . f . reverse

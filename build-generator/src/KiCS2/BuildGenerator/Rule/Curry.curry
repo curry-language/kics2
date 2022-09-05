@@ -12,7 +12,7 @@ import System.FilePath ( (</>) )
 curryNinja :: Options -> NinjaBuilder ()
 curryNinja _ = do
   rule (emptyRule "curry")
-    { ruleCommand = Just "$curry :set v2 :compile $module :quit"
+    { ruleCommand = Just "$curry :set v2 :cd $root :compile $module :quit"
     , ruleDescription = Just "Compiling $module with $curry..."
     }
 
@@ -22,7 +22,7 @@ curryNinja _ = do
         , "prevdir=\"$$(pwd)\""
         , "trap 'rm -rf \"$$tmpdir\"' EXIT"
         , "cd \"$$(dirname $in)\""
-        , "$curry :set v2 :load $main :cd $$tmpdir :save :quit"
+        , "$curry :set v2 :cd $root :load $main :cd $$tmpdir :save :quit"
         , "cd \"$$prevdir\""
         , "mv \"$$tmpdir/$main\" $out"
         ]

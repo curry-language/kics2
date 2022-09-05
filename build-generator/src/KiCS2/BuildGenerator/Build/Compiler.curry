@@ -5,7 +5,7 @@ module KiCS2.BuildGenerator.Build.Compiler
 import Data.List ( intercalate, splitOn )
 import qualified Data.Map as M
 import Data.Maybe ( mapMaybe, fromJust )
-import KiCS2.BuildGenerator.Names ( curryToHsFilePath, curryFilePathToMod, curryToHsFileName )
+import KiCS2.BuildGenerator.Names ( curryToHsFilePath, curryFilePathToMod, curryToHsFileName, parentSrcDir )
 import KiCS2.BuildGenerator.Imports ( readImports )
 import KiCS2.BuildGenerator.Options ( Options (..), optRootDir, optPackageJson, optDotCpmDir
                                     , optKics2cBin, optKics2iBin, optLocalBinDir, optLibDir
@@ -45,25 +45,26 @@ compilerNinja o = do
   -- FIXME: Instead of hardcoding paths we should query $curry for its version
   --        and, depending on whether it's kics2 or pakcs, use its hs/pl files as outputs.
   --        We currently assume to always be compiling with $curry = kics2.
-  let outDir = srcDir </> ".curry" </> "kics2-3.0.0"
+
+  let outDir src = parentSrcDir src </> ".curry" </> "kics2-3.0.0"
+      hsPath src = curryToHsFilePath (outDir src) src
 
   forM_ (zip mods srcs) $ \(mod, src) -> do
-    let hsPath = curryToHsFilePath outDir src
-
     imports <- readImports src
     let importSrcs = mapMaybe (flip M.lookup modMap) imports
+        importHsPaths = hsPath <$> importSrcs
 
-    build $ ([hsPath] :. ("curry", []) |. src : importSrcs)
+    build $ ([hsPath src] :. ("curry", []) |. src : importHsPaths)
       { buildVariables =
           [ "module" =. mod
+          , "root" =. parentSrcDir src
           ]
       }
 
   forM_ bins $ \(main, description, bin) -> do
     let src = fromJust $ M.lookup main modMap
-        hsPath = curryToHsFilePath outDir src
 
-    build $ ([bin] :. ("curryexe", [pkgJson]) |. [hsPath])
+    build $ ([bin] :. ("curryexe", [pkgJson]) |. [hsPath src])
       { buildVariables =
           [ "main" =. main
           ]
@@ -71,6 +72,8 @@ compilerNinja o = do
       }
 
   -- Bootstrapping
+
+  {- TODO: Readd bootstrapping once we have fixed the individual builds
 
   let stage i = "stage" ++ show i
       stageDir i = optLocalBinDir o </> stage i
@@ -105,3 +108,4 @@ compilerNinja o = do
           [ "ghc_opts" =. "$ghc_opts --make -i" ++ ghcIncludes
           ]
       }
+  -}
