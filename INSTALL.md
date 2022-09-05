@@ -124,19 +124,6 @@ Notes
     KiCS2 uses `rlwrap` if called on a terminal
     without the parameter `--noreadline`.
 
- 3. If you want to use the **library for GUI programming in Curry**
-    (`kics2home/lib/GUI.curry`), you need also a
-    Tcl/Tk implementation (including the windowing shell `wish`)
-    which can be downloaded
-    [here](http://www.scriptics.com/software/tcltk/) or
-    installed in a Ubuntu distribution by
-
-        sudo apt-get install tk tcl
-
-    In this case, the windowing shell `wish` must be
-    in your path (or you can also modify the definition of the
-    operation `openGuiPort` in the library `GUI.curry`).
-
 
 Changing system constants
 -------------------------

@@ -1,8 +1,8 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.0.0 (January 19, 2021)
---------------------------------------------------------
+Release notes for KiCS2 Version 3.0.0 (September 5, 2022)
+---------------------------------------------------------
 
 This version is a major rewrite where the compiler and REPL
 are written as Curry packages in order to re-use the current
@@ -55,6 +55,8 @@ Changes to version 2.3.0:
     to `lib/.curry/kics2-3.0.0/Prelude.fcy` (and similarly all
     other intermediate files). This avoids inconsistencies
     of intermediate files when different Curry systems are used.
+  * Front end supports new language options
+    `NoImplicitPrelude` and `NoDataDeriving`.
 
 
 Release notes for KiCS2 Version 2.3.0 (October 12, 2020)
