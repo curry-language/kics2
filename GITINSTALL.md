@@ -38,10 +38,6 @@ Currently, there are at least two options:
 
  1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
 
-    > Note that KiCS2 3.0.0 distributions are not available on the website yet,
-      therefore you may have to use PAKCS for bootstrapping for now. Of course you
-      can still bootstrap with KiCS2 if you have already built version 3 somewhere.
-
     Download and install the KiCS2 distribution from the
     [KiCS2 download site](http://www-ps.informatik.uni-kiel.de/kics2/download.html).
     Be sure to use a different directory than this one for this installation,
