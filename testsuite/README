@@ -1,6 +1,6 @@
 This directory contains various unit and property tests
 for the Curry systems PAKCS and KiCS2.
 
-To execute all tests, run "./test.sh" (or "./test.sh -v" too see some output).
+To execute all tests, run "./test.sh" (or "./test.sh -v" to see some output).
 The return status of this script is zero if all tests were succesfully
 executed, otherwise it is different from zero.
