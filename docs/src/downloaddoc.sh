@@ -22,7 +22,7 @@ CPM="cypm $CPMOPTS"
 TOOLDOCDIR=tooldocs
 
 # the tool packages where documentation should be downloaded:
-TOOLPKGS="currybrowse casc cass cpm currycheck currydoc currypp ertools peval runcurry spicey transbooleq verify"
+TOOLPKGS="currybrowse cass cpm currycheck currydoc currypp ertools runcurry spicey transbooleq verify"
 
 README=$TOOLDOCDIR/README
 

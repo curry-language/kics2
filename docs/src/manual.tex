@@ -60,6 +60,10 @@
 \lstset{literate={->}{{$\rightarrow{}\!\!\!$}}3
        }
 
+\newcommand{\seq}{\mathop{\code{==}}} % equivalence in math mode
+\newcommand{\sid}{\mathop{\code{===}}} % strict identity in math mode
+\newcommand{\ceq}{\mathop{\code{=:=}}} % constrained equality in math mode
+
 \lstnewenvironment{curry}{}{}
 \lstnewenvironment{currynomath}{\lstset{mathescape=false}}{} % Curry w/o math
 \newcommand{\listline}{\vrule width0pt depth1.75ex}
@@ -140,8 +144,6 @@ Finn Teegen$^6$ \\[4ex]
 \clearpage
 \input{tooldocs/currydoc/manual}
 \clearpage
-\input{tooldocs/casc/manual}
-\clearpage
 \input{tooldocs/verify/manual}
 \clearpage
 \newcommand{\curryppdocs}{tooldocs/currypp}
@@ -155,7 +157,6 @@ Finn Teegen$^6$ \\[4ex]
 \clearpage
 \input{tooldocs/spicey/manual}
 \clearpage
-\input{tooldocs/peval/manual}
 \include{problems}
 
 % Bibliography
@@ -166,7 +167,6 @@ Finn Teegen$^6$ \\[4ex]
 \appendix
 
 \include{libraries}
-\include{markdown_syntax}
 \clearpage
 \input{tooldocs/currypp/sqlsyntax}
 \include{auxiliary_files}

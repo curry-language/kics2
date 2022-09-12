@@ -90,7 +90,7 @@ Consider the definition of an operation to compute the last element
 of a list \code{xs} based on the prelude operation \ccode{++}
 for list concatenation:
 \begin{curry}
-last xs | _++[y] =:= xs  = y   where y free
+last xs | _$\;$++$\;$[y] =:= xs  = y   where y free
 \end{curry}
 Since the equality constraint \ccode{=:=} evaluates both sides
 to a constructor term, all elements of the list \code{xs} are
@@ -101,7 +101,7 @@ A \emph{functional pattern}\index{functional pattern}\index{pattern!functional}
 is a function call at a pattern position. With functional patterns,
 we can define the operation \code{last} as follows:
 \begin{curry}
-last (_++[y]) = y
+last (_$\;$++$\;$[y]) = y
 \end{curry}
 This definition is not only more compact but also avoids the complete
 evaluation of the list elements: since a functional pattern is considered
@@ -210,7 +210,7 @@ Functional patterns might also contain multiple occurrences of
 pattern variables.
 For instance, the operation
 \begin{curry}
-f (_++[x]++_++[x]++_) = x
+f (_ ++ [x] ++ _ ++ [x] ++ _) = x
 \end{curry}
 returns all elements with at least two occurrences in a list.
 
@@ -251,6 +251,423 @@ is not fully described in this manual,
 it is quite similar to Haskell 98 \cite{PeytonJones03Haskell}
 so that one can look there to find a detailed description.
 
+
+\subsection{Free Variables, Equality, and the Type Class \texttt{Data}}
+\label{sec:free-data}
+
+Curry extends purely functional programming languages, like Haskell,
+with built-in non-determinism and free variables.
+The value of a \emph{free variable}\index{free variable}\index{variable!free}
+is unknown when it is introduced.
+A free variable is instantiated to some value if it occurs
+as a demanded argument of an operation to be evaluated
+(or by unification, which can be considered
+as an optimization of evaluating an equality operator \cite{AntoyHanus17FAoC}).
+Since patterns occurring in program rules are built from
+variables and data constructors, free variables cannot be
+instantiated to values of a functional type.
+As a consequence, the type of a polymorphic variable
+should be restricted to non-functional types only.
+
+Another potential problem when dealing with free variables
+and unification is the precise notion of equality.\index{equality}
+Since Curry is intended as an extension of Haskell,
+Curry supports the type class \code{Eq} with operations
+\ccode{==} and \ccode{/=}.
+Although standard textbooks on Haskell define this operation
+as \emph{equality},
+its actual implementation can be different since, as a member of the
+type class \code{Eq}, it can be defined with a behavior
+different than equality on concrete type instances.
+Actually, the documentation of the type class \code{Eq}\footnote{%
+\url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Eq.html}}
+denotes \ccode{==} as ``equality'' but also contains the remark:
+``\code{==} is customarily expected to implement an equivalence
+relationship where two values comparing equal are indistinguishable
+by ``public'' functions.''
+Thus, it is intended that $e_1 \seq e_2$ evaluates to \code{True}
+even if $e_1$ and $e_2$ have not the same but only equivalent values.
+
+For instance, consider a data type for values indexed by a unique
+number:
+%
+\begin{curry}
+data IVal a = IVal Int a
+\end{curry}
+%
+If the index is assumed to be unique when \code{IVal} values are used,
+one might define the comparison
+of indexed values by just comparing the indices:
+%
+\begin{curry}
+instance Eq a => Eq (IVal a) where
+  IVal i1 _ == IVal i2 _  =  i1 == i2
+\end{curry}
+%
+With this definition, the prelude operation \code{elem}
+yields surprising results:
+%
+\begin{curry}
+> elem (IVal 1 'b') [IVal 1 'a']
+True
+\end{curry}
+%
+Such a result is not intended since the element (first argument)
+does not occur in the list.
+
+As a further example, consider the functional logic definition
+of the operation \code{last} to compute the last element of a list:
+%
+\begin{curry}
+last xs | _ ++ [e] == xs = e
+  where e free
+\end{curry}
+%
+Since \ccode{==} denotes equivalence rather than equality,
+\code{last} might not return the last element of a list
+but one (or more than one) value which is equivalent to the
+last element.
+For instance, we get the following answer when computing the last element
+of a given \code{IVal} list:
+%
+\begin{curry}
+> last [IVal 1 'a']
+IVal 1 _
+\end{curry}
+%
+Hence, instead of the actual last element, we get a rather general
+representation of it where \ccode{\us} denotes a free variable
+of type \code{Char}.
+
+These problems are avoided in \CYS by the predefined type class
+\code{Data}\pindex{Data},
+as proposed in \cite{HanusTeegen20}:
+%
+\begin{curry}
+class Data a where
+  (===)  :: a -> a -> Bool
+  aValue :: a
+\end{curry}
+%
+The operation \ccode{===}\pindex{===} implements strict equality
+(rather than an equivalence relation) on type \code{a},
+i.e., \code{$e_1\;$===$\;e_2$} evaluates to \code{True}
+if both expressions $e_1$ and $e_2$ evaluate to some ground value $v$.
+The operation \code{aValue}\pindex{aValue} non-deterministically returns
+all values of type \code{a}.
+In contrast to other type classes, \code{Data} is predefined
+so that the following holds:
+%
+\begin{enumerate}
+\item
+It is not allowed to define explicit \code{Data} instances
+for particular types. This avoids the definition of unintended instances.
+\item
+\code{Data} instances are automatically derived
+for all first-order types.
+A type is \emph{first-order} if all its values
+do not contain functional components,
+i.e., all constructors have non-functional type arguments and
+refer to other first-order types only.
+\end{enumerate}
+%
+Thus, the prelude base types \code{Bool}, \code{Char}, \code{Int},
+\code{Float},\footnote{Since there is no reasonable value generator
+for floats, \texttt{aValue~::~Float} returns a free variable.}
+\code{Ordering} as well as type constructors like
+\code{Maybe}, \code{Either}, list and tuple constructors
+have \code{Data} instances.
+For instance, we can non-deterministically enumerate values
+by specifying the desired type instance for \code{aValue}:
+%
+\begin{curry}
+> aValue :: Maybe Bool
+Nothing
+Just False
+Just True
+\end{curry}
+%
+Moreover, free variables have the class constraint \code{Data}
+so that they cannot be used as unknown functional values.
+Hence, the definition of \code{last} shown above
+can be modified as follows to work as intended:
+%
+\begin{curry}
+last :: Data a => [a] -> a
+last xs | _ ++ [e] === xs = e
+  where e free
+\end{curry}
+%
+The type signature implies that \code{last} cannot be applied
+to a list of functional values.
+
+The unification operation \ccode{=:=} returns \code{True}
+if both arguments can be evaluated to unifiable data values.
+Thus, it can be considered as an optimization of \ccode{===}
+that can be used when only \code{True} should be computed,
+as in conditions of rules (see \cite{AntoyHanus17FAoC}).
+As a consequence, the type of \ccode{=:=} is identical
+to the type of \ccode{===}:
+%
+\begin{curry}
+(=:=) :: Data a => a -> a -> Bool
+\end{curry}
+%
+Hence, the operation \code{last} can also be defined by
+%
+\begin{curry}
+last :: Data a => [a] -> a
+last xs | _ ++ [e] =:= xs = e
+  where e free
+\end{curry}
+%
+
+\subsection{Parser Options in Source Programs}
+
+The front end of \CYS understands various options.
+These options can be passed to the front end by setting
+the \CYS option \code{parser}, e.g., by
+%
+\begin{curry}
+:set parser -F --pgmF=transcurry
+\end{curry}
+%
+or for individual modules by providing an option line as a specific
+comment at the beginning of the source program.
+For instance, the option above can be set for a specific module
+by putting the line
+%
+\begin{curry}
+{-# OPTIONS_FRONTEND -F --pgmF=transcurry #-}
+\end{curry}
+%
+at the beginning of the module.
+This is useful to switch off specific warnings when parsing a module.
+For instance, 
+%
+\begin{curry}
+{-# OPTIONS_FRONTEND -Wno-incomplete-patterns -Wno-overlapping #-}
+\end{curry}
+%
+suppresses warnings about incompletely defined operations
+and operations defined by overlapping rules.
+
+Generally, the string following \code{OPTIONS_FRONTEND}
+will be split at white spaces and treated like an ordinary
+command line argument string passed to the front end.
+If one wishes to provide options containing spaces, e.g., directory paths,
+this can be achieved by quoting the respective argument
+using either single or double quotes.
+The list of all available options can be listed by the help command
+of the front end:
+\begin{curry}
+$\cyshome$/bin/pakcs-frontend --help
+\end{curry}
+%
+Note that the following options are excluded:
+\begin{itemize}
+\item A change of the compilation targets
+      (e.g., change from FlatCurry to AbstractCurry).
+\item A change of the import  paths.
+\item A change of the library paths.
+\end{itemize}
+%
+These options can only be set via the command line.
+
+
+\subsection{Conditional Compilation}
+
+\CYS also supports conditional compilation\index{conditional compilation}
+in the C preprocessor (CPP) style.
+Actually, only a subset of the C preprocessor is supported (see below),
+e.g., ``includes'' are not allowed.
+Although conditional compilation might cause problems
+and should be avoided, sometimes it is useful to support libraries
+across different Curry compilers with different features
+in their back ends.
+
+To enable conditional compilation, the header of the program text
+should contain the line
+%
+\begin{curry}
+{-# LANGUAGE CPP #-}
+\end{curry}
+%
+Then the source code might contain compilation directives like
+%
+\begin{curry}
+#ifdef __KICS2__
+eqChar external
+#elif defined(__PAKCS__)
+eqChar x y = (prim_eqChar $\$$# y) $\$$# x
+
+prim_eqChar :: Char -> Char -> Bool
+prim_eqChar external
+#endif
+\end{curry}
+%
+Thus, if the front end is invoked with option
+\begin{curry}
+-D__PAKCS__=303
+\end{curry}
+(which is automatically done by \CYS in version 3.3.x),
+the first three and the last lines are replaced by blank lines
+in the source code above before it is passed to the parser.
+Thus, the line numbers of the remaining code are not changed
+by preprocessing.
+
+Each directive has to be written in a separate line and will
+be replaced by a blank line after processing it.
+In the following, we discuss the supported directives.
+
+\subsubsection*{\code{\#define $\mathit{id}$ $\mathit{val}$}}
+\pindex{\#define}
+
+In the subsequent source text following that directive,
+the identifier $\mathit{id}$ is defined with value $\mathit{val}$.
+An identifier is a letter or an underscore followed by zero or more letters,
+underscores or digits.
+The value $\mathit{val}$ consists of one or more digits.
+
+\subsubsection*{\code{\#undef $\mathit{id}$}}
+\pindex{\#undef}
+
+In the subsequent source text following that directive,
+the identifier $\mathit{id}$ becomes undefined
+(regardless whether it was defined before).
+
+\subsubsection*{\code{\#if $\mathit{cond}$}}
+\pindex{\#if}
+
+If the condition $\mathit{cond}$ is true,
+then all lines between the subsequent matching
+\code{\#else} or \code{\#elif} and the corresponding
+\code{\#endif} directive, if present,
+are replaced by blank lines.
+Otherwise, all lines up to the subsequent matching
+\code{\#else}, \code{\#elif}, or \code{\#endif} directive, if present,
+are replaced by blank lines.
+%
+Conditions have one of the following forms:
+\begin{itemize}
+\item
+$\mathit{id}~\mathit{op}~\mathit{val}$:
+If the comparison expression evaluates to true, this condition is true.
+The operator $\mathit{op}$ is one of
+\code{==}, \code{/=}, \code{<}, \code{<=}, \code{>}, or \code{>=}.
+If the identifier used in the expression is not currently defined,
+it is assumed to have value \code{0}.
+\item
+\code{defined($\mathit{id}$)}:
+If the identifier $\mathit{id}$ is currently defined,
+then this condition is true.
+\item
+\code{!defined($\mathit{id}$)}:
+If the identifier $\mathit{id}$ is not currently defined,
+then this condition is true.
+\end{itemize}
+
+
+\subsubsection*{\code{\#ifdef $\mathit{id}$}}
+\pindex{\#ifdef}
+
+This directive is equivalent to \code{\#if defined($\mathit{id}$)}.
+
+\subsubsection*{\code{\#ifndef $\mathit{id}$}}
+\pindex{\#ifndef}
+
+This directive is equivalent to \code{\#if !defined($\mathit{id}$)}.
+
+\subsubsection*{\code{\#else}}
+\pindex{\#else}
+
+This directive marks the start of the lines which are kept
+if the preceding \code{\#if} or \code{\#elif} has a false condition.
+
+\subsubsection*{\code{\#elif $\mathit{cond}$}}
+\pindex{\#elif}
+
+This directive is interpreted as an \code{\#else} followed by
+a new \code{\#if}.
+
+\subsubsection*{\code{\#endif}}
+\pindex{\#endif}
+
+This directive terminates the preceding
+\code{\#if}, \code{\#else}, or \code{\#elif} directive.
+
+
+\subsection{Language Pragmas}
+
+\CYS supports a couple of language pragmas\index{language pragma}
+to influence the kind of the source language to be processed.
+One such pragma, conditional compilation, has been described
+in the previous section.
+In this section we describe two pragmas which might be useful
+for experimental purposes.
+
+The Curry prelude (library \code{Prelude}) contains
+many definition of standard data types, operations,
+and type classes and instances.
+Thus, it is a fairly large module.
+When developing new tools for analyzing or manipulating programs,
+the complexity of the prelude, which is imported by any simple program,
+hinders sometimes the initial development of such tools.
+For this purpose, it could be useful to compile a program without
+the prelude.
+This can be achieved by putting the following language pragma
+into the  header of the module:\pindex{LANGUAGE}\pindex{NoImplicitPrelude}
+%
+\begin{curry}
+{-# LANGUAGE NoImplicitPrelude #-}
+\end{curry}
+%
+Note that such a module has to define all data types
+on which operations are defined, since nothing from the prelude
+is available in such a module.
+
+As described in Section~\ref{sec:free-data},
+instances of class \code{Data} are automatically derived by \CYS.
+Since the implementation of these instances refer to the prelude
+and are sometimes complex, one can suppress the derivation
+of \code{Data} instances by the language pragma\pindex{NoDataDeriving}
+%
+\begin{curry}
+{-# LANGUAGE NoDataDeriving #-}
+\end{curry}
+%
+Since the implementation of \code{Data} instances refer
+to operations defined in the prelude, it is not possible
+to derive such instances without the prelude.
+Therefore, the language pragma \code{NoImplicitPrelude}
+automatically implies the pragma \code{NoDataDeriving}.
+
+For example, the compilation target of the following program
+contains two type declarations and two operations
+without any implicitly generated auxiliary operations:
+%
+\begin{curry}
+{-# LANGUAGE NoImplicitPrelude #-}
+
+data Nat = Z | S Nat
+
+data MyBool = False | True
+
+-- Addition on natural numbers.
+add         :: Nat -> Nat -> Nat
+add Z     n = n
+add (S m) n = S (add m n)
+
+-- Less-or-equal predicate on natural numbers.
+leq :: Nat -> Nat -> MyBool
+leq Z     _     = True
+leq (S _) Z     = False
+leq (S x) (S y) = leq x y
+\end{curry}
+%
+Note that it is not possible to use free variables in this program,
+since free variables require the type class constraint \code{Data}
+(see Section~\ref{sec:free-data}).
 
 %%% Local Variables:
 %%% mode: latex

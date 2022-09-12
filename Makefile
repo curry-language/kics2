@@ -222,6 +222,7 @@ include mk/scripts.mk
 include mk/utils.mk
 include mk/bin.mk
 include mk/dist.mk
+include mk/manual.mk
 include mk/testing.mk
 
 ########################################################################

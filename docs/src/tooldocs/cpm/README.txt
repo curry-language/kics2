@@ -5,3 +5,8 @@ currysystem_manual.tex:
   
 manual.tex:
   The main manual of CPM as a separate document.
+  Note that the actual index of the document should be produced by
+
+      > pdflatex manual.tex
+      > pdflatex manual.tex
+      > makeindex manual.idx

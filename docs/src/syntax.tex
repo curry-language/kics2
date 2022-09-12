@@ -29,7 +29,7 @@ $\alpha$ \sor{} $\beta$         & alternative              \\
 \end{table}
 
 \noindent
-The Curry files are expected to be encoded in UTF8.
+The Curry files are expected to be encoded in UTF-8.
 However, source programs are biased towards ASCII for compatibility reasons.
 
 \subsection{Lexicon}
@@ -101,11 +101,10 @@ and cannot be used as regular identifiers.
 \sor{} \term{data}                 \sor{} \extension{\term{default}}
 \sor{} \extension{\term{deriving}} \sor{} \term{do}
 \sor{} \term{else}                 \sor{} \term{external}
-\alt   \term{fcase}                \sor{} \extension{\term{foreign}} 
-\sor{} \term{free}                 \sor{} \term{if} 
-\sor{} \term{import}               \sor{} \term{in} 
-\sor{} \term{infix}                \sor{} \term{infixl} 
-\sor{} \term{infixr}
+\alt   \term{fcase}                \sor{} \term{free}
+\sor{} \term{if}                   \sor{} \term{import}
+\sor{} \term{in}                   \sor{} \term{infix}
+\sor{} \term{infixl}               \sor{} \term{infixr}
 \alt   \extension{\term{instance}} \sor{} \term{let}
 \sor{} \term{module}               \sor{} \extension{\term{newtype}}
 \sor{} \term{of}                   \sor{} \term{then}
@@ -358,8 +357,8 @@ assumed to start in column 0.
 
 % Data type
 \production{DataDecl}{
-     \term{data} SimpleType \margtext{external data type}
-\alt \term{data} SimpleType \term{=} ConstrDecls \extension{\opt{\term{deriving} DerivingDecl}}
+     \extension{\term{external}} \term{data} SimpleType \margtext{external data type}
+\alt \term{data} SimpleType \extension{\opt{\term{=} ConstrDecls} \opt{\term{deriving} DerivingDecl}}
 }\\
 \production{ConstrDecls}{\gseq{ConstrDecl}{|}{n} \margin{n \geq 1}}\\
 \production{ConstrDecl}{
@@ -478,7 +477,7 @@ GTypeConstr
 \production{Signature}{Functions \term{::} \extension{QualTypeExpr}}\\
 \extension{
 \production{ExternalDecl}{
-Functions \term{external} \margtext{externally defined functions}
+Functions \term{external} \margtext{externally defined operations}
 }\\
 }
 \production{Functions}{\gseq{Function}{,}{n} \margin{n \geq 1}}\\

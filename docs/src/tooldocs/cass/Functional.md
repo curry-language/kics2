@@ -1,8 +1,8 @@
 Analysis of functionally defined operations
 -------------------------------------------
 
-This analysis checks whether an operation is defined in a pure functional
-manner.
+This analysis checks whether an operation is defined in a purely
+functional manner.
 
 An operation is functionally defined if its definition does not contain
 overlapping left-hand sides or free variables, and it depends only

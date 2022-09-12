@@ -13,12 +13,13 @@ Consider the following definition of the operation \code{last}
 to extract the last element in list:
 %
 \begin{curry}
-last xs | xs == _++[x]
+last :: Data a => [a] -> a
+last xs | xs === _ ++ [x]
         = x
  where x free
 \end{curry}
 %
-In order to evaluate the condition \ccode{xs == \us{}++[x]},
+In order to evaluate the condition \ccode{xs === \us{}++[x]},
 the Boolean equality is evaluated to \code{True} or \code{False}
 by instantiating the free variables \code{\us} and \code{x}.
 However, since we know that a condition must be evaluated to
@@ -26,6 +27,7 @@ However, since we know that a condition must be evaluated to
 we can use the constrained equality to obtain a more efficient program:
 %
 \begin{curry}
+last :: Data a => [a] -> a
 last xs | xs =:= _++[x]
         = x
  where x free
@@ -33,17 +35,20 @@ last xs | xs =:= _++[x]
 %
 Since the selection of the appropriate equality operator
 is not obvious and might be tedious, \CYS encourages
-programmers to use only the Boolean equality operator \ccode{==}
+programmers to use only the Boolean equality operator \ccode{===}
 in programs.
 The constraint equality operator \ccode{=:=} can be considered
-as an optimization of \ccode{==} if it is ensured that only
+as an optimization of \ccode{===} if it is ensured that only
 positive results are required, e.g., in conditions of program rules.
 
 To support this programming style, \CYS has a built-in optimization phase
 on FlatCurry files. For this purpose, the optimizer analyzes
-the FlatCurry programs for occurrences of \ccode{==}
+the FlatCurry programs for occurrences of \ccode{===}
 and replaces them by \ccode{=:=} whenever the result \code{False}
-is not required.
+is not required.\footnote{The current optimizer
+also replaces occurrences of \texttt{(==)} although this
+transformation is valid only if the corresponding \texttt{Eq} instances
+define equality rather than equivalence.}
 The usage of the optimizer can be influenced by setting
 the property flag \code{bindingoptimization} in the
 configuration file \code{\curryrc}.

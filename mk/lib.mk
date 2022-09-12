@@ -8,7 +8,7 @@ LIB_FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS
 # LIB_DOCDIR = $(DOCDIR)/html
 LIB_DOCDIR := $(LIBDIR)/CDOC
 # directory for LaTeX documentation files
-LIB_TEXDOCDIR := $(LIB_DOCDIR)/src/lib
+LIB_TEXDOCDIR := $(ROOT)/docs/src/lib
 
 # Curry library files
 LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
@@ -22,7 +22,7 @@ LIB_ACY      = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kic
 LIB_HS       = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_,$(lib)))
 LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_Trace_,$(lib)))
 LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIB_DOCDIR)/$(subst /,.,$(lib)))
-LIB_TEX      = $(foreach lib, $(LIB_CURRY:.curry=.tex),  $(LIB_TEXDOCDIR)/$(subst /,.,$(lib)))
+LIB_TEX      = $(foreach lib, $(LIB_NAMES),  $(LIB_TEXDOCDIR)/$(lib).tex)
 LIB_HS_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
 LIB_TRACE_HS_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_Trace_$(subst .,,$(suffix $(lib))),Curry_Trace_$(lib))))
 
@@ -164,14 +164,14 @@ $(foreach module, $(LIB_NAMES),$(eval $(call LIB_HTMLRULE,$(module))))
 ##############################################################################
 
 .PHONY: texdoc
-texdoc: checkcurrydoc $(LIB_CURRY)
+texdoc: checkcurrydoc #$(LIB_CURRY)
 	@mkdir -p "$(LIB_TEXDOCDIR)"
 	$(MAKE) $(LIB_TEX)
 
-# generate individual LaTeX documentations for libraries
+# Generate individual LaTeX documentations for libraries.
 define LIB_TEXRULE
-$(LIB_TEXDOCDIR)/$1.tex: $(subst .,/,$1).curry
-	$$(CURRYDOC) --tex "$(LIB_TEXDOCDIR)" $$(subst /,.,$$<)
+$(LIB_TEXDOCDIR)/$1.tex: lib/$(subst .,/,$1).curry
+	$$(CURRYDOC) --tex "$(LIB_TEXDOCDIR)" $1
 endef
 
 $(foreach module, $(LIB_NAMES),$(eval $(call LIB_TEXRULE,$(module))))

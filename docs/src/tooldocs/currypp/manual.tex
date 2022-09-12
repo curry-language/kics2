@@ -19,10 +19,8 @@ like regular expressions, format specifications (\ccode{printf}),
 HTML and XML code.
 \item[Default rules:]
 If this feature is used, one can add a default rule
-to operations defined in a Curry module.
-This provides a similar power than sequential rules
-but with a better operational behavior.
-The idea of default rules is described in \cite{AntoyHanus16PADL}.
+to top-level operations defined in a Curry module.
+The idea of default rules is described in \cite{AntoyHanus17TPLP}.
 \item[Contracts:]
 If this feature is used, the Curry preprocessor looks for contracts
 (i.e., specification, pre- and postconditions) occurring in a Curry module
@@ -58,7 +56,7 @@ at the beginning of the source program.
 For instance, in order to use default rules in a Curry program,
 one has to put the line
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=defaultrules #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=defaultrules #-}
 \end{curry}
 at the beginning of the program.
 This option tells the \CYS front end to process the Curry source program
@@ -78,7 +76,7 @@ For instance, in order to use integrated code and default rules
 in a module and store the transformed program,
 one has to put the line
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode --optF=defaultrules --optF=-o #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode --optF=defaultrules --optF=-o #-}
 \end{curry}
 at the beginning of the program.
 %
@@ -86,11 +84,11 @@ If the options about the kind of preprocessing is omitted,
 all kinds of preprocessing
 are applied. Thus, the preprocessor directive
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp #-}
 \end{curry}
 is equivalent to
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode --optF=defaultrules --optF=contracts #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode --optF=defaultrules --optF=contracts #-}
 \end{curry}
 
 
@@ -113,7 +111,7 @@ Curry expressions.
 For this purpose, the program containing this code must start with
 the preprocessing directive
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 \end{curry}
 %
 The next sections describe the currently supported foreign languages.
@@ -133,7 +131,7 @@ For instance, the following module defines a predicate
 to check whether a string is a valid identifier:
 
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 
 import RegExp
 
@@ -156,7 +154,7 @@ For instance, the following program defines an operation
 that formats a string, an integer (with leading sign and zeros),
 and a float with leading sign and precision 3:
 \begin{currynomath}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 
 import Data.Format
 
@@ -193,7 +191,7 @@ into these HTML syntax, these Curry expressions must be enclosed
 in curly brackets.
 The following example program shows its use:
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 
 import HTML
 
@@ -220,7 +218,7 @@ The following simple example, taken from \cite{Hanus01PADL},
 shows the use of this feature:
 
 \begin{currynomath}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 
 import HTML
 
@@ -257,7 +255,7 @@ and XML expressions (\code{XmlExp}) can be included by enclosing
 them in curly and double curly brackets, respectively.
 The following example program shows its use:
 \begin{currynomath}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=foreigncode #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=foreigncode #-}
 
 import HTML
 
@@ -542,7 +540,7 @@ The path to the info file is passed as a parameter prefixed by
 \ccode{--model:} to the Curry preprocessor, e.g., by the preprocessor
 directive
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp  --optF=--model:$\ldots$/Uni_SQLCode.info #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp  --optF=--model:$\ldots$/Uni_SQLCode.info #-}
 \end{curry}
 \item
 The info file is placed in the same directory as the Curry source file
@@ -660,11 +658,9 @@ SQL translator can be found in \cite{HanusKrone17EPTCS,Krone15}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Default Rules}
 
-An alternative to sequential rules are default rules, i.e.,
-these two options cannot be simultaneously used.
 Default rules are activated by the preprocessor option
 \ccode{defaultrules}.
-In this case, one can add to each operation a default rule.
+In this case, one can add to each top-level operation a default rule.
 A default rule for a function $f$ is defined as a rule
 defining the operation \ccode{$f$'default} (this mechanism
 avoids any language extension for default rules).
@@ -672,22 +668,18 @@ A default rule is applied only if no ``standard'' rule is
 applicable, either because the left-hand sides' pattern do not match
 or the conditions are not satisfiable.
 The idea and detailed semantics of
-default rules are described in \cite{AntoyHanus16PADL}.
+default rules are described in \cite{AntoyHanus17TPLP}.
 
-Default rules are preferable over the sequential rule selection
-strategy since they have a better operational behavior.
-This is due to the fact that the test for the application
-of default rules is done with the same (sometimes optimal)
-strategy than the selection of standard rules.
-Moreover, default rules provide a similar power than sequential rules,
-i.e., they can be applied if the standard rules have
-complex (functional) patterns or complex conditions.
-
-As a simple example, we show the implementation of the
-previous example for sequential rules with a default rule:
+As a simple example, the following program defines a lookup operation
+in association lists by a functional pattern.
+The default rule is applied only if there is no
+appropriate key in the association list (the role of the \code{import}
+declarations is discussed below):
 %
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=defaultrules #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=defaultrules #-}
+
+import Control.SetFunctions
 
 mlookup key (_ ++ [(key,value)] ++ _) = Just value
 mlookup'default _   _                 = Nothing 
@@ -701,12 +693,19 @@ since it is easier to characterize the unsafe positions
 of the queens on the chessboard (see the first rule of \code{safe}):
 %
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=defaultrules #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=defaultrules #-}
 
-import Combinatorial(permute)
-import Integer(abs)
+import Control.SetFunctions
+
+-- Some permutation of a list of elements:
+perm :: [a] -> [a]
+perm []     = []
+perm (x:xs) = ndinsert (perm xs)
+ where ndinsert ys     = x : ys
+       ndinsert (y:ys) = y : ndinsert ys
 
 -- A placement is safe if two queens are not in a same diagonal:
+safe :: [Int] -> [Int]
 safe (_++[x]++ys++[z]++_) | abs (x-z) == length ys + 1 = failed
 safe'default xs = xs
 
@@ -715,12 +714,14 @@ queens :: Int -> [Int]
 queens n = safe (permute [1..n])
 \end{curry}
 
-\paragraph{Important note:}
+\paragraph{Important notes:}
+\begin{enumerate}
+\item
 The implementation of default rules is based on set functions
 (implemented by the module \code{Control.SetFunctions}).
 Therefore, the package \code{setfunctions} should be installed
 as a dependency.
-This can easily done by executing
+This can easily be done by executing
 %
 \begin{curry}
 > cypm add setfunctions
@@ -728,6 +729,15 @@ This can easily done by executing
 %
 before compiling a program containing default rules with the
 Curry preprocessor.
+
+\item
+Default rules can only be added to operations defined at the top-level
+(i.e., not to locally defined operations).
+A reason for this restriction is that default rules are applied
+after searching for all possibilities to apply a previous standard rule.
+With local definitions, the precise scope of the ``previous'' search
+is difficult to define.
+\end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -760,7 +770,7 @@ with a postcondition and a specification
 (where the code for \code{sorted} and \code{perm} is not shown here):
 %
 \begin{curry}
-{-# OPTIONS_CYMAKE -F --pgmF=currypp --optF=contracts #-}
+{-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=contracts #-}
 
 $\ldots$
 
