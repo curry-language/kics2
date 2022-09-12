@@ -4,9 +4,6 @@
 # Set the __KICS2__ flag for the Prelude (to some dummy value)
 LIB_FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS2__=0"
 
-# directory for HTML documentation files
-# LIB_DOCDIR = $(DOCDIR)/html
-LIB_DOCDIR := $(LIBDIR)/CDOC
 # directory for LaTeX documentation files
 LIB_TEXDOCDIR := $(ROOT)/docs/src/lib
 
@@ -21,7 +18,6 @@ LIB_AFCY     = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kic
 LIB_ACY      = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.acy), $(lib))
 LIB_HS       = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_,$(lib)))
 LIB_HS_TRACE = $(foreach lib, $(LIB_CURRY:$(LIBDIR)/%.curry=$(LIBDIR)/.curry/kics2-$(VERSION)/%.hs), $(call prefix,Curry_Trace_,$(lib)))
-LIB_HTML     = $(foreach lib, $(LIB_CURRY:.curry=.html), $(LIB_DOCDIR)/$(subst /,.,$(lib)))
 LIB_TEX      = $(foreach lib, $(LIB_NAMES),  $(LIB_TEXDOCDIR)/$(lib).tex)
 LIB_HS_NAMES       = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_$(subst .,,$(suffix $(lib))),Curry_$(lib))))
 LIB_TRACE_HS_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstring .,$(lib)),$(basename $(lib)).Curry_Trace_$(subst .,,$(suffix $(lib))),Curry_Trace_$(lib))))
@@ -125,43 +121,15 @@ $(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry | $(LIBDIR)
 	cd $(LIBDIR) && "$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
 ##############################################################################
-# create HTML documentation files for system libraries
+# create LaTeX documentation files for system libraries
 ##############################################################################
 
 # Check whether CurryDoc is installed
 .PHONY: checkcurrydoc
 checkcurrydoc:
 	@if [ ! -x "$(CURRYDOC)" ] ; then \
-	  echo "ERROR: Executable 'curry-doc' is not installed!" && echo "Install it by > cpm installapp currydoc" && exit 1 ; \
+	  echo "ERROR: Executable 'curry-doc' is not installed!" && echo "Install it by > cpm install currydoc" && exit 1 ; \
 	fi
-
-LIB_INDEXHTML    = $(LIB_DOCDIR)/index.html
-LIB_HTMLEXCLUDES = $(LIB_INDEXHTML) $(foreach file, findex.html cindex.html KiCS2_libs.html, $(LIB_DOCDIR)/$(file))
-
-.PHONY: htmldoc
-htmldoc: checkcurrydoc $(LIB_CURRY)
-	@mkdir -p "$(LIB_DOCDIR)"
-	@$(MAKE) $(LIB_HTML)
-	@$(MAKE) $(LIB_INDEXHTML)
-
-$(LIB_INDEXHTML): $(filter-out $(LIB_HTMLEXCLUDES), $(wildcard $(LIB_DOCDIR)/*.html))
-	@echo "Generating index pages for Curry libraries:"
-	@echo $(LIB_DOCNAMES)
-	$(CURRYDOC) --libsindexhtml "$(LIB_DOCDIR)" $(LIB_DOCNAMES)
-
-# generate individual documentations for libraries
-define LIB_HTMLRULE
-$(LIB_DOCDIR)/$1.html: $(subst .,/,$1).curry
-	$$(CURRYDOC) --noindexhtml "$(LIB_DOCDIR)" $$(subst /,.,$$<)
-endef
-
-$(foreach module, $(LIB_NAMES),$(eval $(call LIB_HTMLRULE,$(module))))
-# uncomment for rule debugging
-# $(foreach module, $(LIB_NAMES),$(info $(call LIB_HTMLRULE,$(module))))
-
-##############################################################################
-# create LaTeX documentation files for system libraries
-##############################################################################
 
 .PHONY: texdoc
 texdoc: checkcurrydoc #$(LIB_CURRY)
