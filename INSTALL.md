@@ -8,7 +8,7 @@ KiCS2 compiles [Curry programs](http://www.curry-language.org)
 into [Haskell programs](http://www.haskell.org/).
 This distribution runs on Unix-based platforms
 and has been developed and tested under Linux (Debian/Ubuntu).
-However, it should also run on similar platforms like Mac OS X or SunOS.
+However, it should also run on similar platforms like macOS.
 Furthermore, the installation of the KiCS2 kernel
 has been successfully tested on a Windows 7 together with
 [MinGW] (see below for detailed instructions).
@@ -61,41 +61,14 @@ included in your path, you can set a symbolic link like
 and put the directory `kics2/bin` into your path.
 
 
-Configuring the installation
-----------------------------
-
-The normal installation as outlined above will use the
-[Glasgow Haskell Compiler] and the [Cabal] versions visible in the path.
-If you wish to use other versions, for example because you are
-experimenting with different versions of GHC or Cabal,
-you can specify one or both of them by
-
-    make install GHC=/path/to/ghc CABAL=/path/to/cabal
-
-If you want to install the system at a location different from
-the build location, you have to specify the intended installation
-location at built-time with the parameter `KICS2INSTALLDIR`.
-Furthermore, the final installation location must not exist
-during built time. For instance, to built KiCS2 at some local directory
-and move it later to `/opt/kics2`, you can do it by
-
-    make KICS2INSTALLDIR=/opt/kics2
-    ...
-    mv /path/to/kics2 /opt/kics2
-
-Note that this cross installation is possible only with Cabal
-versions 1.22 and higher (which support relocatable packages).
-
-
-Windows Installation
---------------------
+Windows Installation (experimental, not tested for newest release)
+------------------------------------------------------------------
 
 To install the KiCS2 kernel system (the full system currently needs some
 Unix-specific mechanisms), you need the following software installed:
 
   - [MinGW], providing tools like `make`, `cp`, ...
-  - the [Glasgow Haskell Compiler]
-  - the [Cabal] system.
+  - [Haskell Stack](https://www.haskellstack.org/)
 
 If you have these tools installed, open the MinGW shell and follow
 the installation commands like for a Linux installation, i.e., for unpacking:
@@ -136,15 +109,13 @@ tuple sizes cannot be compiled. If you want to increase this size
 two system files and install your system as follows:
 
  1. Change the definition of the constant `maxTupleArity` in the file
-    `kics2home/frontend/src/Generators/GenFlatCurry.hs`
+    `kics2home/frontend/src/Generators/GenAnnotatedFlatCurry.hs`
     according to your required maximal arity.
- 2. Delete the file `kics2home/lib/.curry/Prelude.fcy`.
+ 2. Delete the files `kics2home/lib/.curry/kics2-*/Prelude.*`.
  3. Re-install KiCS2 by running `make`.
 
 -------------------------------------------------------------
 
 Contact: [Michael Hanus](http://www.informatik.uni-kiel.de/~mh/)
 
-[Glasgow Haskell Compiler]: http://www.haskell.org/ghc/
-[Cabal]: http://www.haskell.org/cabal/
 [MinGW]: http://www.mingw.org/
