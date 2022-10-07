@@ -120,6 +120,11 @@ $(LIBDIR)/.curry/kics2-$(VERSION)/%.afcy: $(LIBDIR)/%.curry | $(LIBDIR)
 $(LIBDIR)/.curry/kics2-$(VERSION)/%.acy: $(LIBDIR)/%.curry | $(LIBDIR)
 	cd $(LIBDIR) && "$(FRONTEND)" --acy $(LIB_FRONTENDPARAMS) $(subst /,.,$*)
 
+# compile all libraries:
+.PHONY: compile-all-libs
+compile-all-libs:
+	scripts/compile-all-libs.sh
+
 ##############################################################################
 # create LaTeX documentation files for system libraries
 ##############################################################################
