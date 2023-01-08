@@ -10,11 +10,11 @@ module KiCS2.RCFile (readRC, rcValue, setRCProperty, extractRCArgs, updateRCDefs
   where
 
 import Data.PropertyFile
-import Data.Char        (toLower, isSpace)
+import Data.Char        (toLower)
 import Data.List        (partition, sort)
-import Control.Monad    (when, unless)
+import Control.Monad    (unless)
 import System.Directory (getHomeDirectory, doesFileExist, copyFile, renameFile)
-import System.FilePath  (FilePath, (</>), (<.>))
+import System.FilePath  ((</>), (<.>))
 
 import KiCS2.Utils        (strip)
 import KiCS2.InstallationPaths (kics2HomeDir)
@@ -67,7 +67,7 @@ updateRC = do
 --- Sets a property in the rc file.
 setRCProperty :: String -> String -> IO ()
 setRCProperty pname pval = do
-  readRC -- just be to sure that rc file exists and is up-to-date
+  _ <- readRC -- just be to sure that rc file exists and is up-to-date
   rcName <- rcFileName
   updatePropertyFile rcName pname pval
 

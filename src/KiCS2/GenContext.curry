@@ -38,7 +38,7 @@ genContext bvs = snd . toTypeSig' bvs
     toTypeSig' vs t@(AH.TVar tv) = case Prelude.lookup tv vs of
       Just kind -> ([(t, kind)], t)
       Nothing   -> ([],          t)
-    toTypeSig' vs t@(AH.TCons qname tys) =
+    toTypeSig' vs (AH.TCons qname tys) =
       let (ctys, tys') = unzip $ map (toTypeSig' vs) tys
       in (concat ctys, AH.TCons qname tys')
 
@@ -52,10 +52,6 @@ genContext bvs = snd . toTypeSig' bvs
 
     elemFst []         _ = False
     elemFst ((x,_):xs) e = x == e || elemFst xs e
-
-    isTypeVar ty = case ty of
-      AH.TVar _ -> True
-      _         -> False
 
 -- The Curry contexts are generated based on the type variable's
 -- kind by using the QuantifiedConstraints language extension.

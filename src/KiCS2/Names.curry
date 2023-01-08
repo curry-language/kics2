@@ -9,8 +9,7 @@ module KiCS2.Names where
 
 import Data.Char       (isAlphaNum)
 import Data.List       (intercalate, isPrefixOf, last)
-import System.FilePath ( FilePath
-                       , addTrailingPathSeparator, joinPath, normalise
+import System.FilePath ( addTrailingPathSeparator, joinPath, normalise
                        , splitDirectories, splitExtension, splitFileName
                        , (<.>), (</>)
                        )

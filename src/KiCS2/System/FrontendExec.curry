@@ -24,7 +24,7 @@ import Installation             ( compilerName, majorVersion
 import Data.Char                ( toUpper )
 import Data.List                ( intercalate, nub )
 import Data.PropertyFile        ( getPropertiesFromFile )
-import System.FilePath          ( FilePath, (</>), takeDirectory, takeFileName )
+import System.FilePath          ( (</>), takeDirectory, takeFileName )
 import System.Process           ( system )
 import KiCS2.InstallationPaths  ( kics2HomeDir )
 import KiCS2.System.CurryPath   ( curryrcFileName, currySubdir, getLoadPathForModule )

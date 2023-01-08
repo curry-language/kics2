@@ -12,7 +12,7 @@ import Data.List                   ( intercalate, isPrefixOf )
 import Data.Map                    ( union )
 import Control.Monad               ( when, foldM )
 import System.Directory            ( doesFileExist )
-import System.FilePath             ( FilePath, (</>), dropExtension, normalise )
+import System.FilePath             ( (</>), dropExtension, normalise )
 import System.IOExts               ( readCompleteFile )
 import System.Environment          ( getArgs )
 
@@ -23,7 +23,7 @@ import FlatCurry.Annotated.Goodies ( unAnnProg )
 import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import qualified AbstractHaskell.Types   as AH
-import qualified AbstractHaskell.Goodies as AHG (funcName, renameSymbolInProg, typeOf)
+import qualified AbstractHaskell.Goodies as AHG (funcName, typeOf)
 import qualified AbstractHaskell.Printer as AHP
 
 import KiCS2.Analysis              ( AnalysisResult (..) )

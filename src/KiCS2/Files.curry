@@ -16,15 +16,14 @@ module KiCS2.Files
   ) where
 
 import System.Directory
-  ( createDirectory, createDirectoryIfMissing, doesDirectoryExist
-  , doesFileExist, removeFile
+  ( createDirectoryIfMissing, doesFileExist, removeFile
   )
 import System.FilePath
-  ( FilePath, joinPath, (</>), (<.>), isAbsolute, searchPathSeparator
+  ( joinPath, (</>), (<.>), isAbsolute, searchPathSeparator
   , splitFileName, splitExtension, splitDirectories, takeDirectory
   )
 import Control.Monad       (when)
-import Data.List           (intersperse, isPrefixOf, last, scanl1)
+import Data.List           (intersperse, isPrefixOf)
 
 --- Apply functions to all parts of a file name
 withComponents :: (String -> String) -- change path
