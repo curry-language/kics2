@@ -3,7 +3,7 @@
 --- It implements the Read-Eval-Print loop for KiCS2
 ---
 --- @author Michael Hanus, Bjoern Peemoeller, Finn Teegen
---- @version January 2022
+--- @version January 2023
 --- --------------------------------------------------------------------------
 module KiCS2.REPL where
 
@@ -13,7 +13,7 @@ import AbstractCurry.Files
 import AbstractCurry.Select
 import Control.Applicative       ( when )
 import Control.Monad             ( foldM, void, unless )
-import Language.Curry.Distribution ( baseVersion, installDir )
+import Curry.Compiler.Distribution ( baseVersion, installDir )
 import System.Directory
 import System.FilePath           ( (</>), (<.>)
                                  , splitSearchPath, splitFileName, splitExtension

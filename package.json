@@ -12,7 +12,6 @@
         "currypath"           : ">= 3.0.0, < 4.0.0",
         "containers"          : ">= 3.0.0, < 4.0.0",
         "directory"           : ">= 3.0.0, < 4.0.0",
-        "distribution"        : ">= 3.0.0, < 4.0.0",
         "filepath"            : ">= 3.0.0, < 4.0.0",
         "flatcurry"           : ">= 3.0.0, < 4.0.0",
         "flatcurry-annotated" : ">= 3.3.0, < 4.0.0",
