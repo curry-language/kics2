@@ -14,3 +14,7 @@ extra-deps:
   - parallel-3.2.2.0@sha256:19ff631f3a26ee7cf0603e2b80fc375d77d3f350ae460ae72fe4cf5da665c90b
   - old-locale-1.0.0.7@sha256:fa998be2c7e00cd26a6e9075bea790caaf3932caa3e9497ad69bc20380dd6911,1071
 allow-different-user: true
+
+# Needed until parallel-tree-search and tree-monad update
+# their base dependency to include 4.16.4
+allow-newer: true
