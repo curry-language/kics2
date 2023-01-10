@@ -13,14 +13,14 @@ import Control.Monad    (liftM)
 import Data.IORef       (IORef, newIORef, readIORef, modifyIORef)
 import Data.Maybe       (fromMaybe)
 import System.IO.Unsafe (unsafePerformIO)
-import UniqSupply       (UniqSupply, mkSplitUniqSupply, splitUniqSupply,
+import GHC.Types.Unique.Supply (UniqSupply, mkSplitUniqSupply, splitUniqSupply,
                          uniqFromSupply)
-import Unique           (Unique, getKey)
+import GHC.Types.Unique (Unique, getKey)
 
 #if __GLASGOW_HASKELL__ < 800
 import qualified Data.Map as Map (Map, empty, delete, findWithDefault, insert)
 #else
-import UniqDFM          (UniqDFM, emptyUDFM, delFromUDFM, lookupUDFM, addToUDFM)
+import GHC.Types.Unique.DFM (UniqDFM, emptyUDFM, delFromUDFM, lookupUDFM, addToUDFM)
 #endif
 
 -- SOURCE pragma to allow mutually recursive dependency
