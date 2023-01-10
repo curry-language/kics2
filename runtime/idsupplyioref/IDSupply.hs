@@ -9,9 +9,9 @@ module IDSupply
 
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import GHC.IO  (unsafeDupableInterleaveIO)
-import UniqSupply
+import GHC.Types.Unique.Supply
   (UniqSupply, mkSplitUniqSupply, splitUniqSupply, uniqFromSupply)
-import qualified Unique as GHC (Unique, getKey)
+import qualified GHC.Types.Unique as GHC (Unique, getKey)
 
 -- SOURCE pragma to allow mutually recursive dependency
 import {-# SOURCE #-} ID (Decision, defaultDecision)
