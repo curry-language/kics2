@@ -1,8 +1,8 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.0.0 (January 7, 2023)
----------------------------------------------------------
+Release notes for KiCS2 Version 3.0.0 (February 6, 2023)
+--------------------------------------------------------
 
 This version is a major rewrite where the compiler and REPL
 are written as Curry packages in order to re-use the current
@@ -57,6 +57,10 @@ Changes to version 2.3.0:
     of intermediate files when different Curry systems are used.
   * Front end supports new language options
     `NoImplicitPrelude` and `NoDataDeriving`.
+  * Front end has the old option `--extended` as default.
+    In order to switch off the extensions for functional patterns
+    and anonymous free variables, one can use the options
+    `NoFunctionalPatterns` and `NoAnonFreeVars`, respectively.
 
 
 Release notes for KiCS2 Version 2.3.0 (October 12, 2020)

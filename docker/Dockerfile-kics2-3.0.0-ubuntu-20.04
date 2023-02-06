@@ -33,6 +33,7 @@ WORKDIR /kics2/kics2
 ENV PATH /kics2/kics2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN make
+RUN make compile-all-libs
 
 ENV HOME /userhome
 RUN mkdir -p  $HOME
