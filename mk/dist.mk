@@ -67,7 +67,7 @@ $(DISTDIR): $(ROOT) | $(DISTROOTDIR)
 	rm -rf $(DISTDIR)
 	git clone $(ROOT) $(DISTDIR)
 	cat $(ROOT)/.dist-modules | sed 's|ROOT|$(ROOT)|' > $(DISTDIR)/.gitmodules
-	cd $(DISTDIR) && git submodule update --init
+	cd $(DISTDIR) && git -c protocol.file.allow=always submodule update --init
 	rm -rf $(DISTDIR)/.git $(DISTDIR)/**/.git $(DISTDIR)/.gitmodules $(DISTDIR)/.dist-modules
 
 $(DISTSRCDIR)/%: $(SRCDIR)/%
