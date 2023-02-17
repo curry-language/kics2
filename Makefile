@@ -161,7 +161,7 @@ export MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 export MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 export REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
 # The build version number (if >0, then it is a pre-release)
-export BUILDVERSION    = 4
+export BUILDVERSION    = 5
 
 ifeq ($(VERSION),)
 $(error "Could not determine VERSION. Please make sure that a 'package.json' exists and that it defines a 'version' mapping!")
@@ -409,7 +409,7 @@ $(STACKCONFIG): $(STACKCONFIGIN) | $(STACKROOT)
 	@envsubst < $< > $@
 
 # Generate a source module with metadata about the KiCS2 installation for use by the compiler
-$(INSTALLCURRY): $(INSTALLCURRYIN) $(PACKAGEJSON) $(LIBDIR)/VERSION
+$(INSTALLCURRY): $(INSTALLCURRYIN) $(PACKAGEJSON) $(LIBDIR)/VERSION Makefile
 	@$(ECHOINFO) "Generating Installation.curry module"
 	$(eval export BASE_VERSION := $(shell cat $(LIBDIR)/VERSION))
 	@envsubst < $< > $@
