@@ -106,13 +106,15 @@ makeModule mods state mod@((mid, (fn, imps, _)), _)
   where
     getDepFiles = do
       hasExternals <- doesFileExist extFile
-      let ownModule = fn : [extFile | hasExternals]
+      hasOldExternals <- doesFileExist extOldFile
+      let ownModule = fn : [extFile | hasExternals] ++ [extOldFile | hasOldExternals]
       let imported  = map (\i -> destFile (optTraceFailure opts)
                                           (optOutputSubdir opts)
                                           i
                                $ fst3 $ fromJust $ lookup i mods) imps
       return $ ownModule ++ imported
     extFile = externalFile fn
+    extOldFile = externalOldFile fn
     modCnt = length mods
     opts = compOptions state
 
@@ -295,11 +297,15 @@ integrateExternals opts (AH.Prog m is td fd od) fn = do
 -- empty String
 lookupExternals :: Options -> FilePath -> IO String
 lookupExternals opts fn = do
+  let extName = externalFile fn
   exists <- doesFileExist extName
   if exists
     then showDetail opts    "External file found" >> readCompleteFile extName
-    else showDetail opts "No external file found" >> return ""
-    where extName = externalFile fn
+    else do let extOldName = externalOldFile fn
+            oldexists <- doesFileExist extOldName
+            if oldexists
+              then showDetail opts    "External file found" >> readCompleteFile extOldName
+              else showDetail opts "No external file found" >> return ""
 
 -- Split an external file into a pragma String, a list of imports and the rest
 -- TODO: This is a bloody hack

@@ -3,7 +3,7 @@
 --- into names used in the target program and vice versa.
 ---
 --- @author Michael Hanus, Bjoern Peemoeller, Fabian Reck
---- @version November 2012
+--- @version February 2023
 --- --------------------------------------------------------------------------
 module KiCS2.Names where
 
@@ -28,8 +28,14 @@ renameFile trace
   | trace     = addTrace . renameModule
   | otherwise = renameModule -- until hierarchical module names are supported
 
+--- Name of file containing implementation of external functions of a module.
 externalFile :: String -> String
-externalFile = withComponents id id (const "kics2")
+externalFile = withComponents id id (const "kics2.hs")
+
+--- Old name of file containing implementation of external functions of a module
+--- (might be removed after all refactorings).
+externalOldFile :: String -> String
+externalOldFile = withComponents id id (const "kics2")
 
 destFile :: Bool -> String -> String -> String -> String
 destFile trace subdir mid fn =
