@@ -2,7 +2,7 @@ Docker image of KiCS2
 =====================
 
 This directory contains some files to create and run the
-[Docker image of KiCS2](https://hub.docker.com/r/caups/kics2).
+[Docker image of KiCS2](https://hub.docker.com/r/currylang/kics2).
 
 
 Building a new docker image
@@ -27,18 +27,17 @@ Uploading image to Docker Hub
 
 When the repository does not yet exist on Docker Hub:
 
-1. Log in on https://hub.docker.com
-2. Change to organization "caups"
-3. Click on "Create Repository"
-4. Choose a name ("kics2") and click create
+1. Log in on https://hub.docker.com as "currylang"
+2. Click on "Create Repository"
+3. Choose a name ("kics2") and click create
 
 When the repository exists on Docker Hub:
 
 Log into the Docker Hub from command line, tag and push the local image:
 
-    > docker login --username mhanus42
-    > docker tag kics2 caups/kics2:<version>
-    > docker push caups/kics2:<version>
+    > docker login --username currylang
+    > docker tag kics2 currylang/kics2:<version>
+    > docker push currylang/kics2:<version>
 
 where <version> should be something like "3.0.0"
 or "latest" to update the latest version.

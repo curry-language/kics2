@@ -1,5 +1,5 @@
 #!/bin/sh
-# shell script to run the Docker image caups/kics2
+# shell script to run the Docker image currylang/kics2
 # with appropriate options in order to use KiCS2
 # with local files and invoke tools contained in the image
 
@@ -11,7 +11,7 @@ DOCKEROPTS="$DOCKEROPTS -v `pwd`:`pwd` -w `pwd` -v $HOME:$HOME -e HOME=$HOME"
 # set docker user to host user
 DOCKEROPTS="$DOCKEROPTS -u $(id -u):$(id -g)"
 
-DOCKERTAG="caups/kics2"
+DOCKERTAG="currylang/kics2"
 ENTRYPOINT=""
 HELP=no
 
@@ -25,7 +25,7 @@ if [ $HELP = yes ] ; then
   echo "with options:"
   echo ""
   echo "-h|-?|--help       : show this message and quit"
-  echo "-t TAG             : use docker image with tag TAG (default: caups/kics2)"
+  echo "-t TAG             : use docker image with tag TAG (default: $DOCKERTAG)"
   echo "cypm <opts>        : invoke Curry Package Manager with <opts>"
   echo "curry-check <opts> : invoke CurryCheck with <opts>"
   echo "curry-doc   <opts> : invoke CurryDoc with <opts>"
