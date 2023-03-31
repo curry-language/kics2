@@ -1,8 +1,8 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.0.0 (February 17, 2023)
----------------------------------------------------------
+Release notes for KiCS2 Version 3.0.0 (March 31, 2023)
+------------------------------------------------------
 
 This version is a major rewrite where the compiler and REPL
 are written as Curry packages in order to re-use the current
