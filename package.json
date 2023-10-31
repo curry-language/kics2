@@ -1,6 +1,6 @@
 {
     "name": "kics2",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "The Kiel Curry System (Version 2)",
     "category": [ "Compilers", "Metaprogramming" ],

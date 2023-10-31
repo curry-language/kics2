@@ -1,6 +1,21 @@
 Release Notes for KiCS2
 =======================
 
+Release notes for KiCS2 Version 3.1.0 (October 31, 2023)
+--------------------------------------------------------
+
+Changes to version 3.0.0:
+
+  * Base libraries extended by including libraries for encapsulated search
+    so that set functions can be used without installing packages.
+    The new libraries are: `Control.Search.SetFunctions`(implementing
+    set functions), `Control.Search.AllValues` (implementing a strong
+    encapsulation as I/O operations), `Control.Search.Unsafe`
+    (implementing strong encapsulation as non I/O operations, but this
+    method has a non-declarative behavior), and `Control.Search.SearchTree`
+    (implementing search trees).
+
+
 Release notes for KiCS2 Version 3.0.0 (March 31, 2023)
 ------------------------------------------------------
 
