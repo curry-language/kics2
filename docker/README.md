@@ -39,7 +39,7 @@ Log into the Docker Hub from command line, tag and push the local image:
     > docker tag kics2 currylang/kics2:<version>
     > docker push currylang/kics2:<version>
 
-where <version> should be something like "3.0.0"
+where <version> should be something like "3.1.0"
 or "latest" to update the latest version.
 
 

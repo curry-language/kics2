@@ -1,1 +1,1 @@
-Dockerfile-kics2-3.0.0-ubuntu-20.04
+Dockerfile-kics2-3.1.0-ubuntu-22.04
