@@ -1,11 +1,14 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.1.0 (November 4, 2023)
+Release notes for KiCS2 Version 3.1.0 (March 15, 2024)
 --------------------------------------------------------
 
 Changes to version 3.0.0:
 
+  * Front end does not include `Prelude` in imports of FlatCurry files
+    when it is not necessary (e.g., if the language option `NoImplicitPrelude`
+    is set).
   * Base libraries extended by including libraries for encapsulated search
     so that set functions can be used without installing packages.
     The new libraries are: `Control.Search.SetFunctions`(implementing
@@ -14,8 +17,10 @@ Changes to version 3.0.0:
     (implementing strong encapsulation as non I/O operations, but this
     method has a non-declarative behavior), and `Control.Search.SearchTree`
     (implementing search trees).
-  * Update CPM (modified options for command `upload` and support for
-    automatic upload to Masala/CPM).
+  * Update CPM (modified options for command `upload`, support for
+    automatic upload to Masala/CPM, add `--dependencies` option to clean command
+    in order to clean all dependencies in the current package (useful to clean
+    the standard homepackage).
 
 
 Release notes for KiCS2 Version 3.0.0 (March 31, 2023)
