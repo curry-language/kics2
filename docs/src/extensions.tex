@@ -426,23 +426,30 @@ last xs | _ ++ [e] =:= xs = e
 
 The front end of \CYS understands various options.
 These options can be passed to the front end by setting
-the \CYS option \code{parser}, e.g., by
+the \CYS option \code{parser}.
+For instance, the option
 %
 \begin{curry}
 :set parser -F --pgmF=transcurry
 \end{curry}
 %
-or for individual modules by providing an option line as a specific
+instructs the front end to preprocess source modules with
+the program \code{transcurry}.
+
+One can also define specific front-end options
+for individual modules by providing an option line as a specific
 comment at the beginning of the source program.
 For instance, the option above can be set for a specific module
-by putting the line
+by putting the line\pindex{OPTIONS_FRONTEND}\index{front-end option}
 %
 \begin{curry}
 {-# OPTIONS_FRONTEND -F --pgmF=transcurry #-}
 \end{curry}
 %
 at the beginning of the module.
-This is useful to switch off specific warnings when parsing a module.
+
+The setting of such options in modules
+is useful to switch off specific warnings when parsing a module.
 For instance, 
 %
 \begin{curry}
@@ -473,6 +480,66 @@ Note that the following options are excluded:
 \end{itemize}
 %
 These options can only be set via the command line.
+
+
+\subsection{Case Modes in Curry Programs}
+
+In Curry programs, the case of identifiers matters,
+i.e., \code{xyz} and \code{Xyz} are different identifiers.
+For the sake of flexibility, the Curry language report
+does not enforce a particular \emph{case mode}\index{case mode}
+for identifiers (e.g., variable, functions, type constructors)
+but defines four different case modes which can be
+selected at compile time:
+%
+\begin{description}
+\item[free:]\index{free case mode}
+There are no constraints on the case of identifiers.
+\item[Haskell mode:]\index{Haskell case mode}
+Variables, type variables, and functions start with a lower case letter,
+type and data constructors start with an upper case letter.
+\item[Prolog mode:]\index{Prolog case mode}
+Variables and type variables start with an upper case letter and
+all other identifier symbols start with a lower case letter.
+\item[G\"odel mode:]\index{G\"odel case mode}
+Variables and type variables start with a lower case letter and
+all other identifier symbols start with an upper case letter.
+\end{description}
+%
+\CYS enforces these case modes by emitting an error message
+if the selected case mode is not obeyed.
+
+Since it has been shown that the Haskell mode is used for most
+Curry programs, \CYS supports a further mode:
+%
+\begin{description}
+\item[Curry mode:]
+Like the Haskell mode but emit warnings (instead of errors)
+if the Haskell mode is not obeyed.
+\end{description}
+%
+The default case mode of \CYS is the Curry mode.
+A different case mode can be selected by the front-end option
+\code{--case-mode=$\mathit{mode}$} where $\mathit{mode}$
+is one of \code{curry}, \code{free}, \code{haskell}, \code{prolog},
+or \code{goedel}.
+Hence, if one wants to use in some module
+the free mode without getting any warnings
+as in the default Curry mode, one can put the line
+%
+\begin{curry}
+{-# OPTIONS_FRONTEND --case-mode=free #-}
+\end{curry}
+%
+in the head of the module.
+On the other hand, one can put the line
+%
+\begin{curry}
+{-# OPTIONS_FRONTEND --case-mode=haskell #-}
+\end{curry}
+%
+to enforce the stronger Haskell mode in a module so that
+a compiler error is produced if the Haskell mode is not obeyed.
 
 
 \subsection{Conditional Compilation}

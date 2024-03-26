@@ -1,11 +1,15 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.1.0 (March 19, 2024)
+Release notes for KiCS2 Version 3.1.0 (March 26, 2024)
 -------------------------------------------------------
 
 Changes to version 3.0.0:
 
+  * Changes in case mode: the case modes Haskell, Prolog, and Gödel
+    are stronger so that they emit error messages instead of warnings,
+    the default case mode is Curry, which is like Haskell but emit
+    only warnings (see Section 3.7 of the PAKCS User Manual).
   * Front end does not include `Prelude` in imports of FlatCurry files
     when it is not necessary (e.g., if the language option `NoImplicitPrelude`
     is set).
