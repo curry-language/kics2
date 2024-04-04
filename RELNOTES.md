@@ -1,7 +1,7 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.1.0 (April 2, 2024)
+Release notes for KiCS2 Version 3.1.0 (April 4, 2024)
 -----------------------------------------------------
 
 Changes to version 3.0.0:
