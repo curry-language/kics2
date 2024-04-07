@@ -13,12 +13,20 @@ import Control.Monad    (liftM)
 import Data.IORef       (IORef, newIORef, readIORef, modifyIORef)
 import Data.Maybe       (fromMaybe)
 import System.IO.Unsafe (unsafePerformIO)
+#if __GLASGOW_HASKELL__ < 900
+import UniqSupply       (UniqSupply, mkSplitUniqSupply, splitUniqSupply,
+                         uniqFromSupply)
+import Unique           (Unique, getKey)
+#else
 import GHC.Types.Unique.Supply (UniqSupply, mkSplitUniqSupply, splitUniqSupply,
                          uniqFromSupply)
 import GHC.Types.Unique (Unique, getKey)
+#endif
 
 #if __GLASGOW_HASKELL__ < 800
 import qualified Data.Map as Map (Map, empty, delete, findWithDefault, insert)
+#elif __GLASGOW_HASKELL__ < 900
+import UniqDFM          (UniqDFM, emptyUDFM, delFromUDFM, lookupUDFM, addToUDFM)
 #else
 import GHC.Types.Unique.DFM (UniqDFM, emptyUDFM, delFromUDFM, lookupUDFM, addToUDFM)
 #endif

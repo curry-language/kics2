@@ -1,6 +1,8 @@
 -- ---------------------------------------------------------------------------
 -- | IDSupply implementation using IORefs and GHC's UniqSupply
 -- ---------------------------------------------------------------------------
+{-# LANGUAGE CPP #-}
+
 module IDSupply
   ( IDSupply, initSupply, leftSupply, rightSupply, unique
   , Unique, mkInteger, showUnique
@@ -9,9 +11,15 @@ module IDSupply
 
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import GHC.IO  (unsafeDupableInterleaveIO)
+#if __GLASGOW_HASKELL__ < 900
+import UniqSupply
+  (UniqSupply, mkSplitUniqSupply, splitUniqSupply, uniqFromSupply)
+import qualified Unique as GHC (Unique, getKey)
+#else
 import GHC.Types.Unique.Supply
   (UniqSupply, mkSplitUniqSupply, splitUniqSupply, uniqFromSupply)
 import qualified GHC.Types.Unique as GHC (Unique, getKey)
+#endif
 
 -- SOURCE pragma to allow mutually recursive dependency
 import {-# SOURCE #-} ID (Decision, defaultDecision)
