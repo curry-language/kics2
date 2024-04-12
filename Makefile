@@ -335,6 +335,11 @@ cleandist:
 cleanfrontend:
 	cd $(FRONTENDDIR) && $(MAKE) cleanall
 
+# Cleans up tool-related build artifacts.
+.PHONY: cleantools
+cleantools:
+	cd $(CURRYTOOLSDIR) && $(MAKE) clean
+
 # Cleans up build files (not from the frontend, however!)
 .PHONY: cleankics2
 cleankics2: cleanlib cleanruntime cleanutils cleanbin cleandist
@@ -352,7 +357,7 @@ cleankics2: cleanlib cleanruntime cleanutils cleanbin cleandist
 
 # Cleans up everything.
 .PHONY: clean
-clean: cleankics2 cleanfrontend
+clean: cleankics2 cleanfrontend cleantools
 	rm -rf $(STACKROOT)
 
 ########################################################################
