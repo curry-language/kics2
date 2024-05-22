@@ -43,8 +43,9 @@ case $1 in
 esac
 
 # check whether we should call CPM to compute the correct load path:
-if [ ! -d "$HOME" ] ; then
-  USECPM=no   # do not use CPM without a home directory
+if [ ! -d "$HOME/.cpm/index/base" ] ; then
+  # do not use CPM if no "base" package is in the local index of CPM
+  USECPM=no
 elif [ -x $KICS2BIN/cypm ] ; then
   CYPMBIN=$KICS2BIN/cypm
   USECPM=yes
