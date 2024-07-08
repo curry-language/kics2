@@ -1,6 +1,27 @@
 Release Notes for KiCS2
 =======================
 
+Release notes for KiCS2 Version 3.2.0 (July 8, 2024)
+----------------------------------------------------
+
+Changes to version 3.1.0:
+
+  * Command `:interface` use the new interface pretty printer
+    based on the Curry package `curry-interface` so that also
+    information about type classes are shown
+  * Update front end:
+    - new option `--origin-pragmas` (only for use in the Curry Language Server)
+    - incomplete cases are always extended with explicit calls to
+      `Prelude.failed` in missing branches. For instance,
+
+          head (x:_) = x
+
+      is translated into the FlatCurry definition
+
+          head xs = case xs of x:_ -> x
+                               []  -> Prelude.failed
+
+
 Release notes for KiCS2 Version 3.1.0 (April 4, 2024)
 -----------------------------------------------------
 

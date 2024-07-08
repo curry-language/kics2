@@ -806,8 +806,8 @@ processShow rst args = do
 processInterface :: ReplState -> String -> IO (Maybe ReplState)
 processInterface rst args = do
   modname <- getModuleName rst args
-  checkAndCallCpmTool "curry-showflat" "showflatcurry"
-    (\toolexec -> execCommandWithPath rst toolexec ["-int", modname])
+  checkAndCallCpmTool "curry-showinterface" "curry-interface"
+    (\toolexec -> execCommandWithPath rst toolexec [modname])
 
 processBrowse :: ReplState -> String -> IO (Maybe ReplState)
 processBrowse rst args
