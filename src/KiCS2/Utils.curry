@@ -5,7 +5,7 @@
 --- things.
 ---
 --- @author  Bjoern Peemoeller, Finn Teegen
---- @version October 2017
+--- @version September 2024
 --- --------------------------------------------------------------------------
 module KiCS2.Utils
   ( showMonoTypeExpr, showMonoQualTypeExpr
@@ -22,8 +22,8 @@ import Data.Char           (isSpace)
 --- If the first argument is True, all occurrences of type variables
 --- are replaced by "()".
 showMonoQualTypeExpr :: Bool -> CQualTypeExpr -> String
-showMonoQualTypeExpr mono (CQualType cx ty)
-  = showContext mono cx ++ showMonoTypeExpr mono ty
+showMonoQualTypeExpr mono (CQualType cx ty) =
+  showContext mono cx ++ showMonoTypeExpr mono ty
 
 --- Shows an AbstractCurry context in standard Curry syntax.
 --- If the first argument is True, no context is shown.
@@ -37,8 +37,8 @@ showContext True  _             = ""
 
 --- Shows an AbstractCurry constraint in standard Curry syntax.
 showConstraint :: CConstraint -> String
-showConstraint ((_, name), ty) =
-  showIdentifier name ++ " " ++ showMonoTypeExpr False ty
+showConstraint ((_, name), ts) = unwords $
+  showIdentifier name : map (showMonoTypeExpr' False 2) ts
 
 --- Shows an AbstractCurry type expression in standard Curry syntax.
 --- If the first argument is True, all occurrences of type variables
@@ -54,8 +54,9 @@ showMonoTypeExpr' mono p (CFuncType     domain range) = parens (p > 0) $
 showMonoTypeExpr' _    _ (CTCons            (_,name)) = name
 showMonoTypeExpr' mono p texp@(CTApply     tcon targ) = maybe
   (parens (p > 1) $ showMonoTypeExpr' mono 2 tcon ++ " " ++
-    showMonoTypeExpr' mono 2 targ)
-  (\(mod,name) -> showTypeCons mono mod name (argsOfApply texp))
+                    showMonoTypeExpr' mono 2 targ)
+  (\ (mname,name) -> parens (p > 0) $
+                     showTypeCons mono mname name (argsOfApply texp))
   (funOfApply texp)
  where
   funOfApply te = case te of CTApply (CTCons qn) _ -> Just qn
@@ -68,9 +69,9 @@ showMonoTypeExpr' mono p texp@(CTApply     tcon targ) = maybe
 
 showTypeCons :: Bool -> String -> String -> [CTypeExpr] -> String
 showTypeCons _    _   name []       = name
-showTypeCons mono mod name ts@(_:_)
-  | mod == "Prelude" = showPreludeTypeCons mono name ts
-  | otherwise        = name ++ prefixMap (showMonoTypeExpr' mono 2) ts " "
+showTypeCons mono mname name ts@(_:_)
+  | mname == "Prelude" = showPreludeTypeCons mono name ts
+  | otherwise          = name ++ prefixMap (showMonoTypeExpr' mono 2) ts " "
 
 showPreludeTypeCons :: Bool -> String -> [CTypeExpr] -> String
 showPreludeTypeCons mono name typelist
