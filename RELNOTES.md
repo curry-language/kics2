@@ -1,7 +1,7 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.3.0 (October 4, 2024)
+Release notes for KiCS2 Version 3.3.0 (October 10, 2024)
 -------------------------------------------------------
 
 Changes to version 3.2.0:
@@ -21,6 +21,7 @@ Changes to version 3.2.0:
     Moreover, the names of internal operations generated for
     operations defined in type classes (e.g., instance operations)
     have been slightly changed (this is only visible in FlatCurry files).
+  * `Prelude`: value generator for floats added
 
 
 Release notes for KiCS2 Version 3.2.0 (July 8, 2024)
