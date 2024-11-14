@@ -294,7 +294,9 @@ type FuncHOResult = Map FuncHOClass
 
 analyseHOFunc :: Prog -> TypeHOResult -> FuncHOResult
 analyseHOFunc p typeInfo = Map.fromList $ map analyse (progFuncs p)
-  where analyse f = (funcName f, isHOFunc (funcName f) typeInfo (funcArity f) (funcType f))
+ where
+  analyse f = (funcName f,
+               isHOFunc (funcName f) typeInfo (funcArity f) (funcType f))
 
 -- Determines if a function is higher order.
 -- In our context, a function with arity n is higher order (HO),
@@ -307,7 +309,8 @@ isHOFunc :: QName -> TypeHOResult -> Int -> TypeExpr -> FuncHOClass
 isHOFunc name typeInfo arity ty
   | arity == 0 = case reverse (splitFuncType ty) of
       []        -> error "Analysis.isHOFunc: no type"
-      (lty:tys) -> maximumFuncHOClass (initVal : map (isHOType True typeInfo) tys)
+      (lty:tys) -> maximumFuncHOClass
+                     (initVal : map (isHOType True typeInfo) tys)
         where
           initVal = maxFuncHOClass
                       (if P.null tys then FuncFO else FuncHORes (length tys))
@@ -316,7 +319,8 @@ isHOFunc name typeInfo arity ty
       FuncType x y     -> maxFuncHOClass (isHOType True typeInfo x)
                                          (isHOFunc name typeInfo (arity - 1) y)
       ForallType _ ty' -> isHOFunc name typeInfo arity ty'
-      _                -> error $ "Analysis.isHOFunc" ++ show name ++ ": " ++ show ty
+      _                -> error $ "Analysis.isHOFunc " ++ show name ++ "/" ++
+                                  show arity ++ ": " ++ show ty
 
 --- Determines if a type expression involves a function type (->)
 --- or a type that has a constructor which involves a function type.
