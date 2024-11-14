@@ -3,7 +3,7 @@
 
 CURRYHOME=`pwd`/..
 CURRYBIN=$CURRYHOME/bin
-CURRYCHECK=`which curry-check`
+CURRYCHECK=`command -v curry-check`
 
 if [ ! -x "$CURRYCHECK" ] ; then
   echo "Executable 'curry-check' is not installed! Skipping tests..."
@@ -52,7 +52,7 @@ PATH=$CURRYBIN:$PATH
 export PATH
 
 # clean up before
-$CURRYBIN/cleancurry -r
+/bin/rm -rf */.curry
 
 LOGFILE=`pwd`/xxx$$
 

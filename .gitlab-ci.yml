@@ -1,5 +1,5 @@
 image:
-  name: "currylang/kics2:3.1.0"
+  name: "currylang/kics2:3.3.0"
   entrypoint: [""]
 
 variables:
