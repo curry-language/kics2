@@ -26,8 +26,7 @@ import System.FilePath             ( FilePath, dropExtension, takeExtension
 import System.Directory            ( doesFileExist, getModificationTime
                                    , findFileWithSuffix, getFileWithSuffix
                                    )
-import KiCS2.System.CurryPath      ( currySubdir )
-import KiCS2.System.FrontendExec   ( defaultParams, setDefinitions, setOutDir
+import System.FrontendExec         ( defaultParams, setDefinitions, setOutDir
                                    , setFullPath, setQuiet, setFrontendPath
                                    , setSpecials, callFrontendWithParams
                                    , FrontendTarget(..), FrontendParams )
@@ -36,7 +35,7 @@ import FlatCurry.Annotated.Types
 import KiCS2.FlatCurry.Annotated.Files ( annotatedFlatCurryFileName )
 
 import KiCS2.CompilerOpts
-import KiCS2.System.CurryPath      ( inCurrySubdirModule, stripCurrySuffix )
+import KiCS2.System.CurryPath      ( currySubdir, inCurrySubdirModule, stripCurrySuffix )
 import KiCS2.InstallationPaths     ( kics2HomeDir )
 import KiCS2.Message               ( showStatus,showAnalysis )
 import KiCS2.Names                 ( moduleNameToPath, prelude )
@@ -162,8 +161,7 @@ getAfcyFileName opts mn fn
   = do showStatus opts $ "Reading directly from type-annotated FlatCurry file '"++fn++"'"
        return fn
   | otherwise
-  = do defps <- defaultParams
-       k2home <- kics2HomeDir
+  = do k2home <- kics2HomeDir
        afcyname <- parseCurryWithOptions opts (stripCurrySuffix mn)
                    $ setDefinitions  [(compiler, version)]
                    $ setFullPath     importPaths
@@ -171,7 +169,7 @@ getAfcyFileName opts mn fn
                    $ setSpecials     (optParser opts)
                    $ setOutDir       currySubdir
                    $ setFrontendPath (k2home </> "bin" </> "kics2-frontend")
-                   defps
+                   defaultParams
        return afcyname
   where importPaths = "." : optImportPaths opts
         compiler    = "__" ++ map toUpper compilerName ++ "__"

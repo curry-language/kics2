@@ -18,6 +18,11 @@ import System.Directory
 import System.FilePath           ( (</>), (<.>)
                                  , splitSearchPath, splitFileName, splitExtension
                                  , searchPathSeparator)
+import System.FrontendExec       ( FrontendTarget (..), FrontendParams (..)
+                                 , callFrontendWithParams, defaultParams
+                                 , setQuiet, setOverlapWarn, setFullPath, setExtended, setSpecials
+                                 , setFrontendPath, setOutDir
+                                 )
 import System.Environment        ( getArgs, getEnv )
 import System.Process            ( system, exitWith, getPID )
 import System.IO
@@ -29,7 +34,7 @@ import Numeric                   ( readNat )
 
 import qualified Installation as Inst
 import KiCS2.System.CurryPath    ( inCurrySubdir, lookupModuleSource, stripCurrySuffix
-                                 , sysLibPath )
+                                 , sysLibPath, currySubdir )
 import KiCS2.Files               ( removeFileIfExists )
 import KiCS2.GhciComm            ( stopGhciComm )
 import KiCS2.InstallationPaths   ( kics2HomeDir )
@@ -37,8 +42,6 @@ import KiCS2.Names               ( funcInfoFile, moduleNameToPath )
 import KiCS2.RCFile
 import KiCS2.Utils               ( showMonoTypeExpr, showMonoQualTypeExpr
                                  , notNull, strip )
-
-import KiCS2.System.FrontendExec
 
 import KiCS2.Linker
 
@@ -245,21 +248,23 @@ importUnsafeModule rst =
   then return True
   else do
     let acyMainModFile = abstractCurryFileName (mainMod rst)
-    frontendParams <- currentFrontendParams rst
+        frontendParams = currentFrontendParams rst
     catch (callFrontendWithParams ACY frontendParams (mainMod rst) >>
            readAbstractCurryFile acyMainModFile >>= \p ->
            return ("Unsafe" `elem` imports p))
           (\_ -> return (mainMod rst /= "Prelude")) -- just to be safe
 
 -- Compute the front-end parameters for the current state:
-currentFrontendParams :: ReplState -> IO FrontendParams
+currentFrontendParams :: ReplState -> FrontendParams
 currentFrontendParams rst =
-     setQuiet       True
-  .  setFullPath    (loadPaths rst)
-  .  setExtended    (rcValue (rcvars rst) "curryextensions" /= "no")
-  .  setOverlapWarn (rcValue (rcvars rst) "warnoverlapping" /= "no")
-  .  setSpecials    (parseOpts rst)
- <$> defaultParams
+     setQuiet        True
+  .  setFullPath     (loadPaths rst)
+  .  setExtended     (rcValue (rcvars rst) "curryextensions" /= "no")
+  .  setOverlapWarn  (rcValue (rcvars rst) "warnoverlapping" /= "no")
+  .  setSpecials     (parseOpts rst)
+  .  setFrontendPath (kics2Home rst </> "bin" </> "kics2-frontend")
+  .  setOutDir       currySubdir
+  $  defaultParams
 
 -- ---------------------------------------------------------------------------
 -- Main goal file stuff
@@ -294,7 +299,7 @@ getAcyOfMainExp rst = do
   let mainGoalProg    = stripCurrySuffix mainGoalFile
       acyMainExpFile = --abstractCurryFileName mainGoalProg
                          inCurrySubdir (stripCurrySuffix mainGoalProg) ++ ".acy"
-  frontendParams <- currentFrontendParams rst
+      frontendParams = currentFrontendParams rst
   prog <- catch (callFrontendWithParams ACY frontendParams mainGoalProg >>
                  tryReadACYFile acyMainExpFile)
                 (\_ -> return Nothing)
