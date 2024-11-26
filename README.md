@@ -40,7 +40,7 @@ This directory contains:
 `frontend`:
   This directory contains the Curry frontend, i.e., a parser for
   Curry programs. It is adapted from the parser originally developed for the
-  [Muenster Curry Compiler](http://danae.uni-muenster.de/~lux/curry/).
+  [Muenster Curry Compiler](http://danae.uni-muenster.de/curry/).
 
 `include`:
   This directory contains some resources which are included
