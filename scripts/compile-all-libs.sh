@@ -4,7 +4,7 @@
 CURRY=kics2
 FRONTEND=bin/$CURRY-frontend
 FRONTENDPARAMS="-o .curry/kics2-$VERSION -D__KICS2__=$MAJORVERSION$(printf "%02d
-" $MINORVERSION) --extended -ilib AllLibraries"
+" $MINORVERSION) --extended -Ono-remove-unused-imports -ilib AllLibraries"
 
 compile_all() {
   $FRONTEND --flat                $FRONTENDPARAMS
@@ -25,4 +25,4 @@ done
 /bin/rm -r $TMPOUT
 
 echo "Compile Haskell targets..."
-bin/$CURRY --nocypm :l AllLibraries :eval "42::Int" :quit
+bin/$CURRY --nocypm :set parser -Ono-remove-unused-imports :l AllLibraries :eval "42::Int" :quit
