@@ -161,7 +161,7 @@ export MAJORVERSION    = $(word 1,$(subst ., ,$(VERSION)))
 export MINORVERSION    = $(word 2,$(subst ., ,$(VERSION)))
 export REVISIONVERSION = $(word 3,$(subst ., ,$(VERSION)))
 # The build version number (if >0, then it is a pre-release)
-export BUILDVERSION    = 4
+export BUILDVERSION    = 5
 
 ifeq ($(VERSION),)
 $(error "Could not determine VERSION. Please make sure that a 'package.json' exists and that it defines a 'version' mapping!")
