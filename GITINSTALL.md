@@ -39,7 +39,7 @@ Currently, there are at least two options:
  1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
 
     Download and install the KiCS2 distribution from the
-    [KiCS2 download site](http://www-ps.informatik.uni-kiel.de/kics2/download.html).
+    [KiCS2 download site](https://www-curry-lang.org/kics2/download.html).
     Be sure to use a different directory than this one for this installation,
     e.g., install this in `/tmp/kics2`.
     If you successfully installed this distribution (note that you do not
@@ -54,7 +54,7 @@ Currently, there are at least two options:
  2. Bootstrapping with PAKCS 3.0.0 or newer (the slower option)
 
     Download and install the PAKCS implementation of Curry from the
-    [PAKCS web site](http://www.informatik.uni-kiel.de/~pakcs).
+    [PAKCS web site](https://www.curry-lang.org/pakcs).
     If you successfully installed PAKCS, you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
@@ -79,8 +79,8 @@ bootstrapped compiler to rebuild itself.
 
 Further information is available in the installation instructions
 of the KiCS2 distribution which can be found
-[here](http://www-ps.informatik.uni-kiel.de/kics2/download/INSTALL.html).
+[here](https://git.ps.informatik.uni-kiel.de/curry/kics2/-/blob/master/INSTALL.md).
 
 -------------------------------------------------------------
 
-Contact: [Michael Hanus](http://www.informatik.uni-kiel.de/~mh/)
+Contact: [Michael Hanus](https://www.informatik.uni-kiel.de/~mh/)
