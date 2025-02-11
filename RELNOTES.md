@@ -22,6 +22,7 @@ Changes to version 3.2.0:
     operations defined in type classes (e.g., instance operations)
     have been slightly changed (this is only visible in FlatCurry files).
   * `Prelude`: value generator for floats added
+  * Base libraries: add `Prelude.=<<`, `Control.Monad.forM`
 
 
 Release notes for KiCS2 Version 3.2.0 (July 8, 2024)
