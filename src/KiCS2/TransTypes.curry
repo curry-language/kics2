@@ -281,6 +281,7 @@ readInstance isDict hoResCons tdecl = case tdecl of
         ctype = TCons qf $ map (TVar . fst) targs
         rule | isListType  qf = readListRule qf
              | isTupleType qf = readTupleRule (head cdecls)
+             | isUnitType  qf = readUnitRule qf
              | otherwise      = readDataRule cdecls
   (FC.TypeNew qf _ tnums cdecl) ->
     mkInstance (pre "Read") ctype targs [rule]
@@ -319,6 +320,23 @@ readListRule (mn, _) =
                                             ] , Var s2])])
       ]
   ) where [d,s,xs,s2] = newVars ["d","s","xs","s2"]
+
+-- Generate special Read instance rule for Unit "()"
+-- according to the following scheme:
+-- @
+-- instance Read OP_Unit where
+--  readsPrec d s = map (\((), s2) -> (OP_Unit, s2)) (readsPrec d s)
+-- @
+readUnitRule :: QName -> (QName, Rule)
+readUnitRule (mn, _) =
+  ( pre "readsPrec"
+  , Rule [PVar d, PVar s]
+      (SimpleRhs $ applyF (pre "map") [ Lambda [PTuple [PComb ("Prelude", "()") [], PVar s2]] $
+                                        tupleExpr [constF (mn,"OP_Unit"), Var s2]
+                                      , applyF (pre "readsPrec") [Var d, Var s]
+                                      ])
+      []
+  ) where [d,s,xs,s2] = newVars ["d","s","s2"]
 
 -- Generate special Read instance rule for tuple constructors
 -- according to the following scheme:
@@ -1044,6 +1062,9 @@ isListType qn = qn == renameQName ("Prelude", "[]")
 
 isTupleType :: QName -> Bool
 isTupleType (m,t) = m == renameModule "Prelude" && take 8 t == "OP_Tuple"
+
+isUnitType :: QName -> Bool
+isUnitType qn = qn == renameQName ("Prelude", "()")
 
 showQName :: QName -> String
 showQName (m,t) = m ++ '.' : t
