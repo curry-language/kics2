@@ -89,7 +89,6 @@ genTypeDeclarations newtypes hoResCons hoResType tdecl = case tdecl of
       targs     = map fcy2absTVarKind tnums
       ctype     = TCons qf $ map (TVar . fst) targs
       clisttype = listType ctype
-  _ -> error "TransTypes.genTypeDeclarations"
 
 fcy2absVis :: FC.Visibility -> Visibility
 fcy2absVis FC.Public  = Public
@@ -336,7 +335,7 @@ readUnitRule (mn, _) =
                                       , applyF (pre "readsPrec") [Var d, Var s]
                                       ])
       []
-  ) where [d,s,xs,s2] = newVars ["d","s","s2"]
+  ) where [d,s,s2] = newVars ["d","s","s2"]
 
 -- Generate special Read instance rule for tuple constructors
 -- according to the following scheme:
