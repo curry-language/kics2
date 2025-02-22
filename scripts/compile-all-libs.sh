@@ -13,6 +13,7 @@ compile_all() {
   "$FRONTEND" --uacy                       $FRONTENDPARAMS
   "$FRONTEND" --comments                   $FRONTENDPARAMS
   "$FRONTEND" --ast                        $FRONTENDPARAMS
+  "$FRONTEND" --short-ast                  $FRONTENDPARAMS
 }
 
 TMPOUT=TMPLIBOUT
