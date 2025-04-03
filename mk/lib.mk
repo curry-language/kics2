@@ -7,8 +7,8 @@ LIB_FRONTENDPARAMS = --extended -Wnone -i. -o .curry/kics2-$(VERSION) -D "__KICS
 # directory for LaTeX documentation files
 LIB_TEXDOCDIR := $(ROOT)/docs/src/lib
 
-# Curry library files
-LIB_CURRY     = $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
+# Curry library files (with Prelude mentioned first in order to compile it first)
+LIB_CURRY     = $(LIBDIR)/Prelude.curry $(filter-out $(EXCLUDES), $(LIB_CURRY_FILES))
 # lib names without directory prefix
 LIB_NAMES     = $(subst /,., $(LIB_CURRY:$(LIBDIR)/%.curry=%))
 # lib names included in library documentation page (without directory prefix)
@@ -25,7 +25,7 @@ LIB_TRACE_HS_NAMES = $(call comma_sep,$(foreach lib,$(LIB_NAMES),$(if $(findstri
 ALLLIBS       = AllLibraries
 MAINGOAL      = $(LIBDIR)/Curry_Main_Goal.curry
 # Modules not included as regular libraries:
-EXCLUDES      = $(LIBDIR)/$(ALLLIBS).curry $(MAINGOAL)
+EXCLUDES      = $(LIBDIR)/Prelude.curry $(LIBDIR)/$(ALLLIBS).curry $(MAINGOAL)
 # Modules not included in library documentation index page:
 DOCEXCLUDES  = CPNS ValueSequence
 
