@@ -1,6 +1,6 @@
 [submodule "currytools"]
 	path = currytools
-	url = https://git.ps.informatik.uni-kiel.de/curry/curry-tools.git
+	url = https://github.com/cau-placc/curry-tools.git
 [submodule "lib-trunk"]
 	path = lib-trunk
 	url = https://github.com/curry-packages/base.git
