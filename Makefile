@@ -234,6 +234,8 @@ include mk/testing.mk
 all:
 	$(MAKE) kernel
 	$(MAKE) tools
+	# compile all libraries:
+	$(MAKE) compile-all-libs
 	@$(ECHOSUCCESS) "Successfully built KiCS2!"
 	@$(ECHOSUCCESS) "The executables are located in $(BINDIR)"
 
