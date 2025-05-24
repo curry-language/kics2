@@ -32,3 +32,16 @@ is not complete, since it corresponds to the following definition:
     por2 _     True  = True
 
 Hence, each alternative is incomplete.
+
+
+Failure branches:
+-----------------
+
+Since a front-end reading Curry programs might complete missing patterns
+with the failure branch, such branches are not considered as definitions.
+For instance, the operation
+
+    head (x:_) = x
+    head []    = Prelude.failed
+
+is considered as incomplete, although there is a branch for each pattern.

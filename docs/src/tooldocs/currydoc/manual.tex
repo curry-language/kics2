@@ -16,8 +16,7 @@ documentation comments provided by the programmer.
 \subsection{Installation}
 
 The current implementation of CurryDoc is a package
-managed by the Curry Package Manager CPM
-(see also Section~\ref{sec-cpm}).
+managed by the Curry Package Manager CPM.
 Thus, to install the newest version of CurryDoc, use the following commands:
 %
 \begin{curry}
@@ -69,10 +68,11 @@ A comment for the return value of a function
 (only reasonable in function comments).
 \end{description}
 The comment of a documented entity can be any string in
-\href{http://en.wikipedia.org/wiki/Markdown}{Markdown syntax}\index{markdown}
-(the currently supported set of elements
-is described in the
-\href{https://www-ps.informatik.uni-kiel.de/~cpm/pkgs/markdown.html}{Curry package \code{markdown}}).
+\emph{Markdown syntax}\index{markdown}\footnote{%
+\url{http://en.wikipedia.org/wiki/Markdown}}
+(the currently supported set of elements is described in the
+Curry package \code{markdown}.\footnote{%
+\url{https://cpm.curry-lang.org/pkgs/markdown.html}}
 For instance, it can contain Markdown annotations for
 emphasizing elements (e.g., \verb!_verb_!),
 strong elements (e.g., \verb!**important**!),
@@ -149,7 +149,7 @@ To generate the documentation, execute the command
 \begin{curry}
 curry-doc Example
 \end{curry}
-This command creates the directory \code{DOC_Example} (if it does not exist)
+This command creates the directory \code{DOC\_Example} (if it does not exist)
 and puts all HTML documentation files for the main program module
 \code{Example}
 and all its imported modules in this directory together with

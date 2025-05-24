@@ -350,7 +350,9 @@ Test.EasyCheck> take 20 (valuesOf (_::[Int]))
 %
 Since the features of PAKCS for search space exploration are more limited,
 PAKCS uses in CurryCheck explicit generators for search tree structures
-which are defined in the module \code{SearchTreeGenerators}.
+which are defined in the module
+\code{Control.Search.SearchTree.Generators}
+(which is contained in the Curry package \code{searchtree-extra}).
 For instance, the operations
 %
 \begin{curry}

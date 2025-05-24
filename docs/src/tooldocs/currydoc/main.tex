@@ -1,0 +1,71 @@
+\documentclass[11pt,fleqn]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{latexsym}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{graphicx}
+
+\setlength{\textwidth}{16.5cm}
+\setlength{\textheight}{23cm}
+\renewcommand{\baselinestretch}{1.1}
+\setlength{\topmargin}{-1cm}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\evensidemargin}{0cm}
+\setlength{\marginparwidth}{0.0cm}
+\setlength{\marginparsep}{0.0cm}
+
+\newlength{\figurewidth}
+\setlength{\figurewidth}{\textwidth}
+\addtolength{\figurewidth}{-0.4cm}
+
+% font for program texts
+\renewcommand{\tt}{\usefont{OT1}{cmtt}{m}{n}\selectfont}
+\newcommand{\codefont}{\small\tt}
+
+\usepackage{listings}
+\lstset{aboveskip=1.5ex,
+        belowskip=1.5ex,
+        showstringspaces=false, % no special string space
+        mathescape=true,
+        flexiblecolumns=false,
+        xleftmargin=2ex,
+        basewidth=0.52em,
+        basicstyle=\small\ttfamily}
+
+\lstset{literate={->}{{$\rightarrow{}\!\!\!$}}3
+       }
+
+\lstnewenvironment{curry}{}{}
+\lstnewenvironment{currynomath}{\lstset{mathescape=false}}{} % Curry w/o math
+\newcommand{\listline}{\vrule width0pt depth1.75ex}
+
+% program text in normal text
+\newcommand{\code}[1]{\mbox{\codefont #1}}
+
+% program text in normal text with apostrophs
+\newcommand{\ccode}[1]{``\code{#1}''}
+
+\newcommand{\pindex}[1]{\index{#1@{\tt #1}}}  % program elements in index
+
+\newcommand{\CYS}{Curry\xspace} % name of the Curry system described here
+\newcommand{\cyshome}{\mbox{\textit{curryhome}}\xspace} % symbolic installation directory
+
+\begin{document}
+\sloppy
+
+\input{manual.tex}
+
+% Bibliography
+\begin{thebibliography}{10}
+
+\bibitem{Hanus02WFLP}
+M.~Hanus.
+\newblock {CurryDoc}: A Documentation Tool for Declarative Programs.
+\newblock In {\em Proc. of the 11th International Workshop on Functional
+  and (Constraint) Logic Programming (WFLP 2002)}, pages 225-228.
+  Research Report UDMI/18/2002/RR, University of Udine, 2002.
+
+\end{thebibliography}
+
+\end{document}

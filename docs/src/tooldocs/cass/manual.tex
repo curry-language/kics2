@@ -70,8 +70,9 @@ rev :: [a] -> [a]
 rev []     = []
 rev (x:xs) = append (rev xs) [x]
 
-main :: Int -> Int -> [Int]
-main x y = rev [x .. y]
+nth :: [a] -> Int -> a
+nth (x:xs) n | n == 0 = x
+             | n > 0  = nth xs (n - 1)
 \end{curry}
 %
 CASS supports three different usage modes to analyze this program.
@@ -83,18 +84,18 @@ via the shell command \code{cass},
 where the analysis name and the name of the module to be analyzed
 must be provided:\footnote{More output is generated when
 the property \code{debugLevel} is changed in the configuration file
-\code{.curryanalysisrc} which is installed in the user's home directory
+\code{.cassrc} which is installed in the user's home directory
 when CASS is started for the first time.}
 \begin{curry}
 > cass Demand Rev
 append : demanded arguments: 1
-main : demanded arguments: 1,2
+nth : demanded arguments: 1,2
 rev : demanded arguments: 1
 \end{curry}
 The \code{Demand} analysis shows the list of argument positions
 (e.g., 1 for the first argument) which are demanded in order
 to reduce an application of the operation to some constructor-rooted value.
-Here we can see that both arguments of \code{main} are demanded
+Here we can see that both arguments of \code{nth} are demanded
 whereas only the first argument of \code{append} is demanded.
 This information could be used in a Curry compiler
 to produce more efficient target code.
@@ -110,7 +111,7 @@ application implemented in Curry. Since CASS is implemented in Curry,
 one can import the modules of the CASS implementation and
 use the CASS interface operations to start an analysis and use the
 computed results. For instance, CASS provides an operation
-(defined in the module \code{CASS.Server})
+(defined in module \code{CASS.Server})
 \begin{curry}
 analyzeGeneric :: Analysis a -> String -> IO (Either (ProgInfo a) String)
 \end{curry}
@@ -163,9 +164,9 @@ Of course, in a realistic program, the program analysis
 is performed only once and the computed information \code{deminfo}
 is passed around to access it several times.
 Nevertheless, we can use this simple program to compute the
-demanded arguments of \code{Rev.main}:
+demanded arguments of \code{Rev.nth}:
 \begin{curry}
-$\ldots$> demandedArgumentsOf "Rev" "main"
+$\ldots$> demandedArgumentsOf "Rev" "nth"
 [1,2]
 \end{curry}
 
@@ -216,11 +217,11 @@ For instance, a communication could be:
 \begin{curry}
 > GetAnalysis
 < ok 5
-< Deterministic CurryTerm
-< Deterministic Text
-< Deterministic XML
-< HigherOrder   CurryTerm
-< DependsOn     CurryTerm
+< Deterministic curryterm
+< Deterministic text
+< Deterministic json
+< HigherOrder   curryterm
+< DependsOn     curryterm
 \end{curry}
 The command \code{SetCurryPath} instructs CASS to use the given
 directories to search for modules to be analyzed. This is necessary
@@ -242,21 +243,41 @@ we can communicate with CASS as follows (user inputs are prefixed by \ccode{>});
 > telnet localhost 12345
 Connected to localhost.
 > GetAnalysis
-ok 57
-Overlapping XML
-Overlapping CurryTerm
-Overlapping Text
-Deterministic XML
+ok 198
+Functional text
+Functional short
+Functional curryterm
+Functional json
+Functional jsonterm
+Functional xml
+Overlapping text
 ...
-> AnalyzeModule Demand Text Rev
+> AnalyzeModule Demand text Rev
 ok 3
 append : demanded arguments: 1
-main : demanded arguments: 1,2
+nth : demanded arguments: 1,2
 rev : demanded arguments: 1
-> AnalyzeModule Demand CurryTerm Rev
+> AnalyzeModule Demand curryterm Rev
 ok 1
-[(("Rev","append"),"demanded arguments: 1"),(("Rev","main"),"demanded arguments: 1,2"),(("Rev","rev"),"demanded arguments: 1")]
-> AnalyzeModule Demand XML Rev
+[(("Rev","append"),"[1]"),(("Rev","nth"),"[1,2]"),(("Rev","rev"),"[1]")]
+> AnalyzeModule Demand json Rev
+ok 15
+[ {
+  "module": "Rev",
+  "name": "append",
+  "result": "demanded arguments: 1"
+}
+, {
+  "module": "Rev",
+  "name": "nth",
+  "result": "demanded arguments: 1,2"
+}
+, {
+  "module": "Rev",
+  "name": "rev",
+  "result": "demanded arguments: 1"
+} ]
+> AnalyzeModule Demand xml Rev
 ok 19
 <?xml version="1.0" standalone="yes"?>
 
@@ -268,7 +289,7 @@ ok 19
   </operation>
   <operation>
     <module>Rev</module>
-    <name>main</name>
+    <name>nth</name>
     <result>demanded arguments: 1,2</result>
   </operation>
   <operation>
@@ -447,9 +468,12 @@ To show an example of a more complex kind of analysis, we consider
 a determinism analysis.
 Such an analysis could be based
 on an abstract domain described by the data type
+%
 \begin{curry}
 data Deterministic = NDet | Det
+  deriving (Eq, Read, Show)
 \end{curry}
+%
 Here, \code{Det} is interpreted as ``the operation always evaluates
 in a deterministic manner on ground constructor terms.''
 However, \code{NDet} is interpreted as ``the operation \emph{might}
@@ -543,7 +567,7 @@ number of fixpoint iterations (which depends also on the depth
 of the abstract domain).\footnote{CASS supports different
 methods to compute fixpoints, see
 the property \code{fixpoint} in the configuration file
-\code{.curryanalysisrc} which is installed in the user's home directory
+\code{.cassrc} which is installed in the user's home directory
 when CASS is started for the first time.
 This property can also be set in the command to invoke CASS.}
 Beyond the analysis time, it is also important that the analysis
@@ -552,6 +576,34 @@ Termination can be achieved by using
 an abstract domain with finitely many values and defining
 the analysis function so that it is monotone w.r.t.\ some ordering
 on the abstract values.
+
+\paragraph{Required class instances.}
+Note that the type of an abstract domain are required to have
+instances of the type classes \code{Eq}, \code{Read}, \code{Show},
+and \code{ReadWrite}, since abstract values need to be compared
+(e.g., to check whether a fixpoint has been reached)
+and persistently stored (to support an incremental modular analysis).
+Whereas instances of \code{Eq}, \code{Read}, and \code{Show}
+can be automatically derived (via a \code{deriving} annotation
+as shown above),
+instances of \code{ReadWrite} (which support a compact data representation)
+can be generated by the tool \code{curry-rw-data}.
+This tool is available as a Curry package and can be installed by
+%
+\begin{curry}
+> cypm install rw-data-generator
+\end{curry}
+%
+Then, \code{ReadWrite} instances of all data types defined
+in a module \code{AnaMod} can be generated by the command
+%
+\begin{curry}
+> curry-rw-data AnaMod
+\end{curry}
+%
+This command generates a new module \code{AnaModRW} containing
+the instance definitions which might be inserted into
+the analysis implementation module \code{AnaMod}.
 
 %%% Local Variables:
 %%% mode: latex

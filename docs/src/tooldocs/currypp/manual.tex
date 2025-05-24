@@ -679,8 +679,6 @@ declarations is discussed below):
 \begin{curry}
 {-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=defaultrules #-}
 
-import Control.SetFunctions
-
 mlookup key (_ ++ [(key,value)] ++ _) = Just value
 mlookup'default _   _                 = Nothing 
 \end{curry}
@@ -694,8 +692,6 @@ of the queens on the chessboard (see the first rule of \code{safe}):
 %
 \begin{curry}
 {-# OPTIONS_FRONTEND -F --pgmF=currypp --optF=defaultrules #-}
-
-import Control.SetFunctions
 
 -- Some permutation of a list of elements:
 perm :: [a] -> [a]
@@ -716,20 +712,6 @@ queens n = safe (permute [1..n])
 
 \paragraph{Important notes:}
 \begin{enumerate}
-\item
-The implementation of default rules is based on set functions
-(implemented by the module \code{Control.SetFunctions}).
-Therefore, the package \code{setfunctions} should be installed
-as a dependency.
-This can easily be done by executing
-%
-\begin{curry}
-> cypm add setfunctions
-\end{curry}
-%
-before compiling a program containing default rules with the
-Curry preprocessor.
-
 \item
 Default rules can only be added to operations defined at the top-level
 (i.e., not to locally defined operations).
@@ -803,15 +785,13 @@ ERROR: Execution aborted due to contract violation!
 \end{curry}
 
 \paragraph{Important note:}
-The implementation of default rules is based on set functions
-(implemented by the module \code{Control.SetFunctions}) and
+The implementation of default rules is based on
 the auxiliary package to check contracts at run time.
-Therefore, the packages \code{setfunctions} and \code{contracts}
+Therefore, the package \code{contracts}
 should be installed as dependencies.
 This can easily done by executing
 %
 \begin{curry}
-> cypm add setfunctions
 > cypm add contracts
 \end{curry}
 %

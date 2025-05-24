@@ -9,6 +9,7 @@ if its definition contains overlapping left-hand sides or free variables,
 or if it depends on some non-deterministic operation.
 
 If calls to non-deterministic operations are encapsulated (by the
-use of set functions or operations from module `AllSolutions`),
+use of set functions or operations from the modules
+`Control.Search.AllValues` or `Control.Search.Unsafe`,
 then it is classified as deterministic since the non-determinism
 does not occur at the top-level.

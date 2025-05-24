@@ -7,7 +7,7 @@ i.e., deterministically reducible for all ground data terms as inputs.
 
 Thus, an operation is totally and functionally defined if
 
-* it is pattern complete
+* it is pattern complete (see analysis `PatComplete`)
 * it does not contain overlapping left-hand sides or free variables
 * it depends only on totally and functionally defined operations.
 

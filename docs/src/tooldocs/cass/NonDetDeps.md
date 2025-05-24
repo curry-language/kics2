@@ -11,9 +11,10 @@ if its definition contains overlapping left-hand sides or free variables.
 Non-deterministic operations that are called by other
 non-deterministic operations are ignored so that only the first
 (w.r.t. the call sequence) non-deterministic operations are returned.
-Moreover, if the non-determinism of an operation is encapsulated by a
-set function or an encapsulated search operation of the module
-`AllSolutions`, it is considered as deterministic.
+If the non-determinism of an operation is encapsulated by
+a set function or an encapsulated search operation of the modules
+`Control.Search.AllValues` or `Control.Search.Unsafe`,
+it is considered as deterministic.
 
 For instance, consider the operations
 

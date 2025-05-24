@@ -28,5 +28,6 @@ has the required value typing
 
     f: ({} -> True)
 
-A detailed description of this analysis and its application can be found in the
-[LOPSTR'15 paper](http://www.informatik.uni-kiel.de/~mh/papers/LOPSTR15.html).
+A detailed description of this analysis and its application can be found
+in the paper on
+[transforming Boolean equalities into constraints](http://doi.org/10.1007/s00165-016-0399-6).

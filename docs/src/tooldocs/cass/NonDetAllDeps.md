@@ -8,9 +8,10 @@ For this purpose, the analysis computes for each operation the set of
 operations with a non-deterministic definition that might be called
 by this operation. An operation has a non-deterministic definition
 if its definition contains overlapping left-hand sides or free variables.
-If the non-determinism of an operation is encapsulated
-by a set function or an encapsulated search operation of the module
-`AllSolutions`, it is considered as deterministic.
+If the non-determinism of an operation is encapsulated by
+a set function or an encapsulated search operation of the modules
+`Control.Search.AllValues` or `Control.Search.Unsafe`,
+it is considered as deterministic.
 
 For instance, consider the operations
 

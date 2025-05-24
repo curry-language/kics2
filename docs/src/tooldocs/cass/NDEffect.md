@@ -12,7 +12,7 @@ For instance, the operation
     not True  = False
     not False = True
 
-is performs non-deterministic steps if the first argument is non-ground.
+performs non-deterministic steps if the first argument is non-ground.
 
 The idea and details of this analysis can be found in the
-[ICLP'05 paper](http://www.informatik.uni-kiel.de/~mh/papers/ICLP05.html).
+[ICLP 2005 paper](https://doi.org/10.1007/11562931_21).
