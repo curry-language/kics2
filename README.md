@@ -82,4 +82,4 @@ This directory contains:
 
 -------------------------------------------------------------
 
-Contact: [Michael Hanus](http://www.informatik.uni-kiel.de/~mh/)
+Contact: [Michael Hanus](http://www.michaelhanus.de/)

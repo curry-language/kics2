@@ -116,6 +116,6 @@ two system files and install your system as follows:
 
 -------------------------------------------------------------
 
-Contact: [Michael Hanus](http://www.informatik.uni-kiel.de/~mh/)
+Contact: [Michael Hanus](http://www.michaelhanus.de/)
 
 [MinGW]: http://www.mingw.org/

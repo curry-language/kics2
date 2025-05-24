@@ -6,10 +6,10 @@ Installation Instructions for the GIT Repository
 
 If you want to install the up-to-date version of KiCS2
 from the developer's repository, you have to clone the
-[git repository](https://git-ps.informatik.uni-kiel.de/curry/kics2),
+[git repository](https://github.com/curry-language/kics2),
 e.g., by the shell command
 
-    git clone https://git.ps.informatik.uni-kiel.de/curry/kics2.git
+    git clone https://github.com/curry-language/kics2.git
 
 This creates a new directory `kics2` containing the current version.
 Go into this directory by
@@ -77,10 +77,9 @@ bootstrapped compiler to rebuild itself.
 
     make CURRY=[path/to/other/kics2]/bin/kics2
 
-Further information is available in the installation instructions
-of the KiCS2 distribution which can be found
-[here](https://git.ps.informatik.uni-kiel.de/curry/kics2/-/blob/master/INSTALL.md).
+Further information is available in the
+[installation instructions of KiCS2](https://github.com/curry-language/kics2/blob/master/INSTALL.md).
 
 -------------------------------------------------------------
 
-Contact: [Michael Hanus](https://www.informatik.uni-kiel.de/~mh/)
+Contact: [Michael Hanus](https://www.michaelhanus.de/)
