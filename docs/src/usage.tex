@@ -276,6 +276,7 @@ is finished.
 
 \end{description}
 
+
 \subsection{Options of \CYS}
 \label{sec:options}
 
@@ -403,14 +404,16 @@ in Curry programs. The default setting is
 :set prompt "%s> "
 \end{curry}
 
-\item[\fbox{\code{+/-interactive}}]\pindex{interactive}
+\item[\fbox{\code{+/-interactive}}]\pindex{interactive}%
+\index{interactive mode}\index{mode!interactive}
 Turn on/off the interactive mode.
 In the interactive mode, the next non-deterministic value
 is only computed when the user requests it.
 Thus, one has also the possibility to terminate the
 enumeration of all values after having seen some values.
 
-\item[\fbox{\code{+/-first}}]\pindex{first}
+\item[\fbox{\code{+/-first}}]\pindex{first}%
+\index{first-only mode}\index{mode!first only}
 Turn on/off the first-only mode.
 In the first-only mode, only the first value
 of the main expression is printed (instead of all values).
@@ -418,23 +421,25 @@ of the main expression is printed (instead of all values).
 \item[\fbox{\code{+/-optimize}}]\pindex{optimize}
 Turn on/off the optimization of the target program.
 
-\item[\fbox{\code{+/-bindings}}]\pindex{bindings}
+\item[\fbox{\code{+/-bindings}}]\pindex{bindings}%
+\index{binding mode}\index{mode!binding}
 Turn on/off the binding mode.
 If the binding mode is on (default),
 then the bindings of the free variables of the initial expression
 are printed together with the result of the expression.
 
-\item[\fbox{\code{+/-time}}]\pindex{time}
+\item[\fbox{\code{+/-time}}]\pindex{time}\index{time mode}\index{mode!time}
 Turn on/off the time mode. If the time mode is on,
 the cpu time and the elapsed time
 of the computation is always printed together with the result
 of an evaluation.
 
-\item[\fbox{\code{+/-trace}}]\pindex{trace}
+\item[\fbox{\code{+/-trace}}]\pindex{trace}\index{trace mode}\index{mode!trace}
 Turn on/off the trace mode. If the trace mode is on,
 it is possible to trace the sources of failing computations.
 
-\item[\fbox{\code{+/-profile}}]\pindex{profile}\index{profiling}
+\item[\fbox{\code{+/-profile}}]\pindex{profile}\index{profiling}%
+\index{profile mode}\index{mode!profile}
 (only available when configured during installation, see Section~\ref{sec-install})
 Turn on/off the profile mode. If the profile mode is on,
 expressions as well as programs are compiled with GHC's profiling
@@ -477,13 +482,14 @@ of the Glasgow Haskell Compiler. This might result in a slower
 execution but in a faster startup time since the linker
 to create the main executable is not used.
 
-\item[\fbox{\code{safe}}]\pindex{safe}
+\item[\fbox{\code{safe}}]\pindex{safe}%
+\index{safe execution mode}\index{mode!safe execution}
 Turn on the safe execution mode.
 In the safe execution mode, the initial goal is
 not allowed to be of type \code{IO} and the program should not
-import the module \code{Unsafe}.
-Furthermore, the allowed commands are
-\code{eval}, \code{load}, \code{quit}, and \code{reload}.
+import the module \code{System.IO.Unsafe}.
+Furthermore, only the commands
+\code{eval}, \code{load}, \code{quit}, and \code{reload} are allowed.
 This mode is useful to use \CYS in uncontrolled environments,
 like a computation service in a web page, where \CYS could
 be invoked by
