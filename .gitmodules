@@ -6,4 +6,4 @@
 	url = https://github.com/curry-packages/base.git
 [submodule "frontend"]
 	path = frontend
-	url = https://git.ps.informatik.uni-kiel.de/curry/curry-frontend.git
+	url = https://github.com/cau-placc/curry-frontend.git
