@@ -246,6 +246,7 @@ all:
 bootstrap: $(STAGE3REPL)
 	$(MAKE) scripts
 	$(MAKE) tools
+	chmod -R go+rX .
 	@$(ECHOSUCCESS) "Successfully bootstrapped KiCS2!"
 	@$(ECHOSUCCESS) "The executables are located in $(BINDIR)"
 
