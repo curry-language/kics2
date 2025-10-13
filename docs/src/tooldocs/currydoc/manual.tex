@@ -1,21 +1,23 @@
-\section{\texttt{curry-doc}: A Documentation Generator for Curry Programs}
+\section{CurryDoc: A Documentation Generator for Curry Programs}
 
 CurryDoc\index{CurryDoc}%
 \index{program!documentation}\index{documentation generator}
-is a tool in the \CYS distribution that generates
+is a tool to generate
 the documentation for a Curry program (i.e., the main module
 and all its imported modules) in HTML format.
+It can also be used with the Curry Package Manager CPM
+(see below) to generate the documentation of a Curry package.
 The generated HTML pages contain information about
-all data types and functions exported by a module as well
+all data types, type classes and operations exported by a module as well
 as links between the different entities.
 Furthermore, some information about the definitional status
-of functions (like rigid, flexible, external, complete, or
+of operations (like rigid, flexible, external, complete, or
 overlapping definitions) are provided and combined with
 documentation comments provided by the programmer.
 
 \subsection{Installation}
 
-The current implementation of CurryDoc is a package
+The implementation of CurryDoc is contained in a package
 managed by the Curry Package Manager CPM.
 Thus, to install the newest version of CurryDoc, use the following commands:
 %
@@ -31,46 +33,56 @@ in order to execute CurryDoc as described below.
 
 \subsection{Documentation Comments}
 
+The documentation syntax follows Haddock
+(see \url{https://www.haskell.org/haddock/doc/html/index.html}).%
+\footnote{Note that older versions of CurryDoc ($< 5.0.0$)
+use a slightly different syntax which is still supported but
+should not be used.}
+
 A \emph{documentation comment}%
 \index{documentation comment}\index{comment!documentation}
-starts at the beginning of a line
-with \ccode{--- }\pindex{---} (also in literate programs!).
-All documentation comments immediately before a
-definition of a datatype or (top-level) function are kept together.\footnote{%
-The documentation tool recognizes this association from the first identifier
-in a program line. If one wants to add a documentation comment
-to the definition of a function which is an infix operator,
-the first line of the operator definition should be a type definition,
-otherwise the documentation comment is not recognized.}
+starts with \ccode{-{}- | } or \ccode{-{}- \textasciicircum }
+(also in literate programs!).%
+\footnote{\ccode{-{}-{}- } can be used instead of
+          \ccode{-{}- | } for backwards compatibility}
+The former style can be used to write document comments preceding a declaration
+and the latter for comments following a declaration.
+Nested comments are also supported with  \ccode{\{- | }
+or \ccode{\{- \textasciicircum}
+Other comments are also considered as documentation comments, if they are
+on a line directly below another documentation comment.
+
 The documentation comments for the complete module occur before
 the first ``module'' or ``import'' line in the module.
-The comments can also contain several special tags. These tags
+The module comments can also contain several special tags. These tags
 must be the first thing on its line (in the documentation comment)
-and continues until the next tag is encountered or until the
-end of the comment. The following tags are recognized:
+and continues until a line has at most the same degree of indentation or
+until the end of the comment.
+No tag must occur in the module comments, but any
+occurring tag as to be in the specified order.
+The following tags are recognized:
 \begin{description}
-\item[\code{@author}]\pindex{"@author} \emph{comment}\\
-Specifies the author of a module (only reasonable in module comments).
-\item[\code{@version}]\pindex{"@version} \emph{comment}\\
-Specifies the version of a module (only reasonable in module comments).
-\item[\code{@cons}]\pindex{"@cons} \emph{id} \emph{comment}\\
-A comment for the constructor \emph{id} of a datatype
-(only reasonable in datatype comments).
-\item[\code{@param}]\pindex{"@param} \emph{id} \emph{comment}\\
-A comment for function parameter \emph{id}
-(only reasonable in function comments).
-Due to pattern matching, this need not be the name of a parameter
-given in the declaration of the function but all parameters
-for this functions must be commented in left-to-right order
-(if they are commented at all).
-\item[\code{@return}]\pindex{"@return} \emph{comment}\\
-A comment for the return value of a function
-(only reasonable in function comments).
+\item[\code{Description:}]\pindex{"Description:} \emph{comment}\\
+Specifies a short description of a module
+\item[\code{Category:}]\pindex{"Category:} \emph{comment}\\
+Specifies the category of a module
+\item[\code{Author:}]\pindex{"Author:} \emph{comment}\\
+Specifies the author of a module
+\item[\code{Version:}]\pindex{"Version:} \emph{comment}\\
+Specifies the version of a module
 \end{description}
+All text following the tags can be used for a longer module description.
+
+The ordering of the final documentation can be controlled via the export list
+in the module header.
+The user can insert section headings via comments of the form \ccode{-{}- *} or
+\ccode{\{- * }. The number of \ccode{*} controls if it is a subsection,
+subsubsection, etc.
+
 The comment of a documented entity can be any string in
 \emph{Markdown syntax}\index{markdown}\footnote{%
-\url{http://en.wikipedia.org/wiki/Markdown}}
-(the currently supported set of elements is described in the
+\url{http://en.wikipedia.org/wiki/Markdown}}.
+The currently supported set of elements is described in the
 Curry package \code{markdown}.\footnote{%
 \url{https://cpm.curry-lang.org/pkgs/markdown.html}}
 For instance, it can contain Markdown annotations for
@@ -83,14 +95,11 @@ quotations (lines prefixed by ``\verb!> !''),
 and web links of the form \ccode{<http://\ldots>}
 or \ccode{[link text](http://\ldots)}.
 If the Markdown syntax should not be used, one could run CurryDoc
-with the parameter \ccode{--nomarkdown}.
+with the option \ccode{-{}-nomarkdown}.
 
-The comments can also contain markups in HTML format
-so that special characters like \ccode{<}
-must be quoted (e.g., \ccode{\&lt;}).
-However, header tags like \code{<h1>} should not be used
-since the structuring is generated by CurryDoc.
-In addition to Markdown or HTML markups,
+The comments cannot contain markups in HTML format anymore,
+due to the possibility of XSS-Attacks.
+In addition to Markdown,
 one can also mark \emph{references to names} of operations or data types
 in Curry programs which are translated into links inside
 the generated HTML documentation. Such references have to be
@@ -102,49 +111,62 @@ of the module \code{Prelude}.
 If one wants to write single quotes without this specific
 meaning, one can escape them with a backslash:
 \begin{curry}
---- This is a comment without a \'reference\'.
+-- | This is a comment without a \'reference\'.
 \end{curry}
 To simplify the writing of documentation comments,
 such escaping is only necessary for single words,
 i.e., if the text inside quotes has not the syntax of
 an identifier, the escaping can be omitted, as in
 \begin{curry}
---- This isn't a reference.
+-- | This isn't a reference.
 \end{curry}
 %
 The following example text shows a Curry program with some
 documentation comments:
 \begin{curry}
---- This is an
---- example module.
---- @author Michael Hanus
---- @version 0.1
+{- |
+     Description: A simple example for CurryDoc
+     Author     : Michael Hanus
+     Version    : 0.1
 
-module Example where
+     This is an
+     example module.
+-}
+module Example (
+  -- * Tree type
+  Tree(..),
+  -- * Operations on lists
+  last,
+  -- ** Operations repeated from the prelude
+  conc
+ ) where
 
---- The function `conc` concatenates two lists.
---- @param xs - the first list
---- @param ys - the second list
---- @return a list containing all elements of `xs` and `ys`
-conc []     ys = ys
+-- | The function `conc` concatenates two lists.
+--   It is identical to the function 'Prelude.++'.
+conc :: [a] -- ^ The first list
+     -> [a] -- ^ The second list
+     -> [a] -- ^ A list containing all elements of the parameters
 conc (x:xs) ys = x : conc xs ys
--- this comment will not be included in the documentation
+conc []     ys = ys
+-- ^ This comment will also be included in the documentation
 
---- The function `last` computes the last element of a given list.
---- It is based on the operation 'conc' to concatenate two lists.
---- @param xs - the given input list
---- @return last element of the input list
+-- | The function `last` computes the last element of a given list.
+--   It is based on the operation 'conc' to concatenate two lists.
+last :: Data a
+     => [a] -- ^ The given input list
+     -> a   -- ^ The last element of the input list
 last xs | conc ys [x] =:= xs  = x   where x,ys free
 
---- This data type defines _polymorphic_ trees.
---- @cons Leaf - a leaf of the tree
---- @cons Node - an inner node of the tree
-data Tree a = Leaf a | Node [Tree a]
+-- | This data type defines _polymorphic_ trees.
+data Tree a = Leaf a -- ^ A leaf of the tree
+            | Node [Tree a] -- ^ An inner node of the tree
 \end{curry}
 
-\subsection{Generating Documentation}
 
-To generate the documentation, execute the command
+\subsection{Generating Documentation for Curry Modules}
+
+To generate the documentation of the module \code{Example} shown above,
+execute the command
 \pindex{curry-doc}\pindex{doc}
 \begin{curry}
 curry-doc Example
@@ -165,13 +187,13 @@ In order to generate the common documentation for large collections
 of Curry modules (e.g., the libraries contained in the \CYS distribution),
 one can call \code{curry-doc} with the following options:
 \begin{description}
-\item[\code{curry-doc --noindexhtml docdir Mod}~:]
+\item[\code{curry-doc --noindexhtml docdir Mod}] ~\\
 \pindex{noindex}
 This command generates the documentation for module \code{Mod}
 in the directory \code{docdir} without the index pages (i.e., main index page
 and index pages for all functions and constructors defined in \code{Mod}
 and its imported modules).
-\item[\code{curry-doc --onlyindexhtml docdir Mod1 Mod2 \ldots Mod$n$}~:]
+\item[\code{curry-doc --onlyindexhtml docdir Mod1 Mod2 \ldots Mod$n$}] ~\\
 \pindex{onlyindex}
 This command generates only the index pages (i.e., a main index page
 and index pages for all functions and constructors defined in the modules
@@ -179,7 +201,22 @@ and index pages for all functions and constructors defined in the modules
 in the directory \code{docdir}.
 \end{description}
 
+\subsection{Generating Documentation for Curry Packages}
+
+CurryDoc is also used by the Curry Package Manager CPM
+to generate the documentation of a Curry package.
+Inside a Curry package, one can execute the command
+%
+\begin{curry}
+> cypm doc
+\end{curry}
+%
+to generate the documentation of all modules exported by this package.
+A detailed description of this command and its options
+can be found in the manual of CPM.
+
+
 %%% Local Variables:
 %%% mode: pdflatex
-%%% TeX-master: "manual"
+%%% TeX-master: "main"
 %%% End:

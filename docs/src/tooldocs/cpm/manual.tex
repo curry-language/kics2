@@ -1221,13 +1221,21 @@ directory.
 The actual documentation will be stored in the subdirectory
 \code{$name$-$version$} of the documentation directory.
 
-The API documentation in HTML format is generated with CurryDoc.
+The API documentation in HTML format is generated with CurryDoc,\footnote{%
+\url{https://cpm.curry-lang.org/pkgs/currydoc.html}}
+i.e., CPM invokes the executable \code{curry-doc} to generate
+the HTML documentation.
+If the executable of CurryDoc is installed with another name
+or in a directory which is not part of the standard load path,
+one can specify the name of the executable by the option \code{--executable}.
+
 If the package specification contains a list of exported modules
-(see Section~\ref{sec:reference}),
-then these modules are documented.
-Otherwise, the main module (if the package specification contains
-the entry \code{executable}, see Section~\ref{sec:reference})
-or all modules in the directory \code{src}
+(see Section~\ref{sec:reference}), then these modules are documented.
+If the package specification contains the entry \code{executable}
+(see Section~\ref{sec:reference}) but no list of exported modules,
+no modules are documented.
+Otherwise, all modules in the directory \code{src} or other directories
+specified in \code{sourceDirs} field of the package specification
 (including hierarchical modules stored in its subdirectories)
 are documented.
 Using the option \code{--modules}, one can also specify a comma-separated
