@@ -236,6 +236,7 @@ all:
 	$(MAKE) tools
 	# compile all libraries:
 	$(MAKE) compile-all-libs
+	chmod -R go+rX .
 	@$(ECHOSUCCESS) "Successfully built KiCS2!"
 	@$(ECHOSUCCESS) "The executables are located in $(BINDIR)"
 
