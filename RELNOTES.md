@@ -1,12 +1,13 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.4.0 (October 13, 2025)
+Release notes for KiCS2 Version 3.4.0 (October 28, 2025)
 --------------------------------------------------------
 
 Changes to version 3.3.0:
 
   * Add library `Data.Monoid` to system libraries.
+  * Add operation `withFile` to library `System.IO`.
 
 
 Release notes for KiCS2 Version 3.3.0 (April 3, 2025)
