@@ -1,6 +1,6 @@
 {
     "name": "kics2",
-    "version": "3.4.0",
+    "version": "3.5.0",
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "The Kiel Curry System (Version 2)",
     "category": [ "Compilers", "Metaprogramming" ],
@@ -13,8 +13,8 @@
         "containers"          : ">= 3.0.0, < 4.0.0",
         "directory"           : ">= 3.0.0, < 4.0.0",
         "filepath"            : ">= 3.0.0, < 4.0.0",
-        "flatcurry"           : ">= 3.0.0, < 5.0.0",
-        "flatcurry-annotated" : ">= 3.3.0, < 4.0.0",
+        "flatcurry"           : ">= 5.0.0, < 6.0.0",
+        "flatcurry-annotated" : ">= 4.0.0, < 5.0.0",
         "io-extra"            : ">= 3.0.0, < 4.0.0",
         "scc"                 : ">= 3.0.0, < 4.0.0",
         "process"             : ">= 3.0.0, < 4.0.0",

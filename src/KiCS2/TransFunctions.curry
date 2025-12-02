@@ -671,7 +671,7 @@ trExpr qname (Comb (ConsPartCall i) qn es) =
   genIds g (wrapPartCall True  dm True D FuncFO i (AHG.applyF qn' es'))
 
 trExpr x (Let ds e) =
-  let (vs, es) = unzip ds in
+  let (vs, _, es) = unzip3 ds in
   mapM (trExpr x) es >>= unzipArgs >>= \(g, es') ->
   trExpr x e       >>=               \(ge, e') ->
   genIds (g ++ ge) (AHG.clet (zipWith AHG.declVar (map cvVarIndex vs) es') e')
@@ -687,7 +687,7 @@ trExpr s (Free vs e) =
   takeNextIDs (length vs) >>= \is   ->
   trExpr s e             >>= \(g, e') ->
   genIds (is ++ g) (AHG.clet (zipWith mkFree vs is) e')
-  where mkFree v i = AHG.declVar (cvVarIndex v) (generate $ supplyVar i)
+  where mkFree (v,_) i = AHG.declVar (cvVarIndex v) (generate $ supplyVar i)
 
 -- This case should not occur because:
 --   * Nested case expressions have been lifted using LiftCase

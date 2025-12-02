@@ -162,7 +162,7 @@ isNDExpr = trExpr cf cf combf letf freef orf casef branchf typedf
   where
     cf               x = const False x -- (variable / literal)
     combf    _ _ isNDs = or isNDs
-    letf ndBinds ndExp = or (ndExp : map snd ndBinds)
+    letf ndBinds ndExp = or (ndExp : map (\(_,_,z) -> z) ndBinds)
     freef         vs _ = not (P.null vs)
     orf            _ _ = True
     casef       _ e bs = or (e : bs)
@@ -183,7 +183,7 @@ funcsInExp (Comb ct f es)
   | isFuncCall ct = f `Set.insert` unionMap funcsInExp es
   | otherwise     =                unionMap funcsInExp es
 funcsInExp (Free     _ e) = funcsInExp e
-funcsInExp (Let     bs e) = unionMap funcsInExp (e : map snd bs)
+funcsInExp (Let     bs e) = unionMap funcsInExp (e : expsOfLetBind bs)
 funcsInExp (Or     e1 e2) = funcsInExp e1 `Set.union` funcsInExp e2
 funcsInExp (Case  _ e bs) = unionMap funcsInExp (e : map branchExpr bs)
 funcsInExp (Typed    e _) = funcsInExp e

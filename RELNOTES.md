@@ -1,6 +1,30 @@
 Release Notes for KiCS2
 =======================
 
+Release notes for KiCS2 Version 3.5.0 (December 2, 2025)
+--------------------------------------------------------
+
+Changes to version 3.4.0:
+
+  * Front end updated: the FlatCurry files (extension `.fcy`) produced
+    by the front end contain type information for free and let-bound
+    variables. The new structure is specified in the corresponding package
+    `flatcurry` version `5.0.0` in the type definition of FlatCurry
+    expressions:
+
+        data Expr
+          = ...
+          | Let [(VarIndex, TypeExpr,Expr)] Expr
+          | Free [(VarIndex,TypeExpr)] Expr
+          | ...
+
+    The annotated type information is useful for meta-programming tools
+    which require detailed type information in FlatCurry programs.
+
+    There is also a new package `flatcurry-addtypes` which annotates
+    all FlatCurry expressions with their corresponding types.
+
+
 Release notes for KiCS2 Version 3.4.0 (October 29, 2025)
 --------------------------------------------------------
 
