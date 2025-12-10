@@ -55,11 +55,22 @@ elif [ -x $CPMBIN/cypm ] ; then
 else
   USECPM=no
 fi
+
+# use readline wrapper rlwrap if rlwrap exists, we have tty as stdin,
+# and we have a home directory to store rlwrap's history:
+USERLWRAP=no
+if tty -s ; then
+  RLWRAP=`command -v rlwrap`
+  if [ -x "$RLWRAP" -a -d "$HOME" ] ; then
+    USERLWRAP=yes
+  fi
+fi
+
 for i in $* ; do
   case $i in
-    --help | -h | -\? ) USECPM=no ;;
-    --version | -V    ) USECPM=no ;;
-    --nocypm | -n | --numeric-version | --compiler-name | --base-version ) USECPM=no ;;
+    --help | -h | -\? | --version | -V | --numeric-version | --compiler-name | --base-version ) USECPM=no ; USERLWRAP=no ;;
+    --nocypm | -n     ) USECPM=no ;;
+    --noreadline      ) USERLWRAP=no ;;
   esac
 done
 
@@ -89,22 +100,6 @@ if [ ! -x "$REPL" ] ; then
   echo "Run: cd $KICS2HOME && make" >&2
   exit 1
 fi
-
-# use readline wrapper rlwrap if rlwrap exists, we have tty as stdin,
-# and we have a home directory to store rlwrap's history:
-USERLWRAP=no
-if tty -s ; then
-  RLWRAP=`which rlwrap`
-  if [ -x "$RLWRAP" -a -d "$HOME" ] ; then
-    USERLWRAP=yes
-  fi
-fi
-
-for i in $* ; do
-  if [ $i = "--noreadline" ] ; then
-    USERLWRAP=no
-  fi
-done
 
 # do not use rlwrap inside emacs:
 if [ "$TERM" = dumb ] ; then
