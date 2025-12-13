@@ -3,7 +3,7 @@
 --- It implements the Read-Eval-Print loop for KiCS2
 ---
 --- @author Michael Hanus, Bjoern Peemoeller, Finn Teegen
---- @version September 2024
+--- @version December 2025
 --- --------------------------------------------------------------------------
 module KiCS2.REPL where
 
@@ -114,6 +114,8 @@ processArgsAndStart rst (arg:args)
   = putStrLn numericVersion >> processArgsAndStart rst { quit = True} args
   | arg == "--base-version"
   = putStrLn baseVersion    >> processArgsAndStart rst { quit = True} args
+  | arg == "--process-state" && not (null args)
+  = processArgsAndStart rst { processState = head args } (tail args)
   | arg == "-h" || arg == "--help" || arg == "-?"
   = printHelp >> cleanUpAndExitRepl rst
   | isCommand arg = do
@@ -139,16 +141,17 @@ printHelpOnInteractive = putStrLn $ unlines
   , ""
   , "with options:"
   , ""
-  , "-h|--help|-?      : show this message and quit"
-  , "-V|--version      : show version and quit"
-  , "--compiler-name   : show the compiler name `kics2' and quit"
-  , "--numeric-version : show the compiler version number and quit"
-  , "--base-version    : show the version of the base libraries and quit"
-  , "-n|--nocypm       : do not invoke `cypm' to compute package load path"
-  , "--noreadline      : do not use input line editing via command `rlwrap'"
-  , "-Dprop=val        : define kics2rc property `prop' as `val'"
-  , "<commands>        : list of commands of the KiCS2 environment"
-  , "                    (run `kics2 :h :q' to see the list of all commands)"
+  , "-h|--help|-?        : show this message and quit"
+  , "-V|--version        : show version and quit"
+  , "--compiler-name     : show the compiler name `kics2' and quit"
+  , "--numeric-version   : show the compiler version number and quit"
+  , "--base-version      : show the version of the base libraries and quit"
+  , "-n|--nocypm         : do not invoke `cypm' to compute package load path"
+  , "--noreadline        : do not use input line editing via command `rlwrap'"
+  , "--process-state <c> : apply command <c> to generated executable"
+  , "-Dprop=val          : define kics2rc property `prop' as `val'"
+  , "<commands>          : list of commands of the KiCS2 environment"
+  , "                      (run `kics2 :h :q' to see the list of all commands)"
   , ""
   ]
 
@@ -829,10 +832,14 @@ processSave rst args
   | mainMod rst == preludeName rst = skipCommand "no program loaded"
   | otherwise = do
     (rst', status) <- compileProgramWithGoal rst True
-                      (if null args then "main" else args)
+                        (if null args then "main" else args)
+    let binname = mainMod rst'
+        pscmd   = processState rst'
     unless (status == MainError) $ do
-      renameFile ("." </> outputSubdir rst' </> "Main") (mainMod rst')
-      writeVerboseInfo rst' 1 ("Executable saved in '" ++ mainMod rst' ++ "'")
+      renameFile ("." </> outputSubdir rst' </> "Main") binname
+      writeVerboseInfo rst' 1 $ "Executable saved in '" ++ binname ++ "'"
+      -- post-process generated execution binary:
+      unless (null pscmd) $ void $ system (pscmd ++ " " ++ binname)
     cleanMainExpFile rst'
     return (Just rst')
 
@@ -847,7 +854,7 @@ processFork rst args
       let execname = "." </> outputSubdir rst' </> "kics2fork" ++ show pid
       renameFile ("." </> outputSubdir rst' </> "Main") execname
       writeVerboseInfo rst' 3 ("Starting executable '" ++ execname ++ "'...")
-      void $ system ("( "++execname++" && rm -f "++execname++ ") "++
+      void $ system ("( " ++ execname ++ " && rm -f " ++ execname ++ ") " ++
               "> /dev/null 2> /dev/null &")
     cleanMainExpFile rst'
     return (Just rst')
@@ -1036,6 +1043,7 @@ showCurrentOptions rst = intercalate "\n" $ filter notNull
   , "run-time arguments: " ++ rtsArgs rst
   , "verbosity         : " ++ show (verbose rst)
   , "prompt            : " ++ show (prompt rst)
+  , "process-state     : " ++ processState rst
   , unwords $ filter notNull
     [               showOnOff (interactive rst)  ++ "interactive"
     ,               showOnOff (firstSol rst)     ++ "first"

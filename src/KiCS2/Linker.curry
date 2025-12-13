@@ -4,8 +4,9 @@
 --- and compiling this main file together with all compiled Curry modules.
 ---
 --- @author Michael Hanus, Bjoern Peemoeller
---- @version January 2022
+--- @version December 2025
 --- --------------------------------------------------------------------------
+
 module KiCS2.Linker
   ( ReplState (..), NonDetMode (..), MainCompile (..), loadPaths
   , setExitStatus
@@ -68,6 +69,7 @@ data ReplState = ReplState
   , rtsArgs      :: String     -- run-time arguments passed to main application
   , quit         :: Bool       -- terminate the REPL?
   , exitStatus   :: Int        -- exit status (set in case of REPL errors)
+  , processState :: String     -- command to post-process a saved exec. state
   , sourceguis   :: [(String,(String,Handle))] -- handles to SourceProgGUIs
   , ghcicomm     :: Maybe GhciComm -- possible ghci comm. info
   }
@@ -106,6 +108,7 @@ initReplState = do
     , rtsArgs      = ""
     , quit         = False
     , exitStatus   = 0
+    , processState = ""
     , sourceguis   = []
     , ghcicomm     = Nothing
     }
