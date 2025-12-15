@@ -72,6 +72,5 @@ if [ -n "$DOCKERBIN" ] ; then
   chmod 755 "$DOCKERBIN"
   echo "New docker execution script written to '$DOCKERBIN'"
 else
-  echo docker run $DOCKEROPTS $DOCKERTAG $PSOPT "$PSCMD" ${1+"$@"}
   docker run $DOCKEROPTS $DOCKERTAG $PSOPT "$PSCMD" ${1+"$@"}
 fi
