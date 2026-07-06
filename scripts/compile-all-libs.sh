@@ -1,10 +1,23 @@
 #!/bin/sh
-# generate intermediate files of all libraries until everything is compiled
+# Generate intermediate files of all libraries until everything is compiled
+#
+# The following environment variables are used (from the main Makefile):
+# CURRYSYSTEM
+# LIBDIR
+# VERSION
+# MAJORVERSION
+# MINORVERSION
 
-CURRY=kics2
-FRONTEND=bin/$CURRY-frontend
-FRONTENDPARAMS="-o .curry/kics2-$VERSION -D__KICS2__=$MAJORVERSION$(printf "%02d
-" $MINORVERSION) -Ono-remove-unused-imports -ilib AllLibraries"
+# Hierarchical names of all system libraries:
+LIBNAMES=`cd $LIBDIR && find * -name "*.curry"| sed 's|.curry$||' | sed 's|/|.|g'`
+# put name of the Prelude at the front (to compile it first):
+LIBNAMES="Prelude `echo $LIBNAMES | sed 's|Prelude||'`"
+
+echo "Pre-compiling the following system libraries:"
+echo $LIBNAMES
+
+FRONTEND="bin/$CURRYSYSTEM-frontend"
+FRONTENDPARAMS="-o .curry/$CURRYSYSTEM-$VERSION -D__KMCC__=$MAJORVERSION$(printf "%02d" $MINORVERSION) -i$LIBDIR $LIBNAMES"
 
 compile_all() {
   "$FRONTEND" --flat                       $FRONTENDPARAMS
@@ -21,11 +34,14 @@ CCODE=0
 
 while [ $CCODE = 0 ] ; do
   compile_all | tee "$TMPOUT"
-  echo NEW COMPILED LIBRARIES IN THIS ITERATION:
+  echo "NEW COMPILED LIBRARIES IN THIS ITERATION:"
   grep Compiling "$TMPOUT"
   CCODE=$?
 done
 /bin/rm -r "$TMPOUT"
 
-echo "Compile Haskell targets..."
-bin/$CURRY --nocypm :set parser -Ono-remove-unused-imports :l AllLibraries :eval "42::Int" :quit
+echo "Compiling system libraries..."
+for LIB in $LIBNAMES ; do
+  bin/$CURRYSYSTEM --nocypm :set parser -Ono-remove-unused-imports :load $LIB :eval "42::Int" :quit
+done
+

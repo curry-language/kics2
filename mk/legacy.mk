@@ -253,9 +253,6 @@ export ALLDEPS     = $(sort $(RUNTIMEDEPS) $(LIBDEPS) $(SYSTEMDEPS))
 all:
 ifeq ($(DISTPKGINSTALL),yes)
 	$(MAKE) build
-	# if we build a package, we compile all libraries at the end
-	# so that their intermediate files are up to date:
-	$(REPL) $(REPL_OPTS) :load AllLibraries :eval "3*13+3" :quit
 else
 	@rm -f ${MAKELOG}
 	@echo "Make started at `date`" > ${MAKELOG}

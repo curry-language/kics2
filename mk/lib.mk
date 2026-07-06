@@ -38,7 +38,7 @@ LIB_CABAL_DEPS  = $(call comma_sep,$(LIBDEPS))
 # Executable of CurryDoc:
 CURRYDOC := $(shell which curry-doc)
 
-export LIB = $(LIB_CABAL) $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) $(LIBDIR)/$(ALLLIBS).curry # hstrace
+export LIB = $(LIB_CABAL) $(LIB_HS) $(LIB_AFCY) $(LIB_ACY) # hstrace
 export LIB_ARTIFACTS = $(LIBDIR)/.curry \
                        $(LIBDIR)/*.hi \
                        $(LIBDIR)/*.o \
