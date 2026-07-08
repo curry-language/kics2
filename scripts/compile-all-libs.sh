@@ -17,7 +17,7 @@ echo "Pre-compiling the following system libraries:"
 echo $LIBNAMES
 
 FRONTEND="bin/$CURRYSYSTEM-frontend"
-FRONTENDPARAMS="-o .curry/$CURRYSYSTEM-$VERSION -D__KMCC__=$MAJORVERSION$(printf "%02d" $MINORVERSION) -i$LIBDIR $LIBNAMES"
+FRONTENDPARAMS="-o .curry/$CURRYSYSTEM-$VERSION -D__KICS2__=$MAJORVERSION$(printf "%02d" $MINORVERSION) -i$LIBDIR $LIBNAMES"
 
 compile_all() {
   "$FRONTEND" --flat                       $FRONTENDPARAMS
