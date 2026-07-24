@@ -63,6 +63,12 @@ Currently, there are at least two options:
     in this directory. If `pakcs` is already on your `PATH`, simply
     running `make` without arguments will work too.
 
+    *Note:* If you installed PAKCS with SWI-Prolog, a memory problem
+    might occur during the compilation of the prelude. This is due to
+    memory restrictions in SWI-Prolog. Hence, it is recommended to use
+    PAKCS installed with SICStus-Prolog if KiCS2 should be bootstrapped
+    with PAKCS.
+
 Once successfully built, you will have a fully bootstrapped KiCS2 compiler.
 For development you may wish to rebuild the compiler, which you can do with
 
