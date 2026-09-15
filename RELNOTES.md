@@ -23,8 +23,9 @@ Changes to version 3.4.0:
 
     There is also a new package `flatcurry-addtypes` which annotates
     FlatCurry expressions in a program with their corresponding types.
+
   * Add option `process-state` to provide a command to process a generated
-    executable. This is used when invoking the docker image of PAKCS.
+    executable. This is used when invoking the docker image of KiCS2.
 
 
 Release notes for KiCS2 Version 3.4.0 (October 29, 2025)
