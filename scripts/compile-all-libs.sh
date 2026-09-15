@@ -16,8 +16,11 @@ LIBNAMES="Prelude `echo $LIBNAMES | sed 's|Prelude||'`"
 echo "Pre-compiling the following system libraries:"
 echo $LIBNAMES
 
+# name of Curry system in uppercase:
+CURRYUPPER=$(echo "$CURRYSYSTEM" | tr '[:lower:]' '[:upper:]')
+
 FRONTEND="bin/$CURRYSYSTEM-frontend"
-FRONTENDPARAMS="-o .curry/$CURRYSYSTEM-$VERSION -D__KICS2__=$MAJORVERSION$(printf "%02d" $MINORVERSION) -i$LIBDIR $LIBNAMES"
+FRONTENDPARAMS="-o .curry/$CURRYSYSTEM-$VERSION -D__"$CURRYUPPER"__=$MAJORVERSION$(printf "%02d" $MINORVERSION) -i$LIBDIR $LIBNAMES"
 
 compile_all() {
   "$FRONTEND" --flat                       $FRONTENDPARAMS
