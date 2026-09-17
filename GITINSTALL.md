@@ -34,12 +34,12 @@ to install KiCS2 via bootstrapping.
 Therefore, you have to install a distribution of some Curry
 implementation on your machine in order to start the
 bootstrapping process.
-Currently, there are at least two options:
+Currently, there are the following options:
 
- 1. Bootstrapping with KiCS2 3.0.0 or newer (the faster option)
+ 1. Bootstrapping with KiCS2 3.5.0 or newer (faster option)
 
     Download and install the KiCS2 distribution from the
-    [KiCS2 download site](https://www-curry-lang.org/kics2/download.html).
+    [KiCS2 download site](https://www.curry-lang.org/kics2/download.html).
     Be sure to use a different directory than this one for this installation,
     e.g., install this in `/tmp/kics2`.
     If you successfully installed this distribution (note that you do not
@@ -51,10 +51,21 @@ Currently, there are at least two options:
 
     in this directory.
 
- 2. Bootstrapping with PAKCS 3.0.0 or newer (the slower option)
+ 2. Bootstrapping with KMCC 0.6.0 or newer (faster option)
+
+    Download and install the KMCC implementation of Curry from the
+    [KMCC download site](https://www.curry-lang.org/kmcc/download.html).
+    If you successfully installed PAKCS, you can generate the fully bootstrapped
+    KiCS2 compiler by the command
+
+        make CURRY=[path/to/kmcc]/bin/kmcc
+
+    in this directory.
+
+ 3. Bootstrapping with PAKCS 3.10.0 or newer (slower option)
 
     Download and install the PAKCS implementation of Curry from the
-    [PAKCS web site](https://www.curry-lang.org/pakcs).
+    [PAKCS download site](https://www.curry-lang.org/pakcs/download.html).
     If you successfully installed PAKCS, you can generate the fully bootstrapped
     KiCS2 compiler by the command
 
@@ -74,12 +85,12 @@ For development you may wish to rebuild the compiler, which you can do with
 
     make
 
-This will build KiCS2 using `bin/kics2` in this directory, i.e. use the
-bootstrapped compiler to rebuild itself.
+This will build KiCS2 using `bin/kics2` in this directory, i.e., it uses
+the bootstrapped compiler to rebuild itself.
 
 > Note that changes to the KiCS2 compiler may make it unable to compile itself.
-  Therefore it is advised to always specify which compiler you wish to
-  compile KiCS2 with, e.g. another instance of KiCS2:
+  Therefore it is advised to always specify which compiler should be used to
+  compile KiCS2 with, e.g., another instance of KiCS2:
 
     make CURRY=[path/to/other/kics2]/bin/kics2
 
