@@ -1,8 +1,8 @@
 Release Notes for KiCS2
 =======================
 
-Release notes for KiCS2 Version 3.5.0 (September 28, 2026)
-----------------------------------------------------------
+Release notes for KiCS2 Version 3.5.0 (October 8, 2026)
+-------------------------------------------------------
 
 Changes to version 3.4.0:
 
@@ -26,6 +26,11 @@ Changes to version 3.4.0:
 
   * Add option `process-state` to provide a command to process a generated
     executable. This is used when invoking the docker image of KiCS2.
+
+  * Base libraries `Control.Search.Unsafe` and `Control.Search.AllValues`:
+    operations `...oneValueDFS` and `...allValuesDFS` added and
+    the already existing operations `...oneValue` and `...allValues`
+    use a breadth-first search strategy to compute values..
 
 
 Release notes for KiCS2 Version 3.4.0 (October 29, 2025)
